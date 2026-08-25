@@ -5,7 +5,7 @@ local MapScene = {}
 MapScene.__index = MapScene
 
 function MapScene.new(session)
-    return setmetatable({ session = session, message = "" }, MapScene)
+    return setmetatable({ session = session, message = "", cursor_node_id = nil }, MapScene)
 end
 
 function MapScene:get_view()
@@ -32,7 +32,48 @@ function MapScene:get_view()
         nodes = nodes,
         current_node_id = map.current_node_id,
         message = self.message,
+        cursor_node_id = self.cursor_node_id,
     }
+end
+
+function MapScene:get_selectable_nodes()
+    local current = self.session.map and self.session.map:get_current_node()
+    local result = {}
+    if current then
+        for _, node_id in ipairs(current.links) do
+            result[#result + 1] = self.session.map:get_node(node_id)
+        end
+    end
+    table.sort(result, function(a, b) return a.id < b.id end)
+    return result
+end
+
+function MapScene:move_cursor(direction)
+    local nodes = self:get_selectable_nodes()
+    if #nodes == 0 then
+        self.cursor_node_id = nil
+        return nil
+    end
+    local current_index = 1
+    for index, node in ipairs(nodes) do
+        if node.id == self.cursor_node_id then
+            current_index = index
+            break
+        end
+    end
+    local next_index = ((current_index - 1 + direction) % #nodes) + 1
+    self.cursor_node_id = nodes[next_index].id
+    return nodes[next_index]
+end
+
+function MapScene:select_cursor()
+    if not self.cursor_node_id then
+        self:move_cursor(1)
+    end
+    if not self.cursor_node_id then
+        return nil, "没有可选择的节点"
+    end
+    return self:select_node(self.cursor_node_id)
 end
 
 function MapScene:select_node(node_id)
@@ -42,6 +83,7 @@ function MapScene:select_node(node_id)
         return nil, self.message
     end
     self.message = ""
+    self.cursor_node_id = nil
     return result
 end
 
@@ -68,4 +110,3 @@ function MapScene:select_with_mouse(x, y, radius)
 end
 
 return MapScene
-

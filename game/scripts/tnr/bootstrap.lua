@@ -2,6 +2,11 @@ local GameSession = require("tnr.core.game_session")
 local LocalTransport = require("tnr.multiplayer.local_transport")
 local SinglePlayerInputProvider = require("tnr.input.single_player")
 local MapScene = require("tnr.map.map_scene")
+local LuaSTGInputProvider = require("tnr.input.luastg_input")
+local MapRenderer = require("tnr.ui.map_renderer")
+local StageAdapter = require("tnr.battle.stage_adapter")
+local DebugConsole = require("tnr.debug.console")
+local Event = require("tnr.core.event")
 
 local Bootstrap = {}
 
@@ -9,14 +14,27 @@ function Bootstrap.create(options)
     options = options or {}
     local session = GameSession.new(options)
     local transport = LocalTransport.new(session)
-    local input = SinglePlayerInputProvider.new(options.input)
+    local input = options.lstg and LuaSTGInputProvider.new(options.lstg) or SinglePlayerInputProvider.new(options.input)
     local map_scene = MapScene.new(session)
+    local renderer = options.lstg and MapRenderer.new(options.lstg, options.width or 1280, options.height or 720) or nil
+    local stage_adapter = StageAdapter.new(session, options.stage)
+    local debug_console = DebugConsole.new(session, {
+        on_kill_all = function()
+            return stage_adapter:kill_all()
+        end,
+    })
+    session:on(Event.ENCOUNTER_STARTED, function(event)
+        stage_adapter:start(event.encounter)
+    end)
 
     return {
         session = session,
         transport = transport,
         input = input,
         map_scene = map_scene,
+        renderer = renderer,
+        stage_adapter = stage_adapter,
+        debug_console = debug_console,
         initialized = false,
     }
 end
@@ -34,14 +52,33 @@ function Bootstrap:update()
         self:init()
     end
     local player_input = self.input:poll(1)
+    if self.session.run_state == "MAP" then
+        if player_input.move_x ~= 0 then
+            self.map_scene:move_cursor(player_input.move_x)
+        end
+        if player_input.confirm then
+            self.transport:send({ type = "SELECT_NODE", node_id = self.map_scene.cursor_node_id or (self.map_scene:get_selectable_nodes()[1] and self.map_scene:get_selectable_nodes()[1].id), player_id = 1 })
+        end
+        if player_input.mouse_primary_pressed and self.input.get_mouse_position then
+            local x, y = self.input:get_mouse_position()
+            self.map_scene:select_with_mouse(x / 1280, y / 720)
+        end
+    elseif self.session.run_state == "PLACEHOLDER" and (player_input.confirm or player_input.cancel) then
+        self.transport:send({ type = "RETURN_TO_MAP" })
+    end
     self.transport:submit_input(player_input)
     self.transport:update()
     return false
 end
 
 function Bootstrap:render()
-    -- Rendering is intentionally an adapter seam for the LuaSTG runtime.
-    -- The map scene already exposes a serializable view for a renderer/UI layer.
+    if self.renderer then
+        self.renderer:render(self.map_scene:get_view(), self.session)
+    end
+end
+
+function Bootstrap:execute_debug(line)
+    return self.debug_console:write(line)
 end
 
 function Bootstrap:shutdown()
@@ -49,4 +86,3 @@ function Bootstrap:shutdown()
 end
 
 return Bootstrap
-

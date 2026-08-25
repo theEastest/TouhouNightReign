@@ -12,8 +12,8 @@ function PlayerInput.new(player_id, tick, values)
         bomb = values.bomb == true,
         confirm = values.confirm == true,
         cancel = values.cancel == true,
+        mouse_primary_pressed = values.mouse_primary_pressed == true,
     }
 end
 
 return PlayerInput
-
