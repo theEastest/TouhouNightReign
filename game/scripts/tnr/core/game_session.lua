@@ -7,6 +7,8 @@ local PartyState = require("tnr.core.party_state")
 local MapGenerator = require("tnr.map.map_generator")
 local BattleResult = require("tnr.battle.battle_result")
 local RewardService = require("tnr.reward.reward_service")
+local EncounterManager = require("tnr.encounter.encounter_manager")
+local EncounterDefinitions = require("tnr.encounter.definitions")
 
 local GameSession = {}
 GameSession.__index = GameSession
@@ -39,6 +41,7 @@ function GameSession.new(options)
         listeners = {},
         rng = {},
         reward_service = RewardService.new(options.reward_thresholds),
+        encounter_manager = EncounterManager.new(EncounterDefinitions),
         god_mode = {},
     }, GameSession)
     return self
@@ -133,11 +136,14 @@ function GameSession:select_node(node_id, player_id)
 
     if node.type == Constants.node_types.ENEMY or node.type == Constants.node_types.BOSS then
         self.run_state = Constants.run_states.ENCOUNTER
+        local definition = self.encounter_manager:get(node.encounter_id)
+        assert(definition, "missing encounter definition: " .. tostring(node.encounter_id))
         self.current_encounter = {
-            id = node.encounter_id,
+            id = definition.id,
             node_id = node.id,
-            type = node.type,
-            stage_id = node.type == Constants.node_types.BOSS and "test_boss_stage" or "test_enemy_stage",
+            type = definition.type,
+            stage_id = definition.stage_id,
+            reward_table = definition.reward_table,
         }
         self:emit(Event.ENCOUNTER_STARTED, { encounter = self.current_encounter })
     elseif node.type == Constants.node_types.SHOP or node.type == Constants.node_types.EVENT then
@@ -202,11 +208,14 @@ function GameSession:debug_goto(node_id)
     self:emit(Event.NODE_SELECTED, { node_id = node_id, player_id = 1, debug = true, node_type = node.type })
     if node.type == Constants.node_types.ENEMY or node.type == Constants.node_types.BOSS then
         self.run_state = Constants.run_states.ENCOUNTER
+        local definition = self.encounter_manager:get(node.encounter_id)
+        assert(definition, "missing encounter definition: " .. tostring(node.encounter_id))
         self.current_encounter = {
-            id = node.encounter_id,
+            id = definition.id,
             node_id = node.id,
-            type = node.type,
-            stage_id = node.type == Constants.node_types.BOSS and "test_boss_stage" or "test_enemy_stage",
+            type = definition.type,
+            stage_id = definition.stage_id,
+            reward_table = definition.reward_table,
         }
         self:emit(Event.ENCOUNTER_STARTED, { encounter = self.current_encounter, debug = true })
     elseif node.type == Constants.node_types.SHOP or node.type == Constants.node_types.EVENT then

@@ -9,6 +9,7 @@ local DebugConsole = require("tnr.debug.console")
 local Event = require("tnr.core.event")
 
 local Bootstrap = {}
+Bootstrap.__index = Bootstrap
 
 function Bootstrap.create(options)
     options = options or {}
@@ -17,7 +18,7 @@ function Bootstrap.create(options)
     local input = options.lstg and LuaSTGInputProvider.new(options.lstg) or SinglePlayerInputProvider.new(options.input)
     local map_scene = MapScene.new(session)
     local renderer = options.lstg and MapRenderer.new(options.lstg, options.width or 1280, options.height or 720) or nil
-    local stage_adapter = StageAdapter.new(session, options.stage)
+    local stage_adapter = StageAdapter.new(session, options.stage, options.lstg)
     local debug_console = DebugConsole.new(session, {
         on_kill_all = function()
             return stage_adapter:kill_all()
@@ -27,7 +28,7 @@ function Bootstrap.create(options)
         stage_adapter:start(event.encounter)
     end)
 
-    return {
+    return setmetatable({
         session = session,
         transport = transport,
         input = input,
@@ -36,7 +37,7 @@ function Bootstrap.create(options)
         stage_adapter = stage_adapter,
         debug_console = debug_console,
         initialized = false,
-    }
+    }, Bootstrap)
 end
 
 function Bootstrap:init()
@@ -63,6 +64,8 @@ function Bootstrap:update()
             local x, y = self.input:get_mouse_position()
             self.map_scene:select_with_mouse(x / 1280, y / 720)
         end
+    elseif self.session.run_state == "ENCOUNTER" then
+        self.stage_adapter:update(player_input)
     elseif self.session.run_state == "PLACEHOLDER" and (player_input.confirm or player_input.cancel) then
         self.transport:send({ type = "RETURN_TO_MAP" })
     end
@@ -72,7 +75,9 @@ function Bootstrap:update()
 end
 
 function Bootstrap:render()
-    if self.renderer then
+    if self.session.run_state == "ENCOUNTER" and self.stage_adapter:is_fallback_active() then
+        self.stage_adapter:render()
+    elseif self.renderer then
         self.renderer:render(self.map_scene:get_view(), self.session)
     end
 end

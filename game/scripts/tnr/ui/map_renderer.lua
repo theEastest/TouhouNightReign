@@ -57,7 +57,7 @@ function MapRenderer:init()
 end
 
 function MapRenderer:draw_text(text, x, y, size, draw_color, align)
-    self.lstg.RenderTTF("sans", text, x, x, y, y, align or 0, draw_color, size or 2)
+    self.lstg.RenderTTF("Sans", text, x, x, y, y, align or 0, draw_color, size or 2)
 end
 
 function MapRenderer:render(view, session)

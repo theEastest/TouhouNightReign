@@ -5,6 +5,11 @@
                 "name": "scripts",
                 "type": "directory",
                 "path": "scripts/"
+            },
+            {
+                "name": "assets",
+                "type": "directory",
+                "path": "assets/"
             }
         ],
         "user": "userdata/"
@@ -25,4 +30,3 @@
         "frame_rate": 60
     }
 }
-

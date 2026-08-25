@@ -13,7 +13,7 @@ The engine source remains outside this project in `../LuaSTG-Sub-master`. The ga
 
 ## Current status
 
-Milestone 1 is implemented: deterministic map generation, GameSession, player/party state, map selection, command/event entry points, and transport/input abstractions.
+Milestones 1-3 are implemented as a playable prototype: deterministic map generation, GameSession, player/party state, map selection, enemy and boss encounters, fallback STG battle runtime, BattleResult, Money/Score tracking, and configurable rewards. The THlib `stage.Set` adapter remains available for replacing the fallback runtime when the complete THlib resource set is installed.
 
 Run the headless tests with:
 
@@ -22,3 +22,13 @@ Run the headless tests with:
 ```
 
 The LuaSTG Sub executable is not included in the source checkout. Building it requires the toolchain documented by the engine (`CMake 3.31+` and Visual Studio 2022).
+
+Run the project from the engine build with the working directory set to `game`:
+
+```powershell
+& "..\LuaSTG-Sub-master\build\amd64\LuaSTG\Release\LuaSTGSub.exe"
+```
+
+The first prototype uses the arrow keys to select map nodes, `Enter` or `Space`
+to confirm, and the mouse to click adjacent nodes. During a battle, use the
+arrow keys to move, `Z` to shoot, `X` to use Bomb, and `LeftShift` to focus.

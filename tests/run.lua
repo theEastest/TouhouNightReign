@@ -8,6 +8,7 @@ local MapGenerator = require("tnr.map.map_generator")
 local RewardService = require("tnr.reward.reward_service")
 local LocalTransport = require("tnr.multiplayer.local_transport")
 local BattleManager = require("tnr.battle.battle_manager")
+local StageAdapter = require("tnr.battle.stage_adapter")
 local DebugCommand = require("tnr.debug.debug_command")
 local DebugConsole = require("tnr.debug.console")
 
@@ -96,5 +97,33 @@ console:write("money 10")
 assert_equal(battle_session:get_player(1).money, 122, "debug money command")
 console:write("map_reveal")
 assert_true(battle_session.map.revealed, "debug map reveal command")
+
+local fallback_session = GameSession.new({ run_seed = 999 })
+fallback_session:start_new()
+local fallback_enemy
+for _, candidate in pairs(fallback_session.map.nodes) do
+    if candidate.type == Constants.node_types.ENEMY then
+        fallback_enemy = candidate
+        break
+    end
+end
+assert_true(fallback_enemy ~= nil, "fallback battle needs an enemy node")
+fallback_session:debug_goto(fallback_enemy.id)
+local fallback_stage = StageAdapter.new(fallback_session)
+fallback_stage:start(fallback_session.current_encounter)
+for _ = 1, 12 do
+    fallback_stage:kill_all()
+    for _ = 1, 60 do
+        fallback_stage:update({})
+        if fallback_session.run_state == Constants.run_states.MAP then
+            break
+        end
+    end
+    if fallback_session.run_state == Constants.run_states.MAP then
+        break
+    end
+end
+assert_equal(fallback_session.run_state, Constants.run_states.MAP, "fallback stage should clear and return to map")
+assert_true(fallback_session.battle_result ~= nil, "fallback stage should produce a battle result")
 
 print("TouHouNightReign core tests passed")
