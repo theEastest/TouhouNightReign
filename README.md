@@ -26,7 +26,7 @@ The LuaSTG Sub executable is not included in the source checkout. Building it re
 Run the project from the engine build with the working directory set to `game`:
 
 ```powershell
-& "..\LuaSTG-Sub-master\build\amd64\LuaSTG\Release\LuaSTGSub.exe"
+& "..\..\LuaSTG-Sub-master\build\amd64\LuaSTG\Release\LuaSTGSub.exe"
 ```
 
 The first prototype uses the arrow keys to select map nodes, `Enter` or `Space`
