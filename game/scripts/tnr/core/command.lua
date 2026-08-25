@@ -1,0 +1,13 @@
+local Command = {
+    SELECT_NODE = "SELECT_NODE",
+    START_ENCOUNTER = "START_ENCOUNTER",
+    ADD_MONEY = "ADD_MONEY",
+    ADD_SCORE = "ADD_SCORE",
+    ADD_LIFE = "ADD_LIFE",
+    ADD_BOMB = "ADD_BOMB",
+    RETURN_TO_MAP = "RETURN_TO_MAP",
+    COMPLETE_BATTLE = "COMPLETE_BATTLE",
+}
+
+return Command
+

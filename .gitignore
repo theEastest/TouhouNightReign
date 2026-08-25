@@ -1,0 +1,6 @@
+userdata/
+game/userdata/
+game/engine.log
+game/*.dmp
+vendor/Bundle-After-Ex-Plus/
+

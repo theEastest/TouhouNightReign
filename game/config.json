@@ -1,0 +1,28 @@
+{
+    "file_system": {
+        "resources": [
+            {
+                "name": "scripts",
+                "type": "directory",
+                "path": "scripts/"
+            }
+        ],
+        "user": "userdata/"
+    },
+    "window": {
+        "title": "TouHouNightReign",
+        "cursor_visible": true,
+        "allow_window_corner": true
+    },
+    "graphics_system": {
+        "width": 1280,
+        "height": 720,
+        "fullscreen": false,
+        "vsync": true,
+        "allow_software_device": true
+    },
+    "timing": {
+        "frame_rate": 60
+    }
+}
+
