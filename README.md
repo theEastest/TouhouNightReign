@@ -22,4 +22,3 @@ Run the headless tests with:
 ```
 
 The LuaSTG Sub executable is not included in the source checkout. Building it requires the toolchain documented by the engine (`CMake 3.31+` and Visual Studio 2022).
-
