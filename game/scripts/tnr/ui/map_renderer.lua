@@ -19,9 +19,9 @@ local COLORS = {
     muted = { 190, 164, 172, 190 },
     text = { 255, 245, 241, 236 },
     accent = { 255, 235, 105, 110 },
-    active_line = { 235, 245, 216, 190 },
-    visited_line = { 210, 155, 154, 170 },
-    dim_line = { 145, 96, 105, 105 },
+    active_line = { 255, 245, 216, 190 },
+    visited_line = { 235, 155, 154, 170 },
+    dim_line = { 220, 112, 132, 170 },
 }
 
 local function color(lstg, values)
@@ -49,7 +49,7 @@ local function draw_line(lstg, image, values, x1, y1, x2, y2, thickness)
         return
     end
     -- Small rectangles are supported by the engine's fallback renderer.
-    local steps = math.max(1, math.ceil(length / 6))
+    local steps = math.max(1, math.ceil(length / 3))
     for index = 0, steps do
         local t = index / steps
         local x = x1 + dx * t
@@ -155,7 +155,7 @@ function MapRenderer:draw_map(view)
                 elseif node.visited and linked and linked.visited then
                     values = COLORS.visited_line
                 end
-                draw_line(self.lstg, self.white, values, source.x, source.y, target.x, target.y, node.id == view.current_node_id and 3 or 2)
+                draw_line(self.lstg, self.white, values, source.x, source.y, target.x, target.y, node.id == view.current_node_id and 5 or 4)
             end
         end
     end

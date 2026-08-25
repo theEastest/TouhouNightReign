@@ -28,37 +28,51 @@ local function merged_config(config)
     return result
 end
 
-local function distance(a, b)
-    local dx = a.x - b.x
-    local dy = a.y - b.y
-    return math.sqrt(dx * dx + dy * dy)
+local function clamp(value, minimum, maximum)
+    return math.max(minimum, math.min(maximum, value))
 end
 
-local function make_positions(rng, count, spacing)
-    local positions = {
-        { x = 0.08, y = 0.50 },
-        { x = 0.92, y = 0.50 },
-    }
-    for index = 3, count do
-        local position
-        for _ = 1, 80 do
-            local candidate = { x = 0.10 + rng:next_float() * 0.80, y = 0.10 + rng:next_float() * 0.80 }
-            local valid = true
-            for _, other in ipairs(positions) do
-                if distance(candidate, other) < spacing then
-                    valid = false
-                    break
-                end
-            end
-            if valid then
-                position = candidate
-                break
-            end
+-- Build an FTL-style layout. Node IDs are assigned in layer order so the
+-- graph itself has a stable left-to-right direction instead of relying on
+-- random coordinates.
+local function make_layout(rng, count)
+    local layer_count = math.min(8, count)
+    layer_count = math.max(7, layer_count)
+    local layers = { { 1 } }
+    local remaining = count - 2
+    local middle_layers = layer_count - 2
+    local base = math.floor(remaining / middle_layers)
+    local extra = remaining % middle_layers
+    local next_id = 2
+    for layer_index = 1, middle_layers do
+        local layer_size = base + (layer_index <= extra and 1 or 0)
+        local layer = {}
+        for _ = 1, layer_size do
+            layer[#layer + 1] = next_id
+            next_id = next_id + 1
         end
-        position = position or { x = 0.10 + rng:next_float() * 0.80, y = 0.10 + rng:next_float() * 0.80 }
-        positions[index] = position
+        layers[#layers + 1] = layer
     end
-    return positions
+    layers[#layers + 1] = { count }
+
+    local positions = {
+        [1] = { x = 0.06, y = 0.50 },
+        [count] = { x = 0.94, y = 0.50 },
+    }
+    for layer_index = 2, #layers - 1 do
+        local layer = layers[layer_index]
+        local x = 0.06 + (layer_index - 1) * 0.88 / (#layers - 1)
+        local ys = {}
+        for index = 1, #layer do
+            local ideal = 0.12 + (index - 0.5) * 0.76 / #layer
+            ys[index] = ideal + (rng:next_float() - 0.5) * 0.06
+        end
+        table.sort(ys)
+        for index, node_id in ipairs(layer) do
+            positions[node_id] = { x = x, y = clamp(ys[index], 0.08, 0.92) }
+        end
+    end
+    return positions, layers
 end
 
 local function add_edge(nodes, left, right)
@@ -67,6 +81,45 @@ local function add_edge(nodes, left, right)
         return true
     end
     return false
+end
+
+local function connect_layers(rng, nodes, source_ids, target_ids, max_links)
+    local source_count = #source_ids
+    local target_count = #target_ids
+    local function mapped_index(index, from_count, to_count)
+        if from_count <= 1 or to_count <= 1 then
+            return 1
+        end
+        return math.floor((index - 1) * (to_count - 1) / (from_count - 1)) + 1
+    end
+    local function connect(source_index, target_index)
+        if target_index < 1 or target_index > target_count then
+            return
+        end
+        local source = nodes[source_ids[source_index]]
+        local target = nodes[target_ids[target_index]]
+        if #source.links < max_links and #target.links < max_links then
+            add_edge(nodes, source.id, target.id)
+        end
+    end
+
+    -- Primary monotonic connections preserve vertical order and guarantee
+    -- that every source can advance to the next layer.
+    for source_index = 1, source_count do
+        connect(source_index, mapped_index(source_index, source_count, target_count))
+    end
+    -- Reverse mapping ensures every node in the next layer has an entrance.
+    for target_index = 1, target_count do
+        connect(mapped_index(target_index, target_count, source_count), target_index)
+    end
+    -- Add sparse parallel choices. The +1 target remains monotonic, so it
+    -- cannot introduce a crossing with the primary edges.
+    for source_index = 1, source_count do
+        local primary = mapped_index(source_index, source_count, target_count)
+        if primary < target_count and rng:chance(0.45) then
+            connect(source_index, primary + 1)
+        end
+    end
 end
 
 local function shortest_hops(nodes, start_id, goal_id)
@@ -128,7 +181,7 @@ function Generator.generate(run_seed, config)
     config = merged_config(config)
     local seed = tonumber(run_seed) or 1
     local rng = RNG.new(seed)
-    local positions = make_positions(rng, config.node_count, config.min_node_spacing)
+    local positions, layers = make_layout(rng, config.node_count)
     local nodes = {}
 
     for id = 1, config.node_count do
@@ -145,38 +198,10 @@ function Generator.generate(run_seed, config)
     nodes[config.node_count].encounter_id = "boss_test_01"
     assign_types(rng, nodes, config)
 
-    -- A chain is the guaranteed connected backbone and gives the boss a safe minimum distance.
-    for id = 1, config.node_count - 1 do
-        add_edge(nodes, id, id + 1)
-    end
-
-    local edge_pairs = {}
-    for left = 1, config.node_count do
-        for right = left + 1, config.node_count do
-            if not nodes[left]:is_linked(right) then
-                edge_pairs[#edge_pairs + 1] = { left = left, right = right, weight = distance(nodes[left], nodes[right]) }
-            end
-        end
-    end
-    table.sort(edge_pairs, function(a, b)
-        if a.weight == b.weight then
-            return (a.left * 1000 + a.right) < (b.left * 1000 + b.right)
-        end
-        return a.weight < b.weight
-    end)
-    for _, pair in ipairs(edge_pairs) do
-        local left_node = nodes[pair.left]
-        local right_node = nodes[pair.right]
-        if #left_node.links < config.max_links and #right_node.links < config.max_links and rng:chance(0.38) then
-            add_edge_preserving_distance(nodes, pair.left, pair.right, config.min_boss_hops, config.node_count)
-        end
-    end
-
-    -- Add a few long links only when they preserve the minimum start-to-boss distance.
-    for _, pair in ipairs(edge_pairs) do
-        if #nodes[pair.left].links < config.max_links and #nodes[pair.right].links < config.max_links and rng:chance(0.12) then
-            add_edge_preserving_distance(nodes, pair.left, pair.right, config.min_boss_hops, config.node_count)
-        end
+    -- Only connect adjacent layers. connect_layers preserves the vertical
+    -- ordering, which keeps the rendered route lines free of crossings.
+    for layer_index = 1, #layers - 1 do
+        connect_layers(rng, nodes, layers[layer_index], layers[layer_index + 1], config.max_links)
     end
 
     for id, node in pairs(nodes) do

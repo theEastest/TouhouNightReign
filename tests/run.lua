@@ -37,6 +37,13 @@ assert_equal(serialize_map(map_a), serialize_map(map_b), "same seed must reprodu
 assert_true(serialize_map(map_a) ~= serialize_map(map_c), "different seeds should produce a different map")
 assert_true(map_a:find_path(map_a.start_node_id, map_a.boss_node_id) ~= nil, "boss must be reachable")
 assert_true(#map_a:find_path(map_a.start_node_id, map_a.boss_node_id) - 1 >= 6, "boss path must have a minimum distance")
+for id, node in pairs(map_a.nodes) do
+    for _, linked_id in ipairs(node.links) do
+        if linked_id > id then
+            assert_true(node.x < map_a.nodes[linked_id].x, "route edges must travel from left to right")
+        end
+    end
+end
 local counts = map_a:count_types()
 assert_equal(counts[Constants.node_types.START], 1, "map must have one start")
 assert_equal(counts[Constants.node_types.BOSS], 1, "map must have one boss")
