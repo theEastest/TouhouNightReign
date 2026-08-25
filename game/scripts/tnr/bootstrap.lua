@@ -1,4 +1,5 @@
 local GameSession = require("tnr.core.game_session")
+local Constants = require("tnr.core.constants")
 local LocalTransport = require("tnr.multiplayer.local_transport")
 local SinglePlayerInputProvider = require("tnr.input.single_player")
 local MapScene = require("tnr.map.map_scene")
@@ -37,6 +38,7 @@ function Bootstrap.create(options)
         stage_adapter = stage_adapter,
         debug_console = debug_console,
         initialized = false,
+        menu_cursor = 1,
     }, Bootstrap)
 end
 
@@ -44,8 +46,13 @@ function Bootstrap:init()
     if self.initialized then
         return
     end
-    self.session:start_new()
     self.initialized = true
+end
+
+function Bootstrap:start_game(run_seed)
+    self.session:start_new(run_seed)
+    self.map_scene.cursor_node_id = nil
+    self.menu_cursor = 1
 end
 
 function Bootstrap:update()
@@ -53,9 +60,36 @@ function Bootstrap:update()
         self:init()
     end
     local player_input = self.input:poll(1)
-    if self.session.run_state == "MAP" then
+    if self.session.run_state == Constants.run_states.MENU then
+        if player_input.move_y ~= 0 then
+            self.menu_cursor = ((self.menu_cursor - 1 - player_input.move_y) % 2) + 1
+        end
+        if self.input.get_mouse_position and self.renderer and self.renderer.menu_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:menu_hit_test(mouse_x, mouse_y)
+            if hit then
+                self.menu_cursor = hit
+                if player_input.mouse_primary_pressed and hit == 1 then
+                    self:start_game()
+                elseif player_input.mouse_primary_pressed and hit == 2 then
+                    return true
+                end
+            end
+        end
+        if player_input.confirm then
+            if self.menu_cursor == 1 then
+                self:start_game()
+            else
+                return true
+            end
+        elseif player_input.cancel then
+            return true
+        end
+    elseif self.session.run_state == Constants.run_states.MAP then
         if player_input.move_x ~= 0 then
             self.map_scene:move_cursor(player_input.move_x)
+        elseif player_input.move_y ~= 0 then
+            self.map_scene:move_cursor(player_input.move_y)
         end
         if player_input.confirm then
             self.transport:send({ type = "SELECT_NODE", node_id = self.map_scene.cursor_node_id or (self.map_scene:get_selectable_nodes()[1] and self.map_scene:get_selectable_nodes()[1].id), player_id = 1 })
@@ -75,9 +109,9 @@ function Bootstrap:update()
                 self.map_scene.cursor_node_id = nil
             end
         end
-    elseif self.session.run_state == "ENCOUNTER" then
+    elseif self.session.run_state == Constants.run_states.ENCOUNTER then
         self.stage_adapter:update(player_input)
-    elseif self.session.run_state == "PLACEHOLDER" and (player_input.confirm or player_input.cancel) then
+    elseif self.session.run_state == Constants.run_states.PLACEHOLDER and (player_input.confirm or player_input.cancel) then
         self.transport:send({ type = "RETURN_TO_MAP" })
     end
     self.transport:submit_input(player_input)
@@ -86,10 +120,10 @@ function Bootstrap:update()
 end
 
 function Bootstrap:render()
-    if self.session.run_state == "ENCOUNTER" and self.stage_adapter:is_fallback_active() then
+    if self.session.run_state == Constants.run_states.ENCOUNTER and self.stage_adapter:is_fallback_active() then
         self.stage_adapter:render()
     elseif self.renderer then
-        self.renderer:render(self.map_scene:get_view(), self.session)
+        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor)
     end
 end
 

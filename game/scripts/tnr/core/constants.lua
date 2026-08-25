@@ -1,5 +1,6 @@
 local Constants = {
     run_states = {
+        MENU = "MENU",
         MAP = "MAP",
         ENCOUNTER = "ENCOUNTER",
         PLACEHOLDER = "PLACEHOLDER",
@@ -16,4 +17,3 @@ local Constants = {
 }
 
 return Constants
-

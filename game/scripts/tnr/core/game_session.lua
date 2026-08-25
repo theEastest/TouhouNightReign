@@ -27,7 +27,7 @@ function GameSession.new(options)
         map_config = options.map_config,
         default_seed = options.run_seed,
         run_seed = nil,
-        run_state = Constants.run_states.MAP,
+        run_state = Constants.run_states.MENU,
         map = nil,
         current_node_id = nil,
         players = PlayerManager.new(),

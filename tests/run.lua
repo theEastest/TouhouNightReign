@@ -49,6 +49,9 @@ for _, node in ipairs(map_view.nodes) do
     assert_true(node.revealed, "new map view must reveal every node")
 end
 
+local menu_session = GameSession.new({ run_seed = 4321 })
+assert_equal(menu_session.run_state, Constants.run_states.MENU, "fresh session must open on menu")
+
 local session = GameSession.new({ run_seed = 777 })
 session:start_new()
 assert_equal(session.run_state, Constants.run_states.MAP, "new session must start on map")
