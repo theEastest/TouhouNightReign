@@ -5,6 +5,8 @@ local RNG = require("tnr.core.rng")
 local PlayerManager = require("tnr.core.player_manager")
 local PartyState = require("tnr.core.party_state")
 local MapGenerator = require("tnr.map.map_generator")
+local BattleResult = require("tnr.battle.battle_result")
+local RewardService = require("tnr.reward.reward_service")
 
 local GameSession = {}
 GameSession.__index = GameSession
@@ -36,6 +38,8 @@ function GameSession.new(options)
         event_log = {},
         listeners = {},
         rng = {},
+        reward_service = RewardService.new(options.reward_thresholds),
+        god_mode = {},
     }, GameSession)
     return self
 end
@@ -72,6 +76,7 @@ function GameSession:start_new(run_seed)
     self.total_score = 0
     self.current_encounter = nil
     self.battle_result = nil
+    self.god_mode = {}
     self.visited_nodes = { [self.current_node_id] = true }
     self.event_log = {}
     self.rng = {
@@ -148,9 +153,67 @@ function GameSession:return_to_map()
     end
     self.run_state = Constants.run_states.MAP
     self.current_encounter = nil
-    self.battle_result = nil
     self:emit(Event.MAP_ENTERED, { node_id = self.current_node_id })
     return self.map:get_current_node()
+end
+
+function GameSession:complete_battle(values)
+    local result = BattleResult.new(values)
+    self.battle_result = result
+    if result.clear_state then
+        self:emit(Event.BATTLE_CLEARED, { result = result })
+        if result.reward_eligible then
+            local reward = self.reward_service:calculate(result)
+            local player_id = values.player_id or 1
+            if reward.money > 0 then
+                self:add_money(player_id, reward.money, "battle_reward")
+            end
+            if reward.life > 0 then
+                self:add_life(player_id, reward.life, "battle_reward")
+            end
+            if reward.bomb > 0 then
+                self:add_bomb(player_id, reward.bomb, "battle_reward")
+            end
+            self:emit(Event.REWARD_GRANTED, { result = result, reward = reward })
+        end
+        if self.current_encounter and self.current_encounter.type == Constants.node_types.BOSS then
+            self.run_state = Constants.run_states.RUN_CLEAR
+            self:emit(Event.RUN_CLEARED, { result = result })
+        else
+            self:return_to_map()
+        end
+    else
+        self.run_state = Constants.run_states.RUN_FAILED
+        self:emit(Event.BATTLE_FAILED, { result = result })
+    end
+    return result
+end
+
+function GameSession:debug_goto(node_id)
+    local node = self.map and self.map:get_node(node_id)
+    if not node then
+        return nil, "unknown node"
+    end
+    self.map.current_node_id = node_id
+    node.visited = true
+    self.current_node_id = node_id
+    self.party:set_current_node(node_id)
+    self.visited_nodes[node_id] = true
+    self:emit(Event.NODE_SELECTED, { node_id = node_id, player_id = 1, debug = true, node_type = node.type })
+    if node.type == Constants.node_types.ENEMY or node.type == Constants.node_types.BOSS then
+        self.run_state = Constants.run_states.ENCOUNTER
+        self.current_encounter = {
+            id = node.encounter_id,
+            node_id = node.id,
+            type = node.type,
+            stage_id = node.type == Constants.node_types.BOSS and "test_boss_stage" or "test_enemy_stage",
+        }
+        self:emit(Event.ENCOUNTER_STARTED, { encounter = self.current_encounter, debug = true })
+    elseif node.type == Constants.node_types.SHOP or node.type == Constants.node_types.EVENT then
+        self.run_state = Constants.run_states.PLACEHOLDER
+        self:emit(Event.PLACEHOLDER_ENTERED, { node_id = node.id, node_type = node.type, debug = true })
+    end
+    return node
 end
 
 function GameSession:dispatch(command)
@@ -168,9 +231,23 @@ function GameSession:dispatch(command)
         return self:add_bomb(command.player_id or 1, command.amount, command.source)
     elseif command_type == Command.RETURN_TO_MAP then
         return self:return_to_map()
+    elseif command_type == Command.COMPLETE_BATTLE then
+        return self:complete_battle(command.result or command)
+    elseif command_type == Command.DEBUG_GOD then
+        local player_id = command.player_id or 1
+        if command.toggle then
+            self.god_mode[player_id] = not self.god_mode[player_id]
+        else
+            self.god_mode[player_id] = command.enabled == true
+        end
+        return self:emit(Event.DEBUG_CHANGED, { command = command, god = self.god_mode[player_id] })
+    elseif command_type == Command.DEBUG_GOTO then
+        return self:debug_goto(command.node_id)
+    elseif command_type == Command.DEBUG_MAP_REVEAL then
+        self.map:reveal()
+        return self:emit(Event.DEBUG_CHANGED, { command = command, map_revealed = true })
     end
     return nil, "unknown command: " .. tostring(command_type)
 end
 
 return GameSession
-

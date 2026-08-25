@@ -7,6 +7,9 @@ local GameSession = require("tnr.core.game_session")
 local MapGenerator = require("tnr.map.map_generator")
 local RewardService = require("tnr.reward.reward_service")
 local LocalTransport = require("tnr.multiplayer.local_transport")
+local BattleManager = require("tnr.battle.battle_manager")
+local DebugCommand = require("tnr.debug.debug_command")
+local DebugConsole = require("tnr.debug.console")
 
 local function assert_equal(left, right, message)
     assert(left == right, string.format("%s: expected %s, got %s", message, tostring(right), tostring(left)))
@@ -62,5 +65,36 @@ assert_equal(reward.money, 100, "reward money threshold")
 assert_equal(reward.bomb, 1, "reward bomb threshold")
 assert_equal(reward.life, 1, "reward life threshold")
 
-print("TouHouNightReign core tests passed")
+local battle_session = GameSession.new({ run_seed = 888 })
+battle_session:start_new()
+local battle_node
+for id, candidate in pairs(battle_session.map.nodes) do
+    if candidate.type == Constants.node_types.ENEMY or candidate.type == Constants.node_types.BOSS then
+        battle_node = candidate
+        break
+    end
+end
+assert_true(battle_node ~= nil, "test map must contain a battle node")
+battle_session:debug_goto(battle_node.id)
+local battle = BattleManager.new(battle_session)
+battle:begin(battle_session.current_encounter)
+battle:add_score(100000)
+battle:collect_money(12)
+assert_true(battle:use_bomb(1), "battle should consume a bomb")
+local battle_result = battle:complete(true, { reward_eligible = true })
+assert_true(battle_result.clear_state, "battle result should be clear")
+assert_equal(battle_session:get_player(1).money, 112, "battle money and reward money")
+assert_equal(battle_session:get_player(1).bomb, 3, "bomb spend and reward bomb")
+assert_equal(battle_session.run_state, Constants.run_states.MAP, "normal battle should return to map")
 
+local parsed_god = DebugCommand.parse("god")
+assert_true(parsed_god.toggle, "god without argument should toggle")
+local console = DebugConsole.new(battle_session)
+console:write("god on")
+assert_true(battle_session.god_mode[1], "god on command")
+console:write("money 10")
+assert_equal(battle_session:get_player(1).money, 122, "debug money command")
+console:write("map_reveal")
+assert_true(battle_session.map.revealed, "debug map reveal command")
+
+print("TouHouNightReign core tests passed")
