@@ -24,7 +24,8 @@ function MapScene:get_view()
             links = node.links,
             visited = node.visited,
             selectable = current ~= nil and current:is_linked(id),
-            revealed = map.revealed or node.visited or (current and current:is_linked(id)) or false,
+            -- The first prototype intentionally exposes the whole route graph.
+            revealed = true,
         }
     end
     table.sort(nodes, function(a, b) return a.id < b.id end)
@@ -88,12 +89,20 @@ function MapScene:select_node(node_id)
 end
 
 function MapScene:select_with_mouse(x, y, radius)
+    local node = self:find_mouse_node(x, y, radius)
+    if not node or node.id == self.session.map.current_node_id then
+        return nil, "没有可选择的节点"
+    end
+    return self:select_node(node.id)
+end
+
+function MapScene:find_mouse_node(x, y, radius)
     radius = radius or 0.035
     local view = self:get_view()
     local best_id
     local best_distance
     for _, node in ipairs(view.nodes) do
-        if node.selectable or node.id == view.current_node_id then
+        if node.selectable then
             local dx = node.x - x
             local dy = node.y - y
             local squared = dx * dx + dy * dy
@@ -103,10 +112,13 @@ function MapScene:select_with_mouse(x, y, radius)
             end
         end
     end
-    if not best_id or best_id == view.current_node_id then
-        return nil, "没有可选择的节点"
-    end
-    return self:select_node(best_id)
+    return best_id and self.session.map:get_node(best_id) or nil
+end
+
+function MapScene:hover_with_mouse(x, y, radius)
+    local node = self:find_mouse_node(x, y, radius)
+    self.cursor_node_id = node and node.id or nil
+    return node
 end
 
 return MapScene

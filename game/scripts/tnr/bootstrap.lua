@@ -60,9 +60,20 @@ function Bootstrap:update()
         if player_input.confirm then
             self.transport:send({ type = "SELECT_NODE", node_id = self.map_scene.cursor_node_id or (self.map_scene:get_selectable_nodes()[1] and self.map_scene:get_selectable_nodes()[1].id), player_id = 1 })
         end
-        if player_input.mouse_primary_pressed and self.input.get_mouse_position then
+        if self.input.get_mouse_position then
             local x, y = self.input:get_mouse_position()
-            self.map_scene:select_with_mouse(x / 1280, y / 720)
+            local map_x, map_y = x / 1280, y / 720
+            if self.renderer and self.renderer.screen_to_map then
+                map_x, map_y = self.renderer:screen_to_map(x, y)
+            end
+            if map_x and map_y then
+                self.map_scene:hover_with_mouse(map_x, map_y)
+                if player_input.mouse_primary_pressed then
+                    self.map_scene:select_with_mouse(map_x, map_y)
+                end
+            else
+                self.map_scene.cursor_node_id = nil
+            end
         end
     elseif self.session.run_state == "ENCOUNTER" then
         self.stage_adapter:update(player_input)

@@ -71,6 +71,7 @@ function GameSession:start_new(run_seed)
     self.run_seed = math.floor(run_seed)
     self.run_state = Constants.run_states.MAP
     self.map = MapGenerator.generate(self.run_seed, self.map_config)
+    self.map:reveal()
     self.current_node_id = self.map.current_node_id
     self.players = PlayerManager.new()
     self.players:add_player(1, { character_id = "reimu", life = 3, bomb = 3 })

@@ -9,6 +9,7 @@ local RewardService = require("tnr.reward.reward_service")
 local LocalTransport = require("tnr.multiplayer.local_transport")
 local BattleManager = require("tnr.battle.battle_manager")
 local StageAdapter = require("tnr.battle.stage_adapter")
+local MapScene = require("tnr.map.map_scene")
 local DebugCommand = require("tnr.debug.debug_command")
 local DebugConsole = require("tnr.debug.console")
 
@@ -41,6 +42,12 @@ assert_equal(counts[Constants.node_types.START], 1, "map must have one start")
 assert_equal(counts[Constants.node_types.BOSS], 1, "map must have one boss")
 assert_true((counts[Constants.node_types.SHOP] or 0) > 0, "map must contain a shop")
 assert_true((counts[Constants.node_types.EVENT] or 0) > 0, "map must contain an event")
+
+local map_scene = MapScene.new(GameSession.new({ run_seed = 2345 }):start_new())
+local map_view = map_scene:get_view()
+for _, node in ipairs(map_view.nodes) do
+    assert_true(node.revealed, "new map view must reveal every node")
+end
 
 local session = GameSession.new({ run_seed = 777 })
 session:start_new()
