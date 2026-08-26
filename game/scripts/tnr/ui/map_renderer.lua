@@ -75,9 +75,9 @@ function MapRenderer:init()
     if self.white or not self.lstg then
         return
     end
-    self.lstg.CreateRenderTarget("rt:tnr-white", 16, 16)
-    self.lstg.LoadImage("img:tnr-white", "rt:tnr-white", 0, 0, 16, 16)
-    self.white = "img:tnr-white"
+    -- Use the PNG loaded by game/scripts/main.lua. RenderTarget-backed
+    -- sprites are not visible on all LuaSTG Sub graphics backends.
+    self.white = "tnr-white"
 end
 
 function MapRenderer:draw_text(text, x, y, size, values, align)
