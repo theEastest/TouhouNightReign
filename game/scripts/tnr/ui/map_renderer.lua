@@ -98,8 +98,8 @@ end
 function MapRenderer:draw_legend()
     local left, right, bottom, top = 24, 205, 185, 595
     self:draw_panel(left, right, bottom, top)
-    self:draw_text("节点图例", left + 18, top - 27, 1.45, COLORS.text, 0)
-    self:draw_text("当前路线", left + 18, top - 51, 0.85, COLORS.muted, 0)
+    self:draw_text("节点图例", left + 18, top - 20, 1.15, COLORS.text, 0)
+    self:draw_text("当前路线", left + 18, top - 58, 0.72, COLORS.muted, 0)
     local rows = {
         { "当前节点", "●", { 255, 255, 255, 255 } },
         { "未访问", "◆", { 190, 170, 175, 190 } },
@@ -109,10 +109,10 @@ function MapRenderer:draw_legend()
         { "事件", "?", TYPE_META.EVENT.color },
     }
     for index, row in ipairs(rows) do
-        local y = top - 88 - (index - 1) * 38
+        local y = top - 96 - (index - 1) * 38
         draw_diamond(self.lstg, self.white, row[3], left + 28, y, 9)
-        self:draw_text(row[2], left + 28, y - 4, 0.9, COLORS.text, 1 + 4)
-        self:draw_text(row[1], left + 52, y - 4, 0.95, COLORS.text, 0)
+        self:draw_text(row[2], left + 28, y + 1, 0.78, COLORS.text, 1 + 4)
+        self:draw_text(row[1], left + 52, y + 1, 0.82, COLORS.text, 0)
     end
     self:draw_text("鼠标悬停节点查看可达路线", left + 18, bottom + 26, 0.95, COLORS.muted, 0)
 end
@@ -120,16 +120,16 @@ end
 function MapRenderer:draw_header(session)
     local player = session:get_player(1)
     self:draw_panel(24, self.width - 24, self.height - 86, self.height - 20)
-    self:draw_text("探索地图", 48, self.height - 54, 1.75, COLORS.text, 0)
-    self:draw_text("TouHouNightReign", self.width * 0.5, self.height - 53, 1.15, COLORS.accent, 1 + 4)
+    self:draw_text("探索地图", 48, self.height - 68, 1.4, COLORS.text, 0)
+    self:draw_text("TouHouNightReign", self.width * 0.5, self.height - 62, 1.0, COLORS.accent, 1 + 4)
     local hud = string.format("生命 %d   炸弹 %d   金钱 %d   总分 %d", player.life, player.bomb, player.money, player.score)
-    self:draw_text(hud, self.width - 48, self.height - 53, 0.95, COLORS.text, 2)
+    self:draw_text(hud, self.width - 48, self.height - 62, 0.82, COLORS.text, 2)
 end
 
 function MapRenderer:draw_footer(message)
     self:draw_panel(220, self.width - 24, 22, 74)
-    self:draw_text(message or "选择一个相邻节点前进", self.width * 0.5, 43, 1.0, COLORS.text, 1 + 4)
-    self:draw_text("方向键移动    Enter 确认    鼠标点击选择", self.width - 48, 43, 0.8, COLORS.muted, 2)
+    self:draw_text(message or "选择一个相邻节点前进", self.width * 0.5, 56, 0.88, COLORS.text, 1 + 4)
+    self:draw_text("方向键移动    Enter 确认    鼠标点击选择", self.width - 48, 56, 0.68, COLORS.muted, 2)
 end
 
 function MapRenderer:draw_map(view)
@@ -231,9 +231,9 @@ function MapRenderer:render_menu(menu_cursor, session)
 
     draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 42, self.width - 42, 38, self.height - 38)
     self:draw_panel(70, 515, 148, self.height - 116)
-    self:draw_text("TouHouNightReign", 105, self.height - 190, 2.35, COLORS.accent, 0)
-    self:draw_text("幻想乡夜行录", 108, self.height - 235, 1.15, COLORS.text, 0)
-    self:draw_text("探索地图 · 战斗 · 奖励", 108, self.height - 268, 0.9, COLORS.muted, 0)
+    self:draw_text("TouHouNightReign", 105, self.height - 164, 1.45, COLORS.accent, 0)
+    self:draw_text("幻想乡夜行录", 108, self.height - 220, 0.92, COLORS.text, 0)
+    self:draw_text("探索地图 · 战斗 · 奖励", 108, self.height - 251, 0.72, COLORS.muted, 0)
 
     local options = { "开始游戏", "退出游戏" }
     for index, label in ipairs(options) do
@@ -244,8 +244,8 @@ function MapRenderer:render_menu(menu_cursor, session)
         draw_rect(lstg, self.white, fill, 90, 470, bottom, top)
         draw_line(lstg, self.white, selected and COLORS.accent or COLORS.panel_border, 90, bottom, 470, bottom, selected and 3 or 1)
         draw_line(lstg, self.white, selected and COLORS.accent or COLORS.panel_border, 90, top, 470, top, selected and 3 or 1)
-        self:draw_text(selected and ">" or "", 116, bottom + 21, 1.05, COLORS.accent, 1 + 4)
-        self:draw_text(label, 150, bottom + 21, 1.35, selected and COLORS.text or COLORS.muted, 0)
+        self:draw_text(selected and ">" or "", 116, bottom + 31, 0.88, COLORS.accent, 1 + 4)
+        self:draw_text(label, 150, bottom + 31, 1.05, selected and COLORS.text or COLORS.muted, 0)
     end
 
     self:draw_panel(self.width - 420, self.width - 90, 170, self.height - 150)
@@ -253,7 +253,7 @@ function MapRenderer:render_menu(menu_cursor, session)
     self:draw_text("地图路线", self.width - 385, self.height - 260, 1.0, COLORS.text, 0)
     self:draw_text("战斗节点     事件节点", self.width - 385, self.height - 294, 0.85, COLORS.muted, 0)
     self:draw_text("鼠标可选择菜单与地图节点", self.width - 385, self.height - 360, 0.85, COLORS.muted, 0)
-    self:draw_text("方向键移动   Enter 确认", self.width - 385, 194, 0.8, COLORS.muted, 0)
+    self:draw_text("方向键移动   Enter 确认", self.width - 385, 212, 0.76, COLORS.muted, 0)
     lstg.EndScene()
 end
 
