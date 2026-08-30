@@ -1,0 +1,22 @@
+local GameSession = require("tnr.core.game_session")
+local EquipmentInstance = require("tnr.equipment.equipment_instance")
+local Catalog = require("tnr.equipment.phase1_catalog")
+local Manager = require("tnr.equipment.runtime.weapon_runtime_manager")
+
+return function(assert_equal, assert_true)
+    local session = GameSession.new({ run_seed = 1001 })
+    session:start_new()
+    local player = session:get_player(1)
+    player.loadout:set_slot("high_weapons", 1, EquipmentInstance.new(Catalog.definitions.test_high_weapon, 1))
+    player.loadout:set_slot("high_weapons", 2, EquipmentInstance.new(Catalog.definitions.test_dual_weapon, 1))
+    player.loadout:set_slot("low_weapons", 1, EquipmentInstance.new(Catalog.definitions.test_low_weapon, 1))
+    local manager = Manager.new(player.loadout, Catalog.registry)
+    local high = manager:update("HIGH", true, { x = 0, y = 0, angle = 90 })
+    assert_equal(#high, 4, "all active high-mode weapons fire simultaneously")
+    assert_true(manager:active_ids("HIGH")[1] ~= nil, "high mode reports active weapons")
+    local low_manager = Manager.new(player.loadout, Catalog.registry)
+    local low = low_manager:update("LOW", true, { x = 0, y = 0, angle = 90 })
+    assert_equal(#low, 5, "dual and low-mode weapons are active in low mode")
+    assert_true(low[1].projectile_type ~= high[1].projectile_type or #low ~= #high,
+        "dual mode exposes a distinct low form")
+end

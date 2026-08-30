@@ -1,5 +1,7 @@
 local Command = require("tnr.core.command")
 local DebugCommand = require("tnr.debug.debug_command")
+local EquipmentInstance = require("tnr.equipment.equipment_instance")
+local CharacterRuntimeBridge = require("tnr.character.runtime.character_runtime_bridge")
 
 local Console = {}
 Console.__index = Console
@@ -51,9 +53,45 @@ function Console:write(line)
             },
         })
         return result
+    elseif command.type == Command.DEBUG_GIVE_EQUIPMENT then
+        local definition = self.session.equipment_registry and self.session.equipment_registry:get(command.definition_id)
+        if not definition then
+            local message = "未知装备 definition_id: " .. tostring(command.definition_id)
+            self.output[#self.output + 1] = message
+            return nil, message
+        end
+        local instance = EquipmentInstance.new(definition, self.session.local_player_id or 1)
+        return self.session:dispatch({ type = Command.ACQUIRE_ITEM, player_id = self.session.local_player_id or 1, instance = instance })
+    elseif command.type == Command.DEBUG_INVENTORY then
+        local player = self.session:get_player(self.session.local_player_id or 1)
+        return player and player.loadout.inventory:to_table() or nil, "UNKNOWN_PLAYER"
+    elseif command.type == Command.DEBUG_LOADOUT then
+        local player = self.session:get_player(self.session.local_player_id or 1)
+        return player and player.loadout:debug_summary() or nil, "UNKNOWN_PLAYER"
+    elseif command.type == Command.DEBUG_RUNTIME_LOADOUT
+            or command.type == Command.DEBUG_RUNTIME_WEAPON
+            or command.type == Command.DEBUG_RUNTIME_SUPPORT
+            or command.type == Command.DEBUG_RUNTIME_MODIFIERS
+            or command.type == Command.DEBUG_WEIGHT
+            or command.type == Command.DEBUG_LOADOUT_HASH then
+        local bridge = CharacterRuntimeBridge.new(self.session,
+            self.session.local_player_id or 1, self.session.equipment_registry)
+        local runtime = bridge:create_runtime()
+        if command.type == Command.DEBUG_RUNTIME_LOADOUT then return runtime.descriptor end
+        if command.type == Command.DEBUG_RUNTIME_WEAPON then return runtime.weapon_manager:to_table() end
+        if command.type == Command.DEBUG_RUNTIME_SUPPORT then return runtime.support_manager:to_table() end
+        if command.type == Command.DEBUG_RUNTIME_MODIFIERS then return runtime.modifier_runtime:to_table() end
+        if command.type == Command.DEBUG_WEIGHT then return runtime.descriptor.speed end
+        return runtime.descriptor.loadout_hash
+    elseif command.type == Command.DEBUG_DISCARD then
+        return self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = self.session.local_player_id or 1, inventory_index = command.inventory_index })
+    elseif command.type == Command.DEBUG_NET_STATUS then
+        if self.options.on_net_status then
+            return self.options.on_net_status()
+        end
+        return nil, "Native sync audit is unavailable"
     end
     return self.session:dispatch(command)
 end
 
 return Console
-

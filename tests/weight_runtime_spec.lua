@@ -1,0 +1,16 @@
+local Policy = require("tnr.character.runtime.weight_speed_policy")
+
+return function(assert_equal, assert_true)
+    local light = Policy.resolve(4.5, 2.0, 100, 40)
+    assert_equal(light.class, "ULTRALIGHT", "weight below half capacity is ultralight")
+    assert_equal(light.high_speed, 9.0, "ultralight high speed doubles")
+    assert_equal(light.low_speed, 2.0, "low speed remains base speed")
+    local normal = Policy.resolve(4.5, 2.0, 100, 75)
+    assert_equal(normal.class, "NORMAL", "weight in capacity range is normal")
+    assert_equal(normal.high_speed, 4.5, "normal high speed remains base speed")
+    local overload = Policy.resolve(4.5, 2.0, 100, 200)
+    assert_equal(overload.class, "OVERLOAD", "weight over capacity is overload")
+    assert_equal(overload.high_speed, 2.25, "overload high speed scales by capacity ratio")
+    assert_equal(overload.low_speed, 2.0, "overload low speed remains base speed")
+    assert_true(Policy.high_speed(4.5, 0, 0) == 4.5, "empty zero-capacity loadout uses stable base speed")
+end
