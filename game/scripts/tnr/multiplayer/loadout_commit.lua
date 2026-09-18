@@ -7,6 +7,7 @@ function Commit.build(session, player_id)
     return {
         player_id = descriptor.player_id,
         character_id = descriptor.character_id,
+        definition_registry_hash = descriptor.definition_registry_hash,
         capacity = descriptor.capacity,
         weight = descriptor.weight,
         speed = descriptor.speed,
@@ -20,10 +21,16 @@ function Commit.build(session, player_id)
     }
 end
 
-function Commit.validate(commit)
+function Commit.validate(commit, expected_registry_hash)
     if type(commit) ~= "table" then return nil, "INVALID_COMMIT" end
     if tonumber(commit.player_id) == nil or type(commit.character_id) ~= "string" then return nil, "INVALID_IDENTITY" end
     if type(commit.loadout_hash) ~= "string" or commit.loadout_hash == "" then return nil, "MISSING_LOADOUT_HASH" end
+    if type(commit.definition_registry_hash) ~= "string" or commit.definition_registry_hash == "" then
+        return nil, "MISSING_DEFINITION_REGISTRY_HASH"
+    end
+    if expected_registry_hash and commit.definition_registry_hash ~= expected_registry_hash then
+        return nil, "DEFINITION_REGISTRY_MISMATCH"
+    end
     for _, field in ipairs({ "high_weapons", "low_weapons", "supports", "self_modifiers", "support_modifiers" }) do
         if type(commit[field]) ~= "table" then return nil, "INVALID_" .. field:upper() end
     end

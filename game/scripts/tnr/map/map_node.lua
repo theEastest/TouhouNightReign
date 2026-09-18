@@ -1,7 +1,7 @@
 local MapNode = {}
 MapNode.__index = MapNode
 
-function MapNode.new(id, node_type, x, y, encounter_id)
+function MapNode.new(id, node_type, x, y, encounter_id, content_seed)
     return setmetatable({
         id = id,
         type = node_type,
@@ -11,6 +11,7 @@ function MapNode.new(id, node_type, x, y, encounter_id)
         visited = false,
         corrupted = false,
         encounter_id = encounter_id,
+        content_seed = content_seed,
     }, MapNode)
 end
 

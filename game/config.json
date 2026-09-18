@@ -10,6 +10,21 @@
                 "name": "assets",
                 "type": "directory",
                 "path": "assets/"
+            },
+            {
+                "name": "legacy-data",
+                "type": "directory",
+                "path": "legacy/assets/data/"
+            },
+            {
+                "name": "legacy-activity-assets",
+                "type": "directory",
+                "path": "legacy/assets/activity7/"
+            },
+            {
+                "name": "legacy-activity-source",
+                "type": "directory",
+                "path": "legacy/source/activity7/"
             }
         ],
         "user": "userdata/"
@@ -23,6 +38,7 @@
         "width": 1280,
         "height": 720,
         "fullscreen": false,
+        "allow_exclusive_fullscreen": false,
         "vsync": true,
         "allow_software_device": true
     },

@@ -13,6 +13,7 @@ local native_enemy_training_error = nil
 local native_enemy_boss_error = nil
 local native_enemy_training_seen_alive = false
 local native_room_seed = 0
+local native_room_music_hint
 local native_room_generation = 0
 -- Shared TNR encounter identity used on the wire. The native counter remains
 -- local; this value prevents previous-room packets from being applied.
@@ -28,13 +29,23 @@ local native_remote_generation = -1
 local native_remote_input = {}
 local native_remote_bomb_latched = false
 local native_remote_bomb_tick = -1
+local native_remote_bomb_charge_frames = 0
+local native_remote_bomb_charge_fired = false
 local native_physical_bomb_previous = false
 local native_bomb_request_previous = false
 local native_local_bomb_latched = false
+local native_bomb_charge_frames = 0
+local native_bomb_charge_max = 180
+local native_bomb_charge_fired = false
+local native_local_bomb_charged = false
+local native_bomb_blocked = false
+local native_bomb_hit_charge_timer = 0
+local native_bomb_hit_charge_window = 0
 local native_bomb_generation = 0
 local native_last_applied_bomb_generation = 0
 local native_last_bomb_owner = nil
 local native_last_bomb_focus = false
+local native_last_bomb_charged = false
 local native_bomb_events = {}
 local native_applied_bomb_events = {}
 local native_local_bomb_sequences = {}
@@ -44,7 +55,6 @@ local native_enemy_kill_events = {}
 local native_enemy_alive_cache = {}
 local native_authoritative_enemy_states
 local native_authoritative_enemy_initialized = {}
-local native_applied_enemy_drops = {}
 local native_last_applied_enemy_kill_generation = 0
 local native_syncing_snapshot = false
 local native_network_authority_host = true
@@ -61,6 +71,8 @@ local native_original_enemybase_colli
 local native_original_object_colli
 local native_original_enemy_kill
 local native_original_reimu_spell
+local native_original_reimu_shoot
+local native_play_remote_bomb
 local native_damage_owner_context
 local native_bomb_effects = {}
 local COOP_RESPAWN_FRAMES = 600
@@ -74,6 +86,34 @@ local native_player_state = nil
 -- both peers.
 local native_local_loadout_descriptor = nil
 local native_remote_loadout_descriptor = nil
+-- Formal TNR combat runtime drivers.  The legacy Reimu methods remain
+-- available for training/reference rooms, but are bypassed in a formal room
+-- so equipment descriptors are the sole source of player firepower.
+local native_runtime_active = false
+local native_runtime_drivers = { [1] = nil, [2] = nil }
+local native_runtime_shot_calls = 0
+local native_legacy_shot_calls = 0
+local native_runtime_last_projectile
+local native_clear_enemy_bullets
+
+local function native_reset_bomb_charge()
+    native_bomb_charge_frames = 0
+    native_bomb_charge_fired = false
+    native_physical_bomb_previous = false
+    native_bomb_request_previous = false
+    native_local_bomb_latched = false
+    native_local_bomb_charged = false
+    native_bomb_blocked = false
+    native_bomb_hit_charge_timer = 0
+    native_bomb_hit_charge_window = 0
+end
+
+local function native_reset_remote_bomb_charge()
+    native_remote_bomb_charge_frames = 0
+    native_remote_bomb_charge_fired = false
+    native_remote_bomb_latched = false
+    native_remote_bomb_tick = -1
+end
 
 local function native_descriptor_support_count(descriptor)
     local total = 0
@@ -90,14 +130,143 @@ local function native_apply_loadout_descriptor(player_object, descriptor)
     if tonumber(speed.high_speed) then player_object.hspeed = tonumber(speed.high_speed) end
     if tonumber(speed.low_speed) then player_object.lspeed = tonumber(speed.low_speed) end
     local support_count = native_descriptor_support_count(descriptor)
-    if support_count > 0 then
-        -- Legacy Reimu's support formation has four visual slots.  Keep the
-        -- original layout while honoring the descriptor's entity count.
-        player_object.support = math.min(5, support_count)
+    -- Legacy Reimu's support formation has four visual slots.  Keep the
+    -- original layout while honoring the descriptor's entity count, including
+    -- an explicitly empty support loadout.
+    player_object.support = math.min(5, support_count)
+    -- THlib normally derives support count from `lstg.var.power` and slowly
+    -- interpolates toward it every frame.  Formal loadouts own this value;
+    -- keep the legacy driver on the same count or it will pull a three-unit
+    -- support (for example Orrery) back to the default two-unit formation.
+    if player_object == native_player and lstg and lstg.var then
+        lstg.var.power = math.max(0, math.min(500, support_count * 100))
     end
     player_object.tnr_loadout_hash = descriptor.loadout_hash
     player_object.tnr_loadout_descriptor = descriptor
     return true
+end
+
+local function native_runtime_support_layout(player_object, entities)
+    if not player_object or type(entities) ~= "table" then return end
+    local layout = {}
+    for index, entity in ipairs(entities) do
+        if type(entity) == "table" then
+            layout[index] = {
+                (tonumber(entity.x) or tonumber(player_object.x) or 0) - (tonumber(player_object.x) or 0),
+                (tonumber(entity.y) or tonumber(player_object.y) or 0) - (tonumber(player_object.y) or 0),
+                1,
+            }
+        end
+    end
+    player_object.support = math.min(5, #layout)
+    player_object.sp = layout
+    player_object.supportx = tonumber(player_object.x) or 0
+    player_object.supporty = tonumber(player_object.y) or 0
+end
+
+local NativeProjectile = require("tnr.character.runtime.native_projectile")
+local native_runtime_enemy_targets
+
+local function native_spawn_runtime_projectile(shot, player_object)
+    local driver = native_runtime_drivers[shot.owner_player_id or native_local_player_id]
+    local weapon = driver and driver.weapon_manager:find(shot.source_instance_id)
+    local object = NativeProjectile.spawn(shot, weapon, native_runtime_enemy_targets)
+    native_runtime_last_projectile = object
+    if object then native_runtime_shot_calls = native_runtime_shot_calls + 1 end
+    return object
+end
+
+local function native_has_local_bomb()
+    local count = native_player_state and tonumber(native_player_state.bomb)
+    if count == nil and lstg and lstg.var then
+        count = tonumber(lstg.var.bomb)
+    end
+    -- A missing count occurs during native self-tests and before the player
+    -- object is initialized. Do not reject those explicit test inputs; once
+    -- a real count is available, zero is a hard input gate.
+    return count == nil or count > 0
+end
+
+local native_is_valid_object
+
+native_runtime_enemy_targets = function()
+    local result = {}
+    for _, group in ipairs({ GROUP_ENEMY, GROUP_NONTJT }) do
+        for _, enemy in ObjList(group) do
+            if native_is_valid_object(enemy) then
+                result[#result + 1] = {
+                    id = tostring(enemy), object = enemy,
+                    x = enemy.x, y = enemy.y, hp = enemy.hp or 0,
+                    radius = math.max(enemy.a or 0, enemy.b or 0),
+                    protect = enemy.protect, colli = enemy.colli,
+                }
+            end
+        end
+    end
+    return result
+end
+
+local function native_clear_enemy_bullets_near(pulses)
+    if type(pulses) ~= "table" or #pulses == 0 or not ObjList or not GROUP_ENEMY_BULLET or not Del then
+        return
+    end
+    for _, pulse in ipairs(pulses) do NativeProjectile.pulse(pulse) end
+    for _, bullet in ObjList(GROUP_ENEMY_BULLET) do
+        local bx, by = tonumber(bullet.x) or 0, tonumber(bullet.y) or 0
+        for _, pulse in ipairs(pulses) do
+            local dx, dy = bx - (tonumber(pulse.x) or 0), by - (tonumber(pulse.y) or 0)
+            if dx * dx + dy * dy <= (tonumber(pulse.radius) or 0) ^ 2 then
+                Del(bullet)
+                break
+            end
+        end
+    end
+end
+
+local function native_runtime_fire(driver, player_object, input, player_id)
+    if not native_runtime_active or type(driver) ~= "table" or not driver.bridge then
+        return 0
+    end
+    input = input or {}
+    local mode = input.focus == true and "LOW" or "HIGH"
+    local context = {
+        player_id = tonumber(player_id) or native_local_player_id,
+        x = player_object and tonumber(player_object.x) or 0,
+        y = player_object and tonumber(player_object.y) or 0,
+        angle = 90,
+        frame = stage and stage.current_stage and tonumber(stage.current_stage.frame_count) or 0,
+        focus = input.focus == true,
+        room_generation = native_external_room_generation or native_room_seed,
+        attack_allowed = player_object and not player_object.hide and not player_object.lock
+            and (tonumber(player_object.death) or 0) == 0
+            and not (lstg.player and lstg.player.dialog),
+        enemies = native_runtime_enemy_targets(),
+    }
+    local ok, shots, support_state = pcall(driver.bridge.update, driver.bridge, driver,
+        mode, input.shoot == true and not (player_object and player_object.hide == true), context)
+    if not ok then error(shots) end
+    driver._last_support_state = support_state
+    native_runtime_support_layout(player_object, support_state)
+    if driver.afterglow_invulnerability and driver.afterglow_invulnerability > 0 and player_object then
+        player_object.protect = math.max(tonumber(player_object.protect) or 0,
+            driver.afterglow_invulnerability)
+        player_object.invuln = math.max(tonumber(player_object.invuln) or 0,
+            driver.afterglow_invulnerability)
+    end
+    if driver.support_manager and driver.support_manager.last_modifier_context then
+        native_clear_enemy_bullets_near(driver.support_manager.last_modifier_context.clear_pulses)
+    end
+    local created = 0
+    for _, shot in ipairs(shots or {}) do
+        if native_spawn_runtime_projectile(shot, player_object) then created = created + 1 end
+    end
+    if created > 0 and input.shoot == true and type(PlaySound) == "function" then
+        -- The legacy Reimu shooter is suppressed while a formal loadout is
+        -- active. Re-emit its one-per-volley plst00 cue so Z shots retain the
+        -- reference timing without multiplying the sound for each projectile.
+        pcall(PlaySound, "plst00", 0.3, (tonumber(player_object and player_object.x) or 0) / 1024, false)
+    end
+    return created
 end
 
 local function native_set_team_lives(value)
@@ -113,7 +282,7 @@ local legacy_key_is_pressed
 local native_input_replay
 local unpack_args = table.unpack or unpack
 
-local function native_is_valid_object(object)
+native_is_valid_object = function(object)
     if object == nil or type(IsValid) ~= "function" then
         return false
     end
@@ -124,7 +293,7 @@ end
 local function native_copy_support_layout(layout)
     if type(layout) ~= "table" then return nil end
     local result = {}
-    for index = 1, 4 do
+    for index = 1, 8 do
         local entry = layout[index]
         if type(entry) == "table" then
             result[index] = {
@@ -135,15 +304,6 @@ local function native_copy_support_layout(layout)
         end
     end
     return result
-end
-
-local function native_copy_drop(drop)
-    if type(drop) ~= "table" then return nil end
-    return {
-        tonumber(drop[1]) or 0,
-        tonumber(drop[2]) or 0,
-        tonumber(drop[3]) or 0,
-    }
 end
 
 local function native_capture_player_support(player_object)
@@ -216,6 +376,19 @@ local function native_record_damage(player_id, amount)
     end
 end
 
+local function native_notify_projectile_hit(projectile)
+    if not projectile or projectile._tnr_hit_reported or projectile._tnr_managed_projectile then return end
+    local owner = tonumber(projectile._tnr_owner_id or projectile.tnr_owner_id)
+    local instance_id = projectile._tnr_source_instance_id or projectile.tnr_source_instance_id
+    if not owner or not instance_id then return end
+    local driver = native_runtime_drivers[owner]
+    if driver and driver.weapon_manager then
+        driver.weapon_manager:notify_projectile_hit(instance_id,
+            stage and stage.current_stage and tonumber(stage.current_stage.frame_count) or 0)
+        projectile._tnr_hit_reported = true
+    end
+end
+
 local function native_update_aggro_window()
     if not native_coop_enabled then return end
     local report = native_aggro:advance(1)
@@ -244,7 +417,31 @@ local function native_install_aggro_hooks()
     if type(New) == "function" then
         native_original_new = New
         New = function(class, ...)
-            local object = native_original_new(class, ...)
+            -- Exported activity scripts can create a short-lived effect at
+            -- the same frame that its class is first referenced.  The native
+            -- constructor requires a registered LuaSTG class, so register a
+            -- valid class lazily and retry once before surfacing real errors.
+            if type(class) ~= "table" or class.is_class ~= true then
+                return nil
+            end
+            local ok, object_or_error = pcall(native_original_new, class, ...)
+            if not ok and type(lstg.RegisterGameObjectClass) == "function" then
+                pcall(lstg.RegisterGameObjectClass, class)
+                ok, object_or_error = pcall(native_original_new, class, ...)
+            end
+            if not ok then
+                -- Some imported activity helpers pass a legacy/plus class
+                -- table that cannot be represented by the modern native
+                -- object pool.  These are visual helpers (boss pointers,
+                -- optional HUD effects, etc.); skipping just this object is
+                -- safe and prevents an otherwise playable room from aborting
+                -- its frame.  Do not hide unrelated constructor failures.
+                if tostring(object_or_error):lower():match("object class required") then
+                    return nil
+                end
+                error(object_or_error, 0)
+            end
+            local object = object_or_error
             if object and native_damage_owner_context
                     and GROUP_PLAYER_BULLET and object.group == GROUP_PLAYER_BULLET then
                 object._tnr_owner_id = native_damage_owner_context
@@ -264,6 +461,7 @@ local function native_install_aggro_hooks()
             local owner = other and tonumber(other._tnr_owner_id)
             if owner and before and after and after < before then
                 native_record_damage(owner, before - after)
+                native_notify_projectile_hit(other)
             end
             return result
         end
@@ -279,13 +477,14 @@ local function native_install_aggro_hooks()
             local owner = other and tonumber(other._tnr_owner_id)
             if owner and before and after and after < before then
                 native_record_damage(owner, before - after)
+                native_notify_projectile_hit(other)
             end
             return result
         end
     end
     -- Mark native enemy kills before the original callback runs. A client
     -- can then distinguish a locally killed enemy from one that must be
-    -- removed by the host and have its original drop reproduced.
+    -- finalized locally after the peer reports the authoritative death.
     if enemy and type(enemy.kill) == "function" then
         native_original_enemy_kill = enemy.kill
         enemy.kill = function(self, ...)
@@ -303,6 +502,16 @@ local function native_install_aggro_hooks()
             if ObjList and GROUP_PLAYER_BULLET then
                 for _, object in ObjList(GROUP_PLAYER_BULLET) do before[object] = true end
             end
+            -- A full local charge uses the same finite charged Kekkai path as
+            -- the remote replay. Ordinary key-up Bombs retain the legacy
+            -- spell implementation and its original high/low visuals.
+            if native_local_bomb_charged then
+                local focus = self.slow == 1
+                native_play_remote_bomb(native_local_player_id, focus, true)
+                self.nextspell = focus and 360 or 420
+                self.protect = 480
+                return true
+            end
             local result = native_original_reimu_spell(self, ...)
             if ObjList and GROUP_PLAYER_BULLET then
                 for _, object in ObjList(GROUP_PLAYER_BULLET) do
@@ -316,6 +525,19 @@ local function native_install_aggro_hooks()
                 end
             end
             return result
+        end
+    end
+    if reimu_player and type(reimu_player.shoot) == "function" then
+        native_original_reimu_shoot = reimu_player.shoot
+        reimu_player.shoot = function(self, ...)
+            if native_runtime_active then
+                -- Formal TNR rooms create projectiles through the shared
+                -- descriptor runtime.  Suppress the fixed legacy volley so
+                -- empty or modified loadouts cannot be bypassed by THlib.
+                return true
+            end
+            native_legacy_shot_calls = native_legacy_shot_calls + 1
+            return native_original_reimu_shoot(self, ...)
         end
     end
     -- Most reference aiming helpers ultimately call Angle(x1,y1,x2,y2).
@@ -367,30 +589,154 @@ local function native_merge_physical_input(input)
         input.shoot = native_key_down("Z")
     end
     local bomb_requested = input.bomb == true
-    local bomb_pressed = bomb_down and not native_physical_bomb_previous
-    local bomb_edge = (bomb_requested and not native_bomb_request_previous) or bomb_pressed
-    -- Treat Bomb as a strict rising-edge action even if a stale input packet
-    -- or the engine's key table reports X as held for several frames.
-    if bomb_edge and not native_local_bomb_latched then
-        input.bomb = true
-        native_local_bomb_latched = true
-    else
-        input.bomb = false
-    end
-    if not bomb_requested and not bomb_down then
+
+    -- Bomb charge is an owner-local action. Never accumulate a charge, emit a
+    -- release edge, or run the collision safety timer while the owner has no
+    -- Bombs. If the key is held while the count is replenished, require a
+    -- release before arming again; this prevents an old held key from firing
+    -- immediately after a reward or room transition.
+    if not native_has_local_bomb() then
+        native_bomb_charge_frames = 0
+        native_bomb_charge_fired = false
         native_local_bomb_latched = false
+        native_local_bomb_charged = false
+        native_bomb_hit_charge_timer = 0
+        native_bomb_hit_charge_window = 0
+        native_bomb_blocked = bomb_down
+        input.bomb = false
+        input.bomb_charged = false
+        input.bomb_success = false
+        native_physical_bomb_previous = bomb_down
+        native_bomb_request_previous = false
+        return input
+    elseif native_bomb_blocked then
+        if bomb_down then
+            input.bomb = false
+            input.bomb_charged = false
+            input.bomb_success = false
+            native_physical_bomb_previous = true
+            native_bomb_request_previous = false
+            return input
+        end
+        native_bomb_blocked = false
+        native_physical_bomb_previous = false
+    end
+
+    if explicit_input then
+        -- Deterministic self-tests and remote relays already provide a single
+        -- Bomb edge. Do not turn those packets into a held-charge sequence.
+        input.bomb = bomb_requested and not native_local_bomb_latched
+        if input.bomb then
+            native_local_bomb_latched = true
+            native_local_bomb_charged = input.bomb_charged == true
+        end
+        if not bomb_requested then
+            native_local_bomb_latched = false
+            native_local_bomb_charged = false
+        end
+        native_bomb_charge_frames = 0
+        native_bomb_charge_fired = false
+    elseif bomb_down then
+        if not native_physical_bomb_previous then
+            native_bomb_charge_frames = 1
+            native_bomb_charge_fired = false
+        else
+            native_bomb_charge_frames = math.min(native_bomb_charge_max, native_bomb_charge_frames + 1)
+        end
+        if native_bomb_charge_frames >= native_bomb_charge_max and not native_bomb_charge_fired then
+            input.bomb = true
+            input.bomb_charged = true
+            native_bomb_charge_fired = true
+            native_local_bomb_latched = true
+            native_local_bomb_charged = true
+        else
+            input.bomb = false
+        end
+    else
+        -- Releasing before the cap emits one normal Bomb. A full charge has
+        -- already fired automatically and therefore emits no second edge.
+        input.bomb = native_bomb_charge_frames > 0 and not native_bomb_charge_fired
+            and not native_local_bomb_latched
+        if input.bomb then
+            native_local_bomb_latched = true
+            input.bomb_charged = false
+            native_local_bomb_charged = false
+        end
+        native_bomb_charge_frames = 0
+        native_bomb_charge_fired = false
+        native_local_bomb_latched = false
+        native_local_bomb_charged = false
     end
     native_bomb_request_previous = bomb_requested
+    local was_bomb_down = native_physical_bomb_previous
+    -- A collision while charging is resolved locally.  The release edge in
+    -- the next 18 frames upgrades the deferred safety Bomb; otherwise it is
+    -- emitted automatically when the 30-frame timer expires.
+    if not explicit_input and native_bomb_hit_charge_timer > 0 then
+        local released_after_hit = not bomb_down and was_bomb_down
+        if released_after_hit and native_bomb_hit_charge_window > 0 then
+            input.bomb = true
+            input.bomb_charged = true
+            native_local_bomb_charged = true
+            native_bomb_hit_charge_timer = 0
+            native_bomb_hit_charge_window = 0
+        elseif native_bomb_hit_charge_timer <= 1 then
+            input.bomb = true
+            input.bomb_charged = false
+            native_local_bomb_charged = false
+            native_local_bomb_latched = true
+            native_bomb_charge_fired = true
+            native_bomb_hit_charge_timer = 0
+            native_bomb_hit_charge_window = 0
+        else
+            input.bomb = false
+            native_bomb_hit_charge_timer = native_bomb_hit_charge_timer - 1
+            native_bomb_hit_charge_window = math.max(0, native_bomb_hit_charge_window - 1)
+        end
+    end
     native_physical_bomb_previous = bomb_down
     return input
 end
 
-local function native_clear_enemy_bullets()
+native_clear_enemy_bullets = function()
     if ObjList and GROUP_ENEMY_BULLET and Del then
         for _, bullet in ObjList(GROUP_ENEMY_BULLET) do
             Del(bullet)
         end
     end
+end
+
+-- Remove transient room objects before retrying a failed encounter.  The
+-- native stage remains active while the failure menu is shown, so waiting for
+-- stage.Change alone can leave the previous wave's enemies/projectiles in the
+-- object pool.  Restrict this to combat groups; menu/UI objects are owned by
+-- their own groups and must remain intact.
+local function native_clear_room_objects()
+    local groups = {
+        rawget(_G, "GROUP_ENEMY"),
+        rawget(_G, "GROUP_ENEMY_BULLET"),
+        rawget(_G, "GROUP_PLAYER_BULLET"),
+        rawget(_G, "GROUP_PLAYER"),
+    }
+    if type(ObjList) ~= "function" or type(Del) ~= "function" then return false end
+    for _, group in ipairs(groups) do
+        if group ~= nil then
+            local ok, objects = pcall(ObjList, group)
+            if ok and type(objects) == "table" then
+                for _, object in ipairs(objects) do
+                    pcall(Del, object)
+                end
+            end
+        end
+    end
+    native_clear_enemy_bullets()
+    native_player = nil
+    native_remote_player = nil
+    native_room_started = false
+    native_enemy_boss_started = false
+    native_bomb_effects = {}
+    native_respawn_frames[1], native_respawn_frames[2] = 0, 0
+    return true
 end
 
 local function native_capture_enemy_states(current)
@@ -403,24 +749,19 @@ local function native_capture_enemy_states(current)
         if id then
             local alive = native_is_valid_object(enemy_object)
             local x, y, hp, hide = 0, 0, nil, false
-            local drop, drop_spawned
             if alive then
                 pcall(function()
                     x = tonumber(enemy_object.x) or 0
                     y = tonumber(enemy_object.y) or 0
                     hp = tonumber(enemy_object.hp)
                     hide = enemy_object.hide == true
-                    drop = native_copy_drop(enemy_object.drop or enemy_object._tnr_drop_spec)
-                    drop_spawned = enemy_object._tnr_drop_spawned == true
                 end)
             else
                 -- A killed object may already have left the pool, but the
-                -- bridge table still retains its final coordinates/drop spec.
+                -- bridge table still retains its final coordinates.
                 pcall(function()
                     x = tonumber(enemy_object.x) or 0
                     y = tonumber(enemy_object.y) or 0
-                    drop = native_copy_drop(enemy_object.drop or enemy_object._tnr_drop_spec)
-                    drop_spawned = enemy_object._tnr_drop_spawned == true
                 end)
             end
             result[id] = {
@@ -429,33 +770,28 @@ local function native_capture_enemy_states(current)
                 y = y,
                 hp = hp,
                 hide = hide,
-                drop = drop,
-                drop_spawned = drop_spawned,
             }
         end
     end
     return result
 end
 
-local function native_spawn_authoritative_drop(enemy_id, enemy_object, enemy_state)
-    if type(enemy_state) ~= "table" or type(enemy_state.drop) ~= "table"
-            or type(item) ~= "table" or type(item.DropItem) ~= "function" then
+-- Reconcile a remote death through the local enemy's normal kill callback.
+-- This preserves the local drop pool and keeps item ownership local; calling
+-- Del directly would remove the enemy without producing its drops.
+local function native_finalize_local_enemy_death(enemy_object)
+    if not native_is_valid_object(enemy_object) then return end
+    if enemy_object._tnr_drop_spawned == true then
+        if type(Del) == "function" then pcall(Del, enemy_object) end
         return
     end
-    if enemy_id and native_applied_enemy_drops[enemy_id] then
-        return
-    end
-    if enemy_object and enemy_object._tnr_drop_spawned == true then
-        if enemy_id then native_applied_enemy_drops[enemy_id] = true end
-        return
-    end
-    local x = tonumber(enemy_state.x) or (enemy_object and tonumber(enemy_object.x)) or 0
-    local y = tonumber(enemy_state.y) or (enemy_object and tonumber(enemy_object.y)) or 0
-    local drop = native_copy_drop(enemy_state.drop)
-    if drop then
-        pcall(item.DropItem, x, y, drop)
-        if enemy_object then enemy_object._tnr_drop_spawned = true end
-        if enemy_id then native_applied_enemy_drops[enemy_id] = true end
+    if type(enemy_object.kill) == "function" then
+        pcall(enemy_object.kill, enemy_object)
+        enemy_object._tnr_drop_spawned = true
+    elseif type(Kill) == "function" then
+        pcall(Kill, enemy_object)
+    elseif type(Del) == "function" then
+        pcall(Del, enemy_object)
     end
 end
 
@@ -507,10 +843,7 @@ local function native_apply_authoritative_enemy_states()
                 end)
             elseif not enemy_state.alive then
                 native_authoritative_enemy_initialized[id] = nil
-                native_spawn_authoritative_drop(id, enemy_object, enemy_state)
-                if native_is_valid_object(enemy_object) then
-                    pcall(Del, enemy_object)
-                end
+                native_finalize_local_enemy_death(enemy_object)
             end
         end
     end
@@ -527,18 +860,18 @@ end
 -- damage/effects to the wrong player.  Spawn the same native Kekkai object at
 -- the remote coordinates instead; it remains a real GROUP_PLAYER_BULLET and
 -- therefore damages the local Boss through the original collision system.
-local function native_play_remote_bomb(owner_id, focus)
-    if not native_coop_enabled
-            or not native_player or not native_remote_player
-            or type(New) ~= "function" or not reimu_kekkai then
+native_play_remote_bomb = function(owner_id, focus, charged)
+    local owner = tonumber(owner_id) or 0
+    local owner_object = owner == native_local_player_id and native_player or native_remote_player
+    if not owner_object or type(New) ~= "function" or not reimu_kekkai then
         return
     end
-    local x = tonumber(native_remote_player.x) or 0
-    local y = tonumber(native_remote_player.y) or 0
+    local x = tonumber(owner_object.x) or 0
+    local y = tonumber(owner_object.y) or 0
     -- Focused Reimu Bomb uses the original small Kekkai damage.  The unfocused
     -- variant uses the same native object with the larger reference damage;
     -- both modes have a finite lifetime and are locally collidable.
-    local damage = focus and 1.25 or 50
+    local damage = charged and (focus and 2.0 or 90) or (focus and 1.25 or 50)
     if type(PlaySound) == "function" then
         if focus then
             pcall(PlaySound, "power1", 0.8)
@@ -550,7 +883,9 @@ local function native_play_remote_bomb(owner_id, focus)
     end
     local previous_owner = native_damage_owner_context
     native_damage_owner_context = tonumber(owner_id)
-    local ok, effect = pcall(New, reimu_kekkai, x, y, damage, focus and 3 or 6, 20, 12)
+    local layers = charged and (focus and 30 or 12) or (focus and 20 or 6)
+    local spacing = charged and 8 or 12
+    local ok, effect = pcall(New, reimu_kekkai, x, y, damage, layers, 20, spacing)
     if ok and effect then
         effect._tnr_bomb_effect = true
         effect._tnr_bomb_created_frame = stage and stage.current_stage
@@ -560,14 +895,16 @@ local function native_play_remote_bomb(owner_id, focus)
     native_damage_owner_context = previous_owner
 end
 
-local function native_record_bomb(owner_id, focus, input_tick)
+local function native_record_bomb(owner_id, focus, input_tick, charged)
     native_bomb_generation = native_bomb_generation + 1
     native_last_bomb_owner = owner_id
     native_last_bomb_focus = focus == true
+    native_last_bomb_charged = charged == true
     native_bomb_events[#native_bomb_events + 1] = {
         sequence = native_bomb_generation,
         owner = owner_id,
         focus = focus == true,
+        charged = charged == true,
         origin = native_local_player_id,
         -- Marks which process executed the event. The host may relay a
         -- client's Bomb using the same owner/sequence pair that the client
@@ -586,7 +923,7 @@ local function native_record_bomb(owner_id, focus, input_tick)
     end
 end
 
-local function native_apply_remote_bomb_event(sequence, owner_id, focus, local_event, origin, input_tick)
+local function native_apply_remote_bomb_event(sequence, owner_id, focus, local_event, origin, input_tick, charged)
     sequence = tonumber(sequence) or 0
     owner_id = tonumber(owner_id) or 0
     if sequence <= 0 then return end
@@ -618,8 +955,9 @@ local function native_apply_remote_bomb_event(sequence, owner_id, focus, local_e
         native_last_applied_bomb_generation, sequence)
     native_last_bomb_owner = owner_id
     native_last_bomb_focus = focus == true
+    native_last_bomb_charged = charged == true
     native_clear_enemy_bullets()
-    native_play_remote_bomb(owner_id, native_last_bomb_focus)
+    native_play_remote_bomb(owner_id, native_last_bomb_focus, charged == true)
 end
 
 local function native_set_player_alive()
@@ -653,7 +991,7 @@ local function native_ensure_remote_player()
             y = -176,
             invuln = 0,
             shoot_cooldown = 0,
-            support = 4,
+            support = 0,
             lh = 0,
             sp = nil,
             image = "reimu_player1",
@@ -663,7 +1001,7 @@ local function native_ensure_remote_player()
     end
     native_remote_player.image = native_remote_player.image or "reimu_player1"
     native_remote_player.shoot_cooldown = tonumber(native_remote_player.shoot_cooldown) or 0
-    native_remote_player.support = tonumber(native_remote_player.support) or 4
+    native_remote_player.support = tonumber(native_remote_player.support) or 0
     native_remote_player.lh = tonumber(native_remote_player.lh) or 0
     native_remote_player.hidden = native_remote_player.hidden == true
     return native_remote_player
@@ -673,7 +1011,7 @@ local function native_render_remote_player()
     if not native_coop_enabled or not native_player then return end
     local remote = native_ensure_remote_player()
     local remote_id = native_local_player_id == 1 and 2 or 1
-    if not remote or (native_respawn_frames[remote_id] or 0) > 0 then return end
+    if not remote or remote.hidden == true or (native_respawn_frames[remote_id] or 0) > 0 then return end
     pcall(function()
         SetViewMode("world")
         local world = lstg.world or {}
@@ -695,7 +1033,7 @@ local function native_render_remote_player()
                 {36, -12, 1},
             }
         end
-        local support_count = math.min(4, math.floor(support + 0.999))
+        local support_count = native_runtime_active and 0 or math.min(4, math.floor(support + 0.999))
         pcall(SetImageState, "reimu_support", "", Color(180, 255, 255, 255))
         local shown = 0
         for index = 1, 4 do
@@ -796,7 +1134,7 @@ local function native_resolve_team_wipe()
 end
 
 local function native_render_coop_hud()
-    if not native_coop_enabled or not RenderTTF then return end
+    if not RenderTTF or native_team_defeated then return end
     SetViewMode("ui")
     local right = (screen and screen.width or 640) - 14
     local y = (screen and screen.height or 480) - 72
@@ -809,8 +1147,40 @@ local function native_render_coop_hud()
             y = y - 26
         end
     end
-    RenderTTF("Sans", string.format("TEAM LIVES  %d", native_team_lives), right, right, y, y,
+    local lives_label = native_coop_enabled and "TEAM LIVES" or "PLAYER LIVES"
+    local lives_value = native_coop_enabled and native_team_lives
+        or (native_player_state and tonumber(native_player_state.life))
+        or (lstg and lstg.var and tonumber(lstg.var.lifeleft)) or native_team_lives
+    RenderTTF("Sans", string.format("%s  %d", lives_label, lives_value), right, right, y, y,
         Color(255, 220, 240, 255), "right", "vcenter", "noclip")
+    y = y - 26
+    -- Bombs are player-owned resources.  Only show the local process's count;
+    -- the peer has an independent count and never receives this value over
+    -- the wire.
+    local bombs = native_player_state and tonumber(native_player_state.bomb)
+    if bombs == nil and lstg and lstg.var then
+        bombs = tonumber(lstg.var.bomb)
+    end
+    local bomb_alert = (native_bomb_hit_charge_window or 0) > 0
+    RenderTTF("Sans", string.format("BOMBS  %d", math.max(0, bombs or 0)), right, right, y, y,
+        bomb_alert and Color(255, 80, 80, 255) or Color(255, 255, 220, 255), "right", "vcenter", "noclip")
+    -- The charge is local to this machine/player. Draw it beneath the Bomb
+    -- counter so both peers can charge independently without synchronizing a
+    -- continuous stream of frames.
+    local width = (screen and screen.width or 640)
+    local charge = math.max(0, math.min(native_bomb_charge_max, native_bomb_charge_frames or 0))
+    local ratio = charge / math.max(1, native_bomb_charge_max)
+    local bar_left, bar_right = width - 190, width - 14
+    local bar_bottom, bar_top = math.max(18, y - 34), math.max(30, y - 20)
+    SetImageState("tnr-white", "", bomb_alert and Color(255, 45, 45, 75) or Color(190, 15, 20, 35))
+    RenderRect("tnr-white", bar_left, bar_right, bar_bottom, bar_top)
+    SetImageState("tnr-white", "", bomb_alert and Color(255, 70, 70, 255) or Color(255, 120, 205, 255))
+    if ratio > 0 then
+        RenderRect("tnr-white", bar_left + 2, bar_left + 2 + (bar_right - bar_left - 4) * ratio,
+            bar_bottom + 2, bar_top - 2)
+    end
+    RenderTTF("Sans", (charge > 0 and "BOMB CHARGE" or "BOMB READY"), bar_left, bar_right,
+        bar_top + 4, bar_top + 4, Color(255, 235, 225, 240), "left", "vcenter", "noclip")
     SetViewMode("world")
 end
 
@@ -862,6 +1232,7 @@ local function seeded_value(seed, salt)
 end
 
 local legacy_enemy_wave_catalog = require("tnr.stages.legacy_enemy_waves")
+local legacy_stage_music = require("tnr.stages.legacy_stage_music")
 
 local function find_legacy_enemy_wave(wave_id)
     for _, stage in ipairs(legacy_enemy_wave_catalog) do
@@ -872,6 +1243,10 @@ local function find_legacy_enemy_wave(wave_id)
         end
     end
     return nil
+end
+
+local function music_for_legacy_stage(stage_id)
+    return legacy_stage_music[tostring(stage_id or "")]
 end
 
 local function normal_legacy_waves()
@@ -905,17 +1280,33 @@ local function build_native_enemy_specs(wave, seed)
     return specs
 end
 
+local function substitute_captured_scalar(expression, name, replacement)
+    -- Lua patterns have no look-behind.  Match the token together with its
+    -- surrounding characters so object fields such as `player.x` remain
+    -- fields instead of becoming the invalid `player.(220)`.  Keep table keys
+    -- (`x=...`) intact for the same reason.
+    local result = " " .. tostring(expression) .. " "
+    local escaped_name = tostring(name):gsub("([%%%+%-%*%?%[%]%^%$%(%)%.])", "%%%1")
+    result = result:gsub("([^%w_%.])(" .. escaped_name .. ")([^%w_])", function(prefix, token, suffix)
+        if suffix == "=" then
+            return prefix .. token .. suffix
+        end
+        return prefix .. "(" .. tostring(replacement) .. ")" .. suffix
+    end)
+    return result:sub(2, -2)
+end
+
 local function expand_captured_scalar(expression, expression_env)
     local result = tostring(expression)
     for _ = 1, 8 do
         local previous = result
         for name, value in pairs(expression_env) do
             if type(value) == "number" then
-                result = result:gsub("(%f[%a_])" .. name .. "(%f[^%w_])", "%1(" .. tostring(value) .. ")%2")
+                result = substitute_captured_scalar(result, name, value)
             elseif type(value) == "string"
                     and not value:find("[{}:]")
                     and not value:find("%.new%s*%(") then
-                result = result:gsub("(%f[%a_])" .. name .. "(%f[^%w_])", "%1(" .. value .. ")%2")
+                result = substitute_captured_scalar(result, name, value)
             end
         end
         if result == previous then break end
@@ -923,7 +1314,7 @@ local function expand_captured_scalar(expression, expression_env)
     return result
 end
 
-local function evaluate_native_enemy_args(spec, runtime_context)
+local function evaluate_native_enemy_args(spec, runtime_context, class_environment)
     local source_args = spec.args or {}
     local argument_count = #source_args
     local values = {}
@@ -934,11 +1325,18 @@ local function evaluate_native_enemy_args(spec, runtime_context)
         ran = rawget(_G, "ran"),
         self = runtime_context,
     }
-    -- Resolve source environment expressions against the complete legacy
-    -- global namespace as well as values captured in the catalog. Some enemy
-    -- constructors intentionally reference shared tables such as `bi` or
-    -- `listb`; treating those as nil makes an otherwise valid enemy vanish.
-    setmetatable(expression_env, { __index = _G })
+    -- Resolve source environment expressions against the enemy constructor's
+    -- original DoFile environment first, then the global namespace. Imported
+    -- activity files keep helpers such as karl_bullet_initializer in their
+    -- per-file environment; looking only in _G turns those helpers into nil.
+    setmetatable(expression_env, {
+        __index = function(_, key)
+            if class_environment and class_environment[key] ~= nil then
+                return class_environment[key]
+            end
+            return _G[key]
+        end,
+    })
     local pending_env = {}
     for name, expression in pairs(spec.env or {}) do
         if type(expression) == "number" then
@@ -955,19 +1353,45 @@ local function evaluate_native_enemy_args(spec, runtime_context)
     -- Captured locals can depend on one another (for example `x=220*side`).
     -- Resolve them in passes so table iteration order cannot make a valid
     -- original expression disappear.
+    local pending_names = {}
+    for _, item in ipairs(pending_env) do
+        pending_names[item.name] = true
+    end
+    local function expression_waits_for_pending_name(expression, current_name)
+        expression = tostring(expression or "")
+        for name in pairs(pending_names) do
+            if name ~= current_name
+                    and expression:match("%f[%a_]" .. name .. "%f[^%w_]") then
+                return true
+            end
+        end
+        return false
+    end
     for _ = 1, #pending_env do
         if #pending_env == 0 then break end
         local unresolved = {}
         local progress = false
         for _, item in ipairs(pending_env) do
-            local chunk, compile_error = compile_in_environment("return " .. item.expression, "legacy_enemy_env", expression_env)
-            local ok, value = chunk and pcall(chunk)
-            if ok and value ~= nil then
-                expression_env[item.name] = value
-                progress = true
-            else
-                item.compile_error = compile_error or value
+            if expression_waits_for_pending_name(item.expression, item.name) then
                 unresolved[#unresolved + 1] = item
+            else
+                local chunk, compile_error = compile_in_environment("return " .. item.expression, "legacy_enemy_env", expression_env)
+                -- Keep the pcall in its own statement.  `chunk and pcall(chunk)`
+                -- is a non-final boolean expression in Lua and therefore
+                -- discards pcall's return value, making every valid captured
+                -- environment expression look unresolved.
+                local ok, value
+                if chunk then
+                    ok, value = pcall(chunk)
+                end
+                if ok and value ~= nil then
+                    expression_env[item.name] = value
+                    pending_names[item.name] = nil
+                    progress = true
+                else
+                    item.compile_error = compile_error or value
+                    unresolved[#unresolved + 1] = item
+                end
             end
         end
         pending_env = unresolved
@@ -992,7 +1416,7 @@ local function evaluate_native_enemy_args(spec, runtime_context)
         local resolved_expression = expand_captured_scalar(expression, expression_env)
         for name, value in pairs(expression_env) do
             if type(value) == "number" then
-                resolved_expression = resolved_expression:gsub("(%f[%a_])" .. name .. "(%f[^%w_])", "%1" .. tostring(value) .. "%2")
+                resolved_expression = substitute_captured_scalar(resolved_expression, name, value)
             end
         end
         local direct_value = tonumber(resolved_expression)
@@ -1233,7 +1657,7 @@ local function restore_project_ui_image()
         pcall(lstg.LoadTexture, "tnr-white-texture", "assets/texture/white.png", false)
         pcall(lstg.LoadImage, "tnr-white", "tnr-white-texture", 0, 0, 16, 16)
         if lstg.LoadTTF then
-            pcall(lstg.LoadTTF, "Sans", "C:/Windows/Fonts/msyh.ttc", 48, 48)
+            pcall(lstg.LoadTTF, "Sans", "assets/font/SourceHanSansCN-Bold.otf", 48, 48)
         end
     end
 end
@@ -1274,6 +1698,12 @@ local function patch_loader(name)
 
     lstg[name] = function(resource, path, ...)
         local normalized = normalize_legacy_path(path)
+        if name == "LoadFX" and resource == "er_desaturate" then
+            -- The exported FX uses D3D9 effect syntax. This composite is
+            -- required to present Tenka's scene, so load the D3D11 port and
+            -- report any failure here instead of leaving an absent effect.
+            return original(resource, "shader/er_desaturate.hlsl", ...)
+        end
         if name == "LoadMusic" and type(normalized) == "string" then
             -- The exported scripts refer to music by its original basename
             -- (for example, `BGM-TKZ-1.ogg`). Resolve that basename to the
@@ -1284,7 +1714,18 @@ local function patch_loader(name)
                 normalized = imported
             end
         elseif name == "LoadSound" and type(normalized) == "string" then
-            if not file_exists(normalized) then
+            -- Reference exports pass only a basename (for example
+            -- `tan00.wav` or `one07.wav`). Resolve it against both imported
+            -- sound roots before using the compatibility fallback; otherwise
+            -- every missing path becomes the same tan00 click.
+            local basename = normalized:match("[^/\\]+$")
+            local imported_se = basename and ("assets/audio/se/" .. basename)
+            local imported_music = basename and ("assets/audio/music/" .. basename)
+            if imported_se and file_exists(imported_se) then
+                normalized = imported_se
+            elseif imported_music and file_exists(imported_music) then
+                normalized = imported_music
+            elseif not file_exists(normalized) then
                 normalized = "assets/audio/se/se_tan00.wav"
             end
         end
@@ -1302,6 +1743,22 @@ local function patch_loader(name)
             return original(resource, "assets/audio/se/se_tan00.wav", ...)
         end
         if name == "LoadFX" then
+            -- A few reference scripts use paths relative to the original
+            -- data root. Try the mounted project path variants before giving
+            -- up, so optional effects such as fx_switch can be registered.
+            local candidates = {
+                normalized,
+                type(normalized) == "string" and normalized:gsub("^shader[/\\]", "legacy/data/shader/") or nil,
+                type(normalized) == "string" and normalized:gsub("^shader[/\\]", "data/shader/") or nil,
+                type(normalized) == "string" and normalized:gsub("^shader[/\\]", "legacy/assets/data/shader/") or nil,
+                type(normalized) == "string" and normalized:gsub("^shader[/\\]", "assets/data/shader/") or nil,
+            }
+            for _, candidate in ipairs(candidates) do
+                if candidate and candidate ~= normalized then
+                    local retry_ok, retry_result = pcall(original, resource, candidate, ...)
+                    if retry_ok then return retry_result end
+                end
+            end
             return nil
         end
         if name == "LoadMusic" then
@@ -1390,6 +1847,35 @@ local function load_legacy_content()
                 return engine_include(path)
             end
             return lstg.DoFile(path)
+        end
+        -- Missing optional post-effect resources should not abort an otherwise
+        -- playable card. Keep the original call for valid effects and skip
+        -- only the known legacy effect when its shader could not be compiled.
+        local native_post_effect = rawget(lstg, "PostEffect") or rawget(_G, "PostEffect")
+        if type(native_post_effect) == "function" then
+            local function safe_post_effect(render_target, effect_name, ...)
+                -- fx_switch is an optional transition effect in the exported
+                -- activity.  Some installations do not compile the legacy
+                -- shader; treat that transition as a no-op instead of
+                -- aborting the whole frame.  Other effects retain native
+                -- error behavior so genuine rendering bugs remain visible.
+                if effect_name == "fx_switch" then
+                    local ok_call, result = pcall(native_post_effect, render_target, effect_name, ...)
+                    if ok_call then return result end
+                    if tostring(result):lower():match("posteffect.*not found")
+                            or tostring(result):lower():match("effect.*not found")
+                            or tostring(result):lower():match("fx_switch.*not found") then
+                        return nil
+                    end
+                    error(result, 0)
+                end
+                return native_post_effect(render_target, effect_name, ...)
+            end
+            -- Patch the namespace function as well as the global alias.  A
+            -- later Lapi/THlib include can recreate the alias from lstg, but
+            -- it cannot bypass this namespace-level wrapper.
+            lstg.PostEffect = safe_post_effect
+            PostEffect = safe_post_effect
         end
         -- The activity editor assumes these classic THlib sheets were loaded
         -- by the original project root. Load them before THlib's laser module,
@@ -1513,12 +1999,20 @@ local function setup_native_stage()
         local native_play_music = rawget(_G, "PlayMusic")
         local native_set_bgm_volume = rawget(_G, "SetBGMVolume")
         PlayMusic = function(name, ...)
+            local audio = rawget(_G, "__tnr_audio_manager")
+            if audio and type(audio.play_original) == "function" then
+                return audio:play_original(name, ...)
+            end
             if type(LoadMusicRecord) == "function" then
                 pcall(LoadMusicRecord, name)
             end
             return native_play_music(name, ...)
         end
         SetBGMVolume = function(name, ...)
+            local audio = rawget(_G, "__tnr_audio_manager")
+            if audio and type(audio.set_original_volume) == "function" then
+                return audio:set_original_volume(name, ...)
+            end
             if type(LoadMusicRecord) == "function" then
                 pcall(LoadMusicRecord, name)
             end
@@ -1572,9 +2066,11 @@ local function setup_native_stage()
     -- minimal shape used by normal stage groups.
     native_stage.group = { name = "TNRLegacy" }
     function native_stage:init()
+        -- Every process owns an independent item pool.  Item collision code
+        -- uses this identity to reject the remote player proxy.
+        _G.tnr_item_owner_player_id = native_local_player_id
         native_enemy_training_seen_alive = false
         native_bomb_effects = {}
-        native_applied_enemy_drops = {}
         native_team_wipe_generation = 0
         native_respawn_frames[1], native_respawn_frames[2] = 0, 0
         self.frame_count = 0
@@ -1627,6 +2123,13 @@ local function setup_native_stage()
         native_remote_player = nil
         player = nil
         lstg.player = nil
+        -- Preserve the local player's independent bomb pool across room
+        -- transitions. Respawn handling never writes this value, so a death
+        -- or team wipe cannot replenish bombs.
+        if native_room_started and lstg.var and native_player_state
+                and tonumber(native_player_state.bomb) then
+            lstg.var.bomb = math.max(0, tonumber(native_player_state.bomb))
+        end
         if native_room_started then
             native_player = New(reimu_player)
             local start_x = native_coop_enabled and (native_local_player_id == 1 and -36 or 36) or 0
@@ -1697,7 +2200,14 @@ local function setup_native_stage()
                 end
                 local enemy_class = _editor_class[spec.class_name]
                 if enemy_class then
-                    local args, argument_count = evaluate_native_enemy_args(spec, self)
+                    local class_environment
+                    if type(getfenv) == "function" and type(enemy_class.init) == "function" then
+                        local env_ok, env = pcall(getfenv, enemy_class.init)
+                        if env_ok and type(env) == "table" then
+                            class_environment = env
+                        end
+                    end
+                    local args, argument_count = evaluate_native_enemy_args(spec, self, class_environment)
                     local ok, object
                     if args then
                         ok, object = pcall(New, enemy_class, unpack_args(args, 1, argument_count))
@@ -1710,7 +2220,6 @@ local function setup_native_stage()
                         -- send a compact death/position state keyed by this
                         -- index, and the client can remove the exact enemy
                         -- without serializing its bullets.
-                        object._tnr_drop_spec = native_copy_drop(object.drop)
                         self.enemy_objects[spec.index or (#self.enemy_objects + 1)] = object
                     end
                 end
@@ -1777,10 +2286,32 @@ local function setup_native_stage()
         if stage.current_stage and stage.current_stage.render then
             stage.current_stage:render()
         end
+        -- Reimu's legacy render override draws support sprites before the
+        -- base player renderer and does not check `hide`, so a dead/respawning
+        -- player can leave support sprites at their last coordinates.  Hide
+        -- the transient layout for this render pass and restore it after the
+        -- object pool has been drawn for the next live frame.
+        local hidden_player_layout
+        if native_player and (native_player.hide or native_runtime_active) then
+            hidden_player_layout = native_player.sp
+            native_player.sp = {}
+        end
         ObjRender()
+        if hidden_player_layout and native_player then
+            native_player.sp = hidden_player_layout
+        end
         -- Draw the remote player after the legacy object pool so background
         -- and boss layers cannot clip it at the upper edge of the playfield.
         native_render_remote_player()
+        if native_runtime_active then
+            for owner, driver in pairs(native_runtime_drivers) do
+                local player = owner == native_local_player_id and native_player or native_remote_player
+                if driver and player and not player.hide and not player.hidden then
+                    NativeProjectile.render_supports(driver._last_support_state, owner == native_local_player_id and 255 or 180)
+                    NativeProjectile.render_streaks(driver, player)
+                end
+            end
+        end
         native_render_aggro_marker()
         native_render_coop_hud()
         AfterRender()
@@ -1819,6 +2350,7 @@ do
         native_room_generation = native_room_generation + 1
         native_room_started = true
         native_mode = "card"
+        native_room_music_hint = nil
         native_direct_card = not all_cards
         native_enemy_training_only = false
         -- Direct card starts are training-room launches by definition. Keep
@@ -1834,18 +2366,17 @@ do
         native_enemy_boss_started = false
         native_virtual_keys = {}
         native_virtual_keys_previous = {}
-        native_physical_bomb_previous = false
-        native_bomb_request_previous = false
-        native_local_bomb_latched = false
+        native_reset_bomb_charge()
         native_bomb_generation = 0
         native_last_applied_bomb_generation = 0
         native_last_bomb_owner = nil
         native_last_bomb_focus = false
+        native_last_bomb_charged = false
         native_bomb_events = {}
         native_applied_bomb_events = {}
         native_local_bomb_sequences = {}
         native_local_bomb_ticks = {}
-        native_remote_bomb_tick = -1
+        native_reset_remote_bomb_charge()
         native_enemy_kill_generation = 0
         native_enemy_kill_events = {}
         native_enemy_alive_cache = {}
@@ -1877,6 +2408,9 @@ do
                 index, kind, tostring(boss_key))
         end
         native_boss_class = class
+        if type(class.bgm) == "string" and class.bgm ~= "" then
+            native_room_music_hint = class.bgm
+        end
         native_room_seed = index
         native_pick_random_focus()
         if all_cards then
@@ -1899,12 +2433,13 @@ do
     local function bridge_start_enemy_wave(wave_id)
         native_reset_aggro()
         native_room_generation = native_room_generation + 1
-        local wave = find_legacy_enemy_wave(wave_id)
+        local wave, source_stage = find_legacy_enemy_wave(wave_id)
         if not wave then
             return false, "unknown legacy enemy wave: " .. tostring(wave_id)
         end
         native_room_started = true
         native_mode = "enemy"
+        native_room_music_hint = music_for_legacy_stage(source_stage and source_stage.source_stage)
         native_direct_card = false
         native_enemy_training_only = true
         native_enemy_training_error = nil
@@ -1912,18 +2447,17 @@ do
         native_enemy_boss_started = false
         native_virtual_keys = {}
         native_virtual_keys_previous = {}
-        native_physical_bomb_previous = false
-        native_bomb_request_previous = false
-        native_local_bomb_latched = false
+        native_reset_bomb_charge()
         native_bomb_generation = 0
         native_last_applied_bomb_generation = 0
         native_last_bomb_owner = nil
         native_last_bomb_focus = false
+        native_last_bomb_charged = false
         native_bomb_events = {}
         native_applied_bomb_events = {}
         native_local_bomb_sequences = {}
         native_local_bomb_ticks = {}
-        native_remote_bomb_tick = -1
+        native_reset_remote_bomb_charge()
         native_enemy_kill_generation = 0
         native_enemy_kill_events = {}
         native_enemy_alive_cache = {}
@@ -1951,24 +2485,24 @@ do
         native_pick_random_focus()
         native_room_started = true
         native_mode = room_type
+        native_room_music_hint = nil
         native_enemy_specs = nil
         native_enemy_training_only = false
         native_enemy_training_error = nil
         native_enemy_boss_started = false
         native_virtual_keys = {}
         native_virtual_keys_previous = {}
-        native_physical_bomb_previous = false
-        native_bomb_request_previous = false
-        native_local_bomb_latched = false
+        native_reset_bomb_charge()
         native_bomb_generation = 0
         native_last_applied_bomb_generation = 0
         native_last_bomb_owner = nil
         native_last_bomb_focus = false
+        native_last_bomb_charged = false
         native_bomb_events = {}
         native_applied_bomb_events = {}
         native_local_bomb_sequences = {}
         native_local_bomb_ticks = {}
-        native_remote_bomb_tick = -1
+        native_reset_remote_bomb_charge()
         native_enemy_kill_generation = 0
         native_enemy_kill_events = {}
         native_enemy_alive_cache = {}
@@ -1983,16 +2517,19 @@ do
             local selected_card, selected_class = select_catalog_card(native_room_seed, true, false, 31)
             native_boss_class = selected_class
             native_card_list = native_boss_class and native_boss_class.cards or nil
+            native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
         elseif room_type == "elite" then
             native_direct_card = false
             local selected_card, selected_class = select_catalog_card(native_room_seed, true, true, 47)
             native_boss_class = selected_class
             native_card_list = native_boss_class and native_boss_class.cards or nil
+            native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             if not native_boss_class then
                 local fallback_card, fallback_class, fallback_slot =
                     select_catalog_card(native_room_seed, true, false, 53)
                 native_boss_class = fallback_class
                 native_card_list = fallback_class and fallback_class.cards or nil
+                native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             end
         else
             native_mode = "enemy"
@@ -2011,6 +2548,8 @@ do
             -- wave retains original constructor arguments and spawn timing.
             local original_wave = select_catalog_wave(native_room_seed)
             native_enemy_specs = build_native_enemy_specs(original_wave, native_room_seed)
+            native_room_music_hint = music_for_legacy_stage(original_wave
+                and (original_wave.source_stage or original_wave.legacy_stage))
         end
         scoredata = scoredata or {}
         scoredata.hiscore = scoredata.hiscore or {}
@@ -2019,7 +2558,50 @@ do
         restore_project_ui_image()
         return true
     end
+
+    -- Explicitly tear down the previous room before a retry.  Stage.Change
+    -- normally resets the pool, but a failed battle can leave objects queued
+    -- in the current stage until the next frame; clearing them here prevents
+    -- old enemies, bullets, bomb effects and support afterimages from leaking
+    -- into the fresh attempt.
+    local function bridge_reset_room()
+        native_room_started = false
+        native_room_music_hint = nil
+        native_enemy_specs = nil
+        native_enemy_objects = nil
+        native_bomb_effects = {}
+        native_remote_player = nil
+        native_player = nil
+        player = nil
+        if lstg then lstg.player = nil end
+        local groups = {
+            GROUP_ENEMY_BULLET, GROUP_PLAYER_BULLET, GROUP_ENEMY,
+            GROUP_ITEM, GROUP_NONTJT, GROUP_GHOST, GROUP_PLAYER,
+        }
+        if ObjList and Del then
+            for _, group in ipairs(groups) do
+                if group ~= nil then
+                    for _, object in ObjList(group) do
+                        pcall(Del, object)
+                    end
+                end
+            end
+        end
+        if type(ResetPool) == "function" then
+            pcall(ResetPool)
+        end
+        native_virtual_keys = {}
+        native_virtual_keys_previous = {}
+        native_respawn_frames[1], native_respawn_frames[2] = 0, 0
+        native_team_defeated = false
+        native_bomb_events = {}
+        native_applied_bomb_events = {}
+        native_enemy_kill_events = {}
+        native_authoritative_enemy_states = nil
+        return true
+    end
     TNRNativeLegacy = {
+        clear_room_objects = native_clear_room_objects,
         set_authority = function(is_host)
             native_network_authority_host = is_host ~= false
             native_disable_client_enemy_collisions()
@@ -2055,28 +2637,46 @@ do
                 native_remote_player.hspeed = speed and tonumber(speed.high_speed) or 4.5
                 native_remote_player.lspeed = speed and tonumber(speed.low_speed) or 2
                 local count = native_descriptor_support_count(native_remote_loadout_descriptor)
-                native_remote_player.support = math.min(5, math.max(4, count))
+                native_remote_player.support = math.min(5, math.max(0, count))
             end
             return true
+        end,
+        set_runtime_drivers = function(local_driver, remote_driver)
+            native_runtime_drivers[1] = local_driver
+            native_runtime_drivers[2] = remote_driver
+            return true
+        end,
+        set_runtime_active = function(active)
+            native_runtime_active = active == true
+            native_runtime_shot_calls = 0
+            native_legacy_shot_calls = 0
+            native_runtime_last_projectile = nil
+            return native_runtime_active
         end,
         start_card = bridge_start_card,
         start_enemy_wave = bridge_start_enemy_wave,
         start_room = bridge_start_room,
+        get_music_hint = function()
+            if type(native_room_music_hint) == "string" and native_room_music_hint ~= "" then
+                return native_room_music_hint
+            end
+            return nil
+        end,
+        reset_room = bridge_reset_room,
         set_coop = function(enabled, local_player_id)
             local was_coop_enabled = native_coop_enabled
             native_coop_enabled = enabled == true
             native_local_player_id = tonumber(local_player_id) == 2 and 2 or 1
+            NativeProjectile.set_local_player_id(native_local_player_id)
+            _G.tnr_item_owner_player_id = native_local_player_id
             if native_coop_enabled ~= was_coop_enabled then
                 native_reset_aggro()
             end
             native_remote_input = {}
-            native_remote_bomb_latched = false
-            native_remote_bomb_tick = -1
+            native_reset_remote_bomb_charge()
             native_authoritative_enemy_states = nil
             native_authoritative_enemy_initialized = {}
-            native_physical_bomb_previous = false
-            native_bomb_request_previous = false
-            native_local_bomb_latched = false
+            native_reset_bomb_charge()
             native_respawn_frames[1], native_respawn_frames[2] = 0, 0
             if native_coop_enabled and (not was_coop_enabled or native_team_defeated) then
                 native_set_team_lives(3)
@@ -2092,14 +2692,14 @@ do
             x = native_local_player_id == 1 and 36 or -36,
             y = -176,
             invuln = 0,
-            support = 4,
+            support = 0,
             lh = 0,
             sp = nil,
             image = "reimu_player1",
             hidden = false,
         }
         native_remote_player.support = math.min(5,
-            math.max(4, native_descriptor_support_count(native_remote_loadout_descriptor)))
+            math.max(0, native_descriptor_support_count(native_remote_loadout_descriptor)))
         native_remote_player.tnr_loadout_hash = native_remote_loadout_descriptor
             and native_remote_loadout_descriptor.loadout_hash or nil
         native_remote_player.tnr_loadout_descriptor = native_remote_loadout_descriptor
@@ -2163,7 +2763,11 @@ do
             -- Copying the local player's support layout is important: with a
             -- zero-support proxy only the two straight shots are produced,
             -- so Reimu's blue homing shots disappear on the other peer.
-            if native_remote_input.shoot and native_remote_player.shoot_cooldown <= 0
+            if native_runtime_active and native_runtime_drivers[remote_id] then
+                native_runtime_fire(native_runtime_drivers[remote_id], native_remote_player,
+                    native_remote_input, remote_id)
+                native_remote_player.shoot_cooldown = 1
+            elseif native_remote_input.shoot and native_remote_player.shoot_cooldown <= 0
                     and reimu_player and type(reimu_player.shoot) == "function" then
                 local support = math.max(0, tonumber(native_remote_player.support) or 4)
                 local support_layout = native_remote_player.sp
@@ -2213,6 +2817,18 @@ do
             -- The transport may coalesce a Bomb edge with a newer movement
             -- packet. Preserve the original action tick for dedupe so the
             -- host relay is recognized as the client's own Bomb on return.
+            local function activate_remote_bomb()
+                -- A bomb is a shared arena action. Use the same global
+                -- destroyable-bullet group as the original PlayerSpell.
+                native_clear_enemy_bullets()
+                local remote_focus = native_remote_input.focus == true
+                native_record_bomb(remote_id, remote_focus,
+                    native_remote_input.bomb_tick or native_remote_input.tick,
+                    native_remote_input.bomb_charged == true)
+                native_play_remote_bomb(remote_id, remote_focus, native_remote_input.bomb_charged == true)
+            end
+            -- Only the final Bomb release edge is sent over the wire. Charge
+            -- duration and hit judgment stay local to the owning simulation.
             local remote_bomb_tick = tonumber(native_remote_input.bomb_tick
                 or native_remote_input.tick)
             local bomb_edge = native_remote_input.bomb == true
@@ -2221,13 +2837,7 @@ do
             if bomb_edge then
                 native_remote_bomb_latched = true
                 if remote_bomb_tick then native_remote_bomb_tick = remote_bomb_tick end
-                -- A bomb is a shared arena action.  Use the same global
-                -- destroyable-bullet group as the original PlayerSpell.
-                native_clear_enemy_bullets()
-                local remote_focus = native_remote_input.focus == true
-                native_record_bomb(remote_id, remote_focus,
-                    native_remote_input.bomb_tick or native_remote_input.tick)
-                native_play_remote_bomb(remote_id, remote_focus)
+                activate_remote_bomb()
             elseif not native_remote_input.bomb then
                 native_remote_bomb_latched = false
             end
@@ -2279,6 +2889,15 @@ do
                     player_system.__special_flag = key_state.special
                 end
             end
+            if native_runtime_active and native_runtime_drivers[native_local_player_id]
+                    and native_player then
+                -- Advance the formal weapon/support runtimes every frame;
+                -- their own cooldowns decide whether a volley is emitted.
+                -- This keeps held fire deterministic without relying on the
+                -- legacy player's power-driven `nextshoot` state.
+                native_runtime_fire(native_runtime_drivers[native_local_player_id],
+                    native_player, input, native_local_player_id)
+            end
             if native_input_replay and native_input_replay.setExternalInput then
                 native_input_replay.setExternalInput({
                     move_x = tonumber(input.move_x) or 0,
@@ -2300,6 +2919,13 @@ do
             local result = DoFrame()
             native_aggro_targeting = false
             native_damage_owner_context = previous_owner
+            if native_runtime_active and native_player then
+                native_apply_loadout_descriptor(native_player, native_local_loadout_descriptor)
+                local local_driver = native_runtime_drivers[native_local_player_id]
+                if local_driver then
+                    native_runtime_support_layout(native_player, local_driver._last_support_state)
+                end
+            end
             native_update_aggro_window()
             if native_input_replay and native_input_replay.clearExternalInput then
                 native_input_replay.clearExternalInput()
@@ -2308,6 +2934,20 @@ do
             -- helper applies a coordinate only when an object is first seen;
             -- all subsequent movement remains local and smooth.
             native_apply_authoritative_enemy_states()
+            -- THlib marks a player as dying after a bullet collision.  While
+            -- the local Bomb key is being charged, convert that death marker
+            -- into the same deferred safety Bomb used by the fallback room.
+            if native_player and (native_player.death or 0) > 0
+                    and native_bomb_charge_frames > 0
+                    and (native_bomb_hit_charge_timer or 0) <= 0 then
+                native_player.death = 0
+                native_player.protect = math.max(tonumber(native_player.protect) or 0, 90)
+                native_bomb_hit_charge_timer = 30
+                native_bomb_hit_charge_window = 18
+                native_bomb_charge_frames = 0
+                native_bomb_charge_fired = false
+                native_local_bomb_charged = false
+            end
             -- The original player class consumes Bomb only when its cooldown
             -- and global Bomb count allow it. Publish exactly that edge to the
             -- peer; held X/input packets can never retrigger the effect.
@@ -2315,10 +2955,15 @@ do
             if native_player_state and bomb_after ~= nil then
                 native_player_state.bomb = math.max(0, bomb_after)
             end
+            if native_player_state and not native_coop_enabled and lstg and lstg.var
+                    and tonumber(lstg.var.lifeleft) then
+                native_player_state.life = math.max(0, tonumber(lstg.var.lifeleft))
+            end
             if native_coop_enabled and input.bomb == true
                     and bomb_before and bomb_after and bomb_after < bomb_before
                     and nextspell_before <= 0 then
-                native_record_bomb(native_local_player_id, input.focus == true, input.tick)
+                native_record_bomb(native_local_player_id, input.focus == true, input.tick,
+                    input.bomb_charged == true or native_local_bomb_charged == true)
             end
             if native_coop_enabled and native_player and not native_team_defeated
                     and (native_respawn_frames[native_local_player_id] or 0) <= 0
@@ -2399,6 +3044,10 @@ do
                 boss_card_num = boss_card_num,
                 aggro_focus_player = native_aggro_focus_player,
                 aggro_focus_window = native_aggro_focus_window,
+                runtime_active = native_runtime_active,
+                runtime_shot_calls = native_runtime_shot_calls,
+                legacy_shot_calls = native_legacy_shot_calls,
+                runtime_last_projectile = native_runtime_last_projectile,
             }
         end,
         snapshot = function()
@@ -2444,14 +3093,16 @@ do
                 team_wipe_generation = native_team_wipe_generation,
                 frame = stage and stage.current_stage and stage.current_stage.frame_count or 0,
                 players = players,
-                -- Host publishes enemy HP/death and drop specifications. The
-                -- client still simulates movement and creates its own local
-                -- item objects, but uses this stream to keep counts equal.
+                -- Host publishes enemy HP/death for reconciliation. Drops
+                -- are deliberately excluded from network ownership: each
+                -- endpoint runs its own enemy kill callback and local item
+                -- pool, so the remote player can never collect them.
                 enemies = native_capture_enemy_states(current),
                 enemy_spawned = current and current.enemy_spawned == true,
                 bomb_generation = native_bomb_generation,
                 bomb_owner = native_last_bomb_owner,
                 bomb_focus = native_last_bomb_focus == true,
+                bomb_charged = native_last_bomb_charged == true,
                 bomb_events = native_bomb_events,
                 aggro_focus_player = native_aggro_focus_player,
                 aggro_focus_window = native_aggro_focus_window,
@@ -2625,9 +3276,7 @@ do
                             end)
                         elseif not enemy_state.alive then
                             native_authoritative_enemy_initialized[id] = nil
-                            if native_is_valid_object(enemy_object) then
-                                pcall(Del, enemy_object)
-                            end
+                            native_finalize_local_enemy_death(enemy_object)
                         end
                     end
                 end
@@ -2654,17 +3303,21 @@ do
                 for _, event in ipairs(incoming_events) do
                     local sequence = tonumber(event.sequence) or 0
                     native_apply_remote_bomb_event(sequence, event.owner, event.focus,
-                        event.local_event, event.origin, event.input_tick)
+                        event.local_event, event.origin, event.input_tick, event.charged)
                 end
             else
                 local incoming_bomb_generation = tonumber(snapshot.bomb_generation) or 0
                 native_apply_remote_bomb_event(incoming_bomb_generation,
-                    snapshot.bomb_owner, snapshot.bomb_focus)
+                    snapshot.bomb_owner, snapshot.bomb_focus, false, nil, nil,
+                    snapshot.bomb_charged == true)
             end
             local local_id = native_local_player_id
             local remote_id = local_id == 1 and 2 or 1
+            local incoming_wipe = tonumber(snapshot.team_wipe_generation) or 0
+            local wipe_advanced = incoming_wipe > native_team_wipe_generation
+            local incoming_frames
             if snapshot.respawn_frames then
-                local incoming_frames = {
+                incoming_frames = {
                     [1] = math.max(0, tonumber(snapshot.respawn_frames[1]) or 0),
                     [2] = math.max(0, tonumber(snapshot.respawn_frames[2]) or 0),
                 }
@@ -2675,7 +3328,8 @@ do
                 -- two peers disagree about who is dead.
                 local previous_remote_frames = native_respawn_frames[remote_id] or 0
                 for player_id = 1, 2 do
-                    if player_id == local_id and native_respawn_frames[player_id] > 0 then
+                    if player_id == local_id and native_respawn_frames[player_id] > 0
+                            and not wipe_advanced then
                         native_respawn_frames[player_id] = math.max(
                             native_respawn_frames[player_id], incoming_frames[player_id])
                     else
@@ -2694,10 +3348,20 @@ do
             if snapshot.team_defeated ~= nil then
                 native_team_defeated = snapshot.team_defeated == true
             end
-            local incoming_wipe = tonumber(snapshot.team_wipe_generation) or 0
-            if incoming_wipe > native_team_wipe_generation then
+            if wipe_advanced then
                 native_team_wipe_generation = incoming_wipe
                 native_clear_enemy_bullets()
+                -- A wipe snapshot supersedes the local timer guard.  The
+                -- host sends zero timers for a successful shared revive; run
+                -- the same transition locally so hidden/dead proxies become
+                -- visible immediately.  A zero-life wipe remains defeated.
+                if not native_team_defeated then
+                    for player_id = 1, 2 do
+                        if (incoming_frames and incoming_frames[player_id] or 0) <= 0 then
+                            native_finish_respawn(player_id)
+                        end
+                    end
+                end
             end
             if not native_network_authority_host and snapshot.aggro_focus_player ~= nil then
                 local focus = tonumber(snapshot.aggro_focus_player)

@@ -4,6 +4,7 @@ function BattleResult.new(values)
     values = values or {}
     return {
         encounter_id = values.encounter_id,
+        encounter_type = values.encounter_type,
         clear_state = values.clear_state or false,
         battle_score = values.battle_score or 0,
         money_collected = values.money_collected or 0,
@@ -16,4 +17,3 @@ function BattleResult.new(values)
 end
 
 return BattleResult
-

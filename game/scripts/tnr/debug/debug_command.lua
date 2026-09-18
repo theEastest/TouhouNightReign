@@ -22,6 +22,10 @@ local HELP = {
     "runtime_modifiers    查看 Runtime Modifier 状态",
     "weight_debug         查看重量与速度策略",
     "loadout_hash         查看配装内容哈希",
+    "validation_run       使用固定验证 Seed 开始新 Run",
+    "give_relic <id>      添加测试遗物",
+    "force_shop           跳转到第一个商店节点",
+    "run_state            查看当前 Run 状态",
     "discard <slot>       丢弃仓库物品",
     "ready               锁定当前配装",
     "unready             取消配装锁定",
@@ -100,6 +104,15 @@ function DebugCommand.parse(line)
         return { type = Command.DEBUG_WEIGHT }
     elseif name == "loadout_hash" then
         return { type = Command.DEBUG_LOADOUT_HASH }
+    elseif name == "validation_run" then
+        return { type = Command.DEBUG_VALIDATION_RUN }
+    elseif name == "give_relic" then
+        if not tokens[2] or tokens[2] == "" then return nil, "give_relic 需要 relic_id" end
+        return { type = Command.DEBUG_GIVE_RELIC, relic_id = tokens[2] }
+    elseif name == "force_shop" then
+        return { type = Command.DEBUG_FORCE_SHOP }
+    elseif name == "run_state" then
+        return { type = Command.DEBUG_RUN_STATE }
     elseif name == "discard" then
         local slot, err = number_argument(tokens, name)
         if not slot then return nil, err end

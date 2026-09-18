@@ -41,6 +41,28 @@ function Console:write(line)
             self.output[#self.output + 1] = "当前没有连接 BattleManager"
         end
         return true
+    elseif command.type == Command.DEBUG_VALIDATION_RUN then
+            self.session:start_new(require("tnr.core.constants").validation_run_seed)
+        return self.session.run_seed
+    elseif command.type == Command.DEBUG_RUN_STATE then
+        return {
+            run_state = self.session.run_state,
+            run_seed = self.session.run_seed,
+            node_id = self.session.current_node_id,
+            room_generation = self.session.room_generation,
+        }
+    elseif command.type == Command.DEBUG_FORCE_SHOP then
+        for _, node in ipairs(self.session.map and self.session.map.nodes or {}) do
+            if node.type == require("tnr.core.constants").node_types.SHOP then
+                return self.session:debug_goto(node.id)
+            end
+        end
+        return nil, "当前地图没有商店节点"
+    elseif command.type == Command.DEBUG_GIVE_RELIC then
+        local player_id = self.session.local_player_id or 1
+        local runtime = self.session.relic_runtime
+        if not runtime then return nil, "RelicRuntime 尚未初始化" end
+        return runtime:add(player_id, command.relic_id)
     elseif command.type == Command.DEBUG_CLEAR or command.type == Command.DEBUG_CLEAR_REWARD then
         local result = self.session:dispatch({
             type = Command.COMPLETE_BATTLE,

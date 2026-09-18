@@ -24,6 +24,7 @@ local LANTransport = require("tnr.multiplayer.lan_transport")
 local BattleSync = require("tnr.multiplayer.battle_sync")
 local NetworkMenu = require("tnr.multiplayer.network_menu")
 local LuaSTGInputProvider = require("tnr.input.luastg_input")
+local ScrollState = require("tnr.ui.scroll_state")
 local Aggro = require("tnr.multiplayer.aggro")
 local CharacterLoadoutSpec = require("character_loadout_spec")
 local LoadoutOperationsSpec = require("loadout_operations_spec")
@@ -34,6 +35,15 @@ local WeaponRuntimeSpec = require("weapon_runtime_spec")
 local SupportRuntimeSpec = require("support_runtime_spec")
 local ModifierRuntimeSpec = require("modifier_runtime_spec")
 local LoadoutCommitSpec = require("loadout_commit_spec")
+local Gate0ValidationSpec = require("gate0_validation_spec")
+local RewardRuntimeSpec = require("reward_runtime_spec")
+local CapacityProgressionSpec = require("capacity_progression_spec")
+local ShopSpec = require("shop_spec")
+local RelicRuntimeSpec = require("relic_runtime_spec")
+local RunLifecycleSpec = require("run_lifecycle_spec")
+local CombatRuntimeIntegrationSpec = require("combat_runtime_integration_spec")
+local GuideEquipmentSpec = require("guide_equipment_spec")
+local AudioManagerSpec = require("audio_manager_spec")
 
 local function assert_equal(left, right, message)
     assert(left == right, string.format("%s: expected %s, got %s", message, tostring(right), tostring(left)))
@@ -52,6 +62,31 @@ WeaponRuntimeSpec(assert_equal, assert_true)
 SupportRuntimeSpec(assert_equal, assert_true)
 ModifierRuntimeSpec(assert_equal, assert_true)
 LoadoutCommitSpec(assert_equal, assert_true)
+Gate0ValidationSpec(assert_equal, assert_true)
+RewardRuntimeSpec(assert_equal, assert_true)
+CapacityProgressionSpec(assert_equal, assert_true)
+ShopSpec(assert_equal, assert_true)
+RelicRuntimeSpec(assert_equal, assert_true)
+RunLifecycleSpec(assert_equal, assert_true)
+CombatRuntimeIntegrationSpec(assert_equal, assert_true)
+GuideEquipmentSpec(assert_equal, assert_true)
+AudioManagerSpec(assert_equal, assert_true)
+
+local scroll = ScrollState.new(20, 8, 1)
+assert_equal(scroll:update(1), 2, "scroll moves immediately on first key frame")
+for _ = 1, 15 do
+    local value = scroll:update(1)
+    if value == 3 then break end
+    assert_equal(value, 2, "scroll initial hold delay")
+end
+assert_equal(scroll:update(1), 3, "scroll repeats after initial hold delay")
+scroll:update(0)
+assert_equal(scroll:update(1), 4, "scroll release resets repeat timing")
+assert_equal(scroll:first_visible(), 1, "scroll keeps early selection at top")
+scroll:set_cursor(20)
+assert_equal(scroll:first_visible(), 13, "scroll window follows last selection")
+assert_equal(ScrollState.new(20, 8, 1):set_from_track(1), 20, "scrollbar bottom maps to last item")
+assert_equal(ScrollState.new(20, 8, 1):set_from_track(0), 1, "scrollbar top maps to first item")
 
 local function serialize_map(map)
     local parts = {}
@@ -89,11 +124,40 @@ local p2_mouse_provider = LuaSTGInputProvider.new({
 })
 local p2_mouse_input = p2_mouse_provider:poll(2)
 assert_true(p2_mouse_input.mouse_primary_pressed, "LAN P2 must receive the local mouse click")
+assert_true(p2_mouse_input.mouse_primary_down, "mouse hold state must be exposed for scrollbar dragging")
 assert_equal(p2_mouse_provider:poll(2).mouse_primary_pressed, false, "holding the mouse must not repeat the click edge")
 mouse_down = false
 p2_mouse_provider:poll(2)
 mouse_down = true
 assert_true(p2_mouse_provider:poll(2).mouse_primary_pressed, "P2 mouse click should trigger again after release")
+
+-- A Bomb key must be inert while the local resource is empty.  Holding the
+-- key through a refill must not leak a charged/release event; the player has
+-- to release and press again before Bomb input becomes active.
+keyboard_state[fake_keyboard.X] = true
+local bombs_available = false
+local no_bomb_provider = LuaSTGInputProvider.new({
+    Input = { Keyboard = fake_keyboard, Mouse = fake_mouse },
+}, {
+    bomb_available = function() return bombs_available end,
+})
+for _ = 1, 200 do
+    local input = no_bomb_provider:poll(1)
+    assert_equal(input.bomb_down, false, "empty Bomb inventory must suppress held Bomb input")
+    assert_equal(input.bomb, false, "empty Bomb inventory must not emit a Bomb event")
+    assert_equal(input.bomb_charged, false, "empty Bomb inventory must not charge")
+end
+bombs_available = true
+local refilled_while_held = no_bomb_provider:poll(1)
+assert_equal(refilled_while_held.bomb_down, false,
+    "refilling a Bomb while the key is held must keep input blocked")
+keyboard_state[fake_keyboard.X] = false
+no_bomb_provider:poll(1)
+keyboard_state[fake_keyboard.X] = true
+local fresh_bomb_press = no_bomb_provider:poll(1)
+assert_equal(fresh_bomb_press.bomb_down, true, "Bomb input resumes after a release and fresh press")
+keyboard_state[fake_keyboard.X] = false
+no_bomb_provider:poll(1)
 
 local map_a = MapGenerator.generate(12345)
 local map_b = MapGenerator.generate(12345)
@@ -171,6 +235,9 @@ assert_true(ContentCatalog.cards.yin_yang_jewel.pattern ~= ContentCatalog.cards.
 assert_equal(PlayerProfiles.reimu.normal_speed, 4.5, "Reimu normal speed")
 assert_equal(PlayerProfiles.reimu.focused_speed, 2.25, "Reimu focused speed")
 assert_equal(PlayerProfiles.reimu.bomb.duration, 90, "Reimu bomb duration")
+assert_equal(PlayerProfiles.reimu.bomb.max_charge_frames, 180, "Reimu Bomb charge cap")
+assert_equal(PlayerProfiles.reimu.bomb.charged_duration, 120, "Reimu charged Bomb duration")
+assert_equal(PlayerProfiles.reimu.bomb.charged_invulnerability, 480, "Reimu charged Bomb invulnerability")
 
 local aggro = Aggro.new(300)
 assert_true(aggro:record(1, 25), "aggro records P1 damage")
@@ -395,12 +462,14 @@ local codec_round_trip = LANTransport.decode(LANTransport.encode(codec_payload))
 assert_equal(codec_round_trip.text, codec_payload.text, "LAN codec must preserve embedded newlines")
 assert_equal(codec_round_trip.flags[2], false, "LAN codec must preserve booleans")
 local battle_events = {
-    bomb_events = { { sequence = 4, owner = 1, focus = true } },
+    bomb_events = { { sequence = 4, owner = 1, focus = true, charged = true } },
     enemy_kill_events = { { sequence = 9, enemy_id = 3 } },
 }
 local battle_events_round_trip = LANTransport.decode(LANTransport.encode(battle_events))
 assert_equal(battle_events_round_trip.bomb_events[1].owner, 1,
     "LAN codec must preserve compact Bomb events")
+assert_true(battle_events_round_trip.bomb_events[1].charged == true,
+    "LAN codec must preserve charged Bomb metadata")
 assert_equal(battle_events_round_trip.enemy_kill_events[1].enemy_id, 3,
     "LAN codec must preserve compact enemy-kill events")
 local frame_builder = LANTransport.new({ socket = {}, mode = "host" })
@@ -452,7 +521,11 @@ assert_true(sync_host_stage.runtime.players[1].x > 540, "host player should move
 assert_true(sync_host_stage.runtime.players[2].x < 740, "client player should move in the empty room")
 assert_equal(client_sync:get_status(), "SYNC OK", "matching host snapshots should report sync")
 
-sync_client_stage.runtime.players[1].x = sync_client_stage.runtime.players[1].x + 9
+-- The equipment Runtime now applies the ultralight movement policy (9 px per
+-- frame), so P1 reaches the right boundary during this long lockstep run.
+-- Mutate the unconstrained vertical coordinate to keep the desync probe
+-- independent of boundary clamping.
+sync_client_stage.runtime.players[1].y = sync_client_stage.runtime.players[1].y + 9
 client_sync:before_update({ [2] = { player_id = 2 } }, sync_client_stage)
 local correction_bundle = host_sync:before_update({ [1] = { player_id = 1 } }, sync_host_stage)
 sync_host_stage:update(correction_bundle)
@@ -599,6 +672,13 @@ local battle_result = battle:complete(true, { reward_eligible = true })
 assert_true(battle_result.clear_state, "battle result should be clear")
 assert_equal(battle_session:get_player(1).money, 112, "battle money and reward money")
 assert_equal(battle_session:get_player(1).bomb, 3, "bomb spend and reward bomb")
+if battle_session.run_state == Constants.run_states.REWARD then
+    local reward_claim = battle_session:claim_reward(1, 1)
+    assert_true(reward_claim ~= nil, "battle reward can be claimed")
+elseif battle_session.run_state == Constants.run_states.RELIC_SELECT then
+    local relic_choice = battle_session.relic_choices[1] and battle_session.relic_choices[1][1]
+    assert_true(relic_choice and battle_session:choose_relic(1, relic_choice), "boss relic can be claimed")
+end
 assert_equal(battle_session.run_state, Constants.run_states.MAP, "normal battle should return to map")
 
 local parsed_god = DebugCommand.parse("god")
@@ -628,9 +708,15 @@ for _ = 1, 12 do
     fallback_stage:kill_all()
     for _ = 1, 60 do
         fallback_stage:update({})
+        if fallback_session.run_state == Constants.run_states.REWARD then
+            fallback_session:claim_reward(1, 1)
+        end
         if fallback_session.run_state == Constants.run_states.MAP then
             break
         end
+    end
+    if fallback_session.run_state == Constants.run_states.REWARD then
+        fallback_session:claim_reward(1, 1)
     end
     if fallback_session.run_state == Constants.run_states.MAP then
         break

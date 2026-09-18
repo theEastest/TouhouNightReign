@@ -4,5 +4,16 @@ return {
     Command = require("tnr.core.command"),
     Event = require("tnr.core.event"),
     MapGenerator = require("tnr.map.map_generator"),
+    CharacterDefinition = require("tnr.character.character_definition"),
+    CharacterRegistry = require("tnr.character.character_registry"),
+    ReimuDefinition = require("tnr.character.reimu_definition"),
+    Loadout = require("tnr.character.loadout"),
+    EquipmentDefinition = require("tnr.equipment.equipment_definition"),
+    EquipmentInstance = require("tnr.equipment.equipment_instance"),
+    EquipmentRegistry = require("tnr.equipment.equipment_registry"),
+    Inventory = require("tnr.equipment.inventory"),
+    PreparationState = require("tnr.preparation.preparation_state"),
+    LoadoutService = require("tnr.equipment.loadout_service"),
+    AcquisitionService = require("tnr.equipment.acquisition_service"),
+    Phase1Catalog = require("tnr.equipment.phase1_catalog"),
 }
-

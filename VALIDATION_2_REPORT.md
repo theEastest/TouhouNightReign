@@ -5,7 +5,9 @@ Scope: modular player runtime, loadout commit, and LAN preparation gate.
 
 ## 1. Validation 1 Entry Gate
 
-The existing `VALIDATION_1_REPORT.md` lists the 11 Native/LAN cases as NOT VERIFIED. No claim of native or two-window gameplay verification is made in this report. Pure Lua core regression remains passing.
+The existing `VALIDATION_1_REPORT.md` lists the 11 Native/LAN cases as pending
+manual execution. No claim of native or two-window gameplay verification is
+made in this report. Pure Lua core regression remains passing.
 
 ## 2. Runtime Architecture
 
@@ -81,7 +83,9 @@ Added coverage:
 
 ## 9. Native/LAN Status
 
-Native GUI, two-process LAN, Boss HP convergence, and performance stress cases remain NOT TESTED in this environment. The report intentionally does not mark them PASS without a real LuaSTG window run.
+Native GUI, two-process LAN, Boss HP convergence, and performance stress cases
+remain pending manual execution in this environment. The report intentionally
+does not mark them PASS without a real LuaSTG window run.
 
 ## 10. Regression
 
@@ -103,4 +107,3 @@ runtime_modifiers
 weight_debug
 loadout_hash
 ```
-

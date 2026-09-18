@@ -1,6 +1,11 @@
 userdata/
 game/userdata/
 game/engine.log
+engine.log
 game/*.dmp
+game/*.log
+game/network_trace_*.log
+game/legacy/virtual_data/
 vendor/Bundle-After-Ex-Plus/
-
+releases/
+.validation/

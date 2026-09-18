@@ -11,8 +11,10 @@ local DEFAULTS = {
     min_node_spacing = 0.06,
     max_links = 4,
     enemy_ratio = 0.55,
+    elite_ratio = 0.12,
     event_ratio = 0.20,
     shop_ratio = 0.10,
+    ordinary_stage_variants = 6,
 }
 
 local function merged_config(config)
@@ -25,6 +27,7 @@ local function merged_config(config)
     end
     result.node_count = math.max(8, math.floor(result.node_count))
     result.min_boss_hops = math.min(result.min_boss_hops, result.node_count - 1)
+    result.ordinary_stage_variants = math.min(6, math.max(1, math.floor(result.ordinary_stage_variants)))
     return result
 end
 
@@ -161,8 +164,8 @@ local function assign_types(rng, nodes, config)
     end
     rng:shuffle(candidates)
 
-    local event_count = math.max(1, math.floor(#candidates * config.event_ratio + 0.5))
-    local shop_count = math.max(1, math.floor(#candidates * config.shop_ratio + 0.5))
+    local event_count = math.min(#candidates, math.max(1, math.floor(#candidates * config.event_ratio + 0.5)))
+    local shop_count = math.min(#candidates - event_count, math.max(1, math.floor(#candidates * config.shop_ratio + 0.5)))
     local cursor = 1
     for _ = 1, event_count do
         nodes[candidates[cursor]].type = Constants.node_types.EVENT
@@ -171,6 +174,13 @@ local function assign_types(rng, nodes, config)
     for _ = 1, shop_count do
         nodes[candidates[cursor]].type = Constants.node_types.SHOP
         cursor = cursor + 1
+    end
+    local elite_count = math.max(1, math.floor(#candidates * config.elite_ratio + 0.5))
+    for _ = 1, elite_count do
+        if cursor <= #candidates then
+            nodes[candidates[cursor]].type = Constants.node_types.ELITE
+            cursor = cursor + 1
+        end
     end
     for index = cursor, #candidates do
         nodes[candidates[index]].type = rng:chance(config.enemy_ratio) and Constants.node_types.ENEMY or Constants.node_types.EVENT
@@ -191,11 +201,11 @@ function Generator.generate(run_seed, config)
         elseif id == config.node_count then
             node_type = Constants.node_types.BOSS
         end
-        nodes[id] = MapNode.new(id, node_type, positions[id].x, positions[id].y)
+        nodes[id] = MapNode.new(id, node_type, positions[id].x, positions[id].y, nil, rng:next_int(1, 2147483646))
     end
     nodes[1].visited = true
     nodes[1].encounter_id = nil
-    nodes[config.node_count].encounter_id = "boss_test_01"
+    nodes[config.node_count].encounter_id = "boss_stage_01"
     assign_types(rng, nodes, config)
 
     -- Only connect adjacent layers. connect_layers preserves the vertical
@@ -206,9 +216,11 @@ function Generator.generate(run_seed, config)
 
     for id, node in pairs(nodes) do
         if node.type == Constants.node_types.ENEMY then
-            node.encounter_id = "enemy_test_01"
+            node.encounter_id = string.format("ordinary_stage_%02d", rng:next_int(1, config.ordinary_stage_variants))
+        elseif node.type == Constants.node_types.ELITE then
+            node.encounter_id = "elite_stage_01"
         elseif node.type == Constants.node_types.BOSS then
-            node.encounter_id = "boss_test_01"
+            node.encounter_id = "boss_stage_01"
         end
     end
     return MapState.new(nodes, 1, config.node_count)

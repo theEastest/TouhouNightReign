@@ -8,10 +8,14 @@ function SupportDefinition.new(spec)
     spec = spec or {}
     local base = EquipmentDefinition.new({
         equipment_id = spec.support_id,
-        display_name = spec.name or spec.display_name or spec.support_id,
+        display_name = spec.name or spec.display_name_zh or spec.display_name or spec.support_id,
+        display_name_zh = spec.display_name_zh or spec.name or spec.display_name or spec.support_id,
+        display_name_en = spec.display_name_en or spec.display_name or spec.support_id,
         equipment_type = "SUPPORT",
+        rarity = spec.rarity,
         weight = spec.weight,
         unique = spec.unique,
+        test_only = spec.test_only == true,
         tags = spec.tags,
         metadata = spec.metadata,
     })
@@ -24,6 +28,9 @@ function SupportDefinition.new(spec)
     data.formation = Immutable.copy(spec.formation or {})
     data.attack_mode = spec.attack_mode or "INDEPENDENT"
     data.weapon_definition_id = spec.weapon_definition_id
+    data.high_weapon_definition_id = spec.high_weapon_definition_id
+    data.low_weapon_definition_id = spec.low_weapon_definition_id
+    data.test_only = spec.test_only == true
     return Immutable.freeze(data, methods)
 end
 

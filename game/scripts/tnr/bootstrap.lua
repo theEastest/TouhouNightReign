@@ -10,6 +10,7 @@ local StageAdapter = require("tnr.battle.stage_adapter")
 local DebugConsole = require("tnr.debug.console")
 local Event = require("tnr.core.event")
 local AudioManager = require("tnr.audio.audio_manager")
+local MusicCatalog = require("tnr.audio.music_catalog")
 local TrainingCatalog = require("tnr.training.card_training_catalog")
 local NonSpellCatalog = require("tnr.training.nonspell_training_catalog")
 local EnemyCatalog = require("tnr.training.enemy_training_catalog")
@@ -17,6 +18,7 @@ local BattleSync = require("tnr.multiplayer.battle_sync")
 local LANTransport = require("tnr.multiplayer.lan_transport")
 local NetworkMenu = require("tnr.multiplayer.network_menu")
 local NativeSyncAudit = require("tnr.multiplayer.native_sync_audit")
+local ScrollState = require("tnr.ui.scroll_state")
 
 local Bootstrap = {}
 Bootstrap.__index = Bootstrap
@@ -28,6 +30,12 @@ local ENCOUNTER_START_LEAD_MIN = 0.12
 local ENCOUNTER_START_LEAD_MAX = 0.75
 
 local NETWORK_TRACE_ENABLED = os.getenv("TNR_NETWORK_TRACE") == "1"
+
+local function random_run_seed()
+    local seconds = os.time()
+    local micros = math.floor((os.clock() % 1) * 1000000)
+    return math.max(1, (seconds * 1103515245 + micros) % 2147483647)
+end
 
 function Bootstrap:_network_trace(event_name, details)
     if not NETWORK_TRACE_ENABLED then return end
@@ -62,7 +70,17 @@ function Bootstrap.create(options)
     if transport.attach_session then
         transport:attach_session(session)
     end
-    local input = options.lstg and LuaSTGInputProvider.new(options.lstg, options.input) or SinglePlayerInputProvider.new(options.input)
+    local input_options = options.input or {}
+    if options.lstg then
+        local configured_input = {}
+        for key, value in pairs(input_options) do configured_input[key] = value end
+        configured_input.bomb_available = function(player_id)
+            local player = session:get_player(player_id)
+            return player ~= nil and tonumber(player.bomb) ~= nil and player.bomb > 0
+        end
+        input_options = configured_input
+    end
+    local input = options.lstg and LuaSTGInputProvider.new(options.lstg, input_options) or SinglePlayerInputProvider.new(input_options)
     local map_scene = MapScene.new(session)
     local renderer = options.lstg and MapRenderer.new(options.lstg, options.width or 1280, options.height or 720) or nil
     local audio = AudioManager.new(options.lstg)
@@ -109,10 +127,19 @@ function Bootstrap.create(options)
         initialized = false,
         menu_cursor = 1,
         training_cursor = 1,
+        music_cursor = 1,
         failure_cursor = 1,
         preparation_cursor = 1,
         preparation_message = "",
         preparation_discard_pending = nil,
+        preparation_edit_only = false,
+        shop_cursor = 1,
+        relic_cursor = 1,
+        reward_cursor = 1,
+        scroll_states = {},
+        ui_mouse_x = nil,
+        ui_mouse_y = nil,
+        ui_mouse_moved = false,
         selection_catalog = TrainingCatalog,
         selection_kind = "card",
         selection_title = "符卡训练",
@@ -128,7 +155,14 @@ function Bootstrap.create(options)
         lan_transport_factory = options.lan_transport_factory or function(config)
             return LANTransport.new(config)
         end,
-        network_seed = options.network_seed or options.run_seed or 20260826,
+        network_seed = options.network_seed or options.run_seed,
+        -- When launched with TNR_NETWORK_MODE the client may start before
+        -- the host has finished loading LuaSTG and opened its socket. Keep
+        -- retrying that initial connection from the frame loop instead of
+        -- leaving one endpoint stranded at the menu.
+        network_initial_connect = options.network_role == "host"
+            or options.network_role == "client",
+        network_retry_at = 0,
         suppress_peer_leave = false,
         pending_encounter = nil,
         pending_encounter_start_at = nil,
@@ -145,12 +179,31 @@ function Bootstrap.create(options)
     session:on(Event.BATTLE_FAILURE_ACTION, function(event)
         instance:_handle_battle_failure_action(event.choice)
     end)
+    session:on(Event.RUN_CLEARED, function()
+        -- RUN_CLEAR is terminal for the native room. Release the legacy
+        -- object pool and invalidate transport snapshots before any later
+        -- menu action can be processed.
+        if instance.stage_adapter and instance.stage_adapter.reset_for_new_run then
+            instance.stage_adapter:reset_for_new_run()
+        end
+        instance:_clear_native_room_transport_state()
+    end)
+    session:on(Event.MAP_ENTERED, function()
+        -- Returning from rewards marks the previous native room as finished.
+        -- Clear its transport generation before either player votes for the
+        -- next node or publishes the newly edited loadout.
+        if instance and instance:_network_start_barrier_enabled()
+                and not session.current_encounter then
+            instance:_clear_native_room_transport_state()
+        end
+    end)
     session:on("NATIVE_PEER_LEAVE", function()
         -- A remote menu/exit is a shared battle transition. Suppress the
         -- reciprocal command so the two endpoints do not bounce the event.
         if instance.session.run_state == Constants.run_states.ENCOUNTER
                 or instance.session.run_state == Constants.run_states.RUN_FAILED
-                or instance.session.run_state == Constants.run_states.CARD_TRAINING_FAILED then
+                or instance.session.run_state == Constants.run_states.CARD_TRAINING_FAILED
+                or instance.session.run_state == Constants.run_states.REWARD then
             instance.suppress_peer_leave = true
             instance:return_to_menu()
             instance.suppress_peer_leave = false
@@ -162,6 +215,18 @@ function Bootstrap.create(options)
     session:on(Event.ENCOUNTER_READY, function(event)
         instance:_receive_encounter_ready(event)
     end)
+    session:on(Event.PLAYER_READY_CHANGED, function()
+        -- In LAN preparation, either endpoint may receive the second Ready
+        -- command. Once both Ready flags and both immutable loadout commits
+        -- are present, advance the selected node exactly once.
+        if not instance or session.run_state ~= Constants.run_states.MAP_PREPARATION then return end
+        if not session.preparation:is_party_ready(session.party.player_ids)
+                or not session:all_loadouts_committed() then
+            return
+        end
+        local result, err = session:commit_prepared_node()
+        if not result and err then instance.preparation_message = err end
+    end)
     return instance
 end
 
@@ -172,9 +237,51 @@ function Bootstrap:init()
     self.initialized = true
 end
 
+function Bootstrap:open_music_player()
+    self.music_cursor = math.max(1, math.min(#MusicCatalog, self.music_cursor or 1))
+    self.session.run_state = Constants.run_states.MUSIC_PLAYER
+    local entry = MusicCatalog[self.music_cursor]
+    if entry and self.audio then
+        self.audio:play_original(entry.key)
+    end
+end
+
+function Bootstrap:close_music_player()
+    self.session.run_state = Constants.run_states.MENU
+    self.menu_cursor = 1
+    if self.audio then
+        self.audio:play_music("menu")
+    end
+end
+
 function Bootstrap:_network_start_barrier_enabled()
     return self.battle_sync and self.battle_sync:is_networked()
         and self.transport and type(self.transport.clock_sync_step) == "function"
+end
+
+function Bootstrap:_retry_initial_network_connection()
+    if not self.network_initial_connect or not self.transport
+            or type(self.transport.connect) ~= "function" then
+        return
+    end
+    if self.transport.connected or self.transport.listening then
+        if self.transport.connected then self.network_initial_connect = false end
+        return
+    end
+    local now = self.transport.now and self.transport:now() or os.clock()
+    if now < (self.network_retry_at or 0) then return end
+    local connected, error_message = self.transport:connect()
+    if connected then
+        self.network_initial_connect = false
+        self.stage_adapter.network_status = self.transport:is_host()
+            and "等待客机连接" or "已连接主机"
+        self:_network_trace("network_connected", {})
+    else
+        self:_network_trace("network_connect_retry_failed", {
+            error = error_message or self.transport.last_error or "unknown",
+        })
+        self.network_retry_at = now + 0.5
+    end
 end
 
 function Bootstrap:_clear_native_room_transport_state()
@@ -458,6 +565,7 @@ function Bootstrap:start_game(run_seed)
         end
     end
     self.session:start_new(run_seed)
+    self.network_seed = self.session.run_seed
     self.loadout_commit_sent = {}
     self.native_remote_inputs = {}
     self.native_remote_last_tick = {}
@@ -468,11 +576,12 @@ function Bootstrap:start_game(run_seed)
     self.pending_encounter_start_at = nil
     self.pending_encounter_start_host_at = nil
     self.pending_encounter_start_node_id = nil
-    self.map_scene.cursor_node_id = nil
-    self.menu_cursor = 1
-    if self.audio then
-        self.audio:play_music("stage")
+    if self.battle_sync and self.battle_sync:is_networked() then
+        self.network_initial_connect = self.network_initial_connect ~= false
     end
+    self.map_scene.cursor_node_id = nil
+    self.preparation_edit_only = false
+    self.menu_cursor = 1
 end
 
 function Bootstrap:open_network_menu(mode)
@@ -493,6 +602,9 @@ function Bootstrap:start_network_game(config)
         player_id = local_player_id,
         host = config.host,
         port = config.port,
+        on_disconnect = function(reason)
+            self:_on_network_disconnect(reason)
+        end,
     })
     if transport.attach_session then transport:attach_session(self.session) end
     local connected, connect_error = transport:connect()
@@ -519,14 +631,53 @@ function Bootstrap:start_network_game(config)
         local_player_id = local_player_id,
         snapshot_interval = 30,
     })
+    local run_seed
+    if config.mode == "host" then
+        run_seed = tonumber(config.seed) or random_run_seed()
+        self.network_seed = run_seed
+    else
+        -- The client uses a placeholder until the host sends SET_RUN_SEED.
+        run_seed = self.network_seed or 1
+    end
     self:close_network_menu()
-    self:start_game(self.network_seed)
+    self:start_game(run_seed)
+    if config.mode == "host" and self.transport.send then
+        self.transport:send({ type = Command.SET_RUN_SEED, run_seed = run_seed, player_id = 1 })
+    end
     if config.mode == "host" then
         self.stage_adapter.network_status = string.format("等待客户端连接  端口 %d", config.port)
     else
         self.stage_adapter.network_status = string.format("已连接 %s:%d", config.host, config.port)
     end
     return true
+end
+
+function Bootstrap:_on_network_disconnect(reason)
+    if self._handling_network_disconnect then return end
+    self._handling_network_disconnect = true
+    local message = "网络连接已断开"
+    if reason and tostring(reason) ~= "" then
+        message = message .. ": " .. tostring(reason)
+    end
+    self.stage_adapter.network_status = message
+    self.suppress_peer_leave = true
+    if self.stage_adapter and self.stage_adapter.reset_for_new_run then
+        self.stage_adapter:reset_for_new_run()
+    end
+    self.session.current_encounter = nil
+    self.session.room_generation = nil
+    self.session.run_state = Constants.run_states.MENU
+    if self.transport and self.transport.set_room_generation then
+        self.transport:set_room_generation(nil)
+    end
+    self.native_remote_inputs = {}
+    self.native_remote_last_tick = {}
+    self.pending_encounter = nil
+    self.pending_encounter_start_at = nil
+    self.pending_encounter_start_host_at = nil
+    self.suppress_peer_leave = false
+    if self.network_menu then self.network_menu:set_error(message) end
+    self._handling_network_disconnect = false
 end
 
 function Bootstrap:_submit_map_choice(node_id)
@@ -548,13 +699,14 @@ function Bootstrap:_submit_map_choice(node_id)
     return true
 end
 
-function Bootstrap:_open_preparation()
+function Bootstrap:_open_preparation(edit_only)
     local result, err = self.session:enter_preparation()
     if not result then
         self.preparation_message = err or "无法打开地图整备"
         return nil, self.preparation_message
     end
     self.preparation_cursor = 1
+    self.preparation_edit_only = edit_only == true
     self.preparation_message = ""
     self.preparation_discard_pending = nil
     return result
@@ -584,8 +736,55 @@ function Bootstrap:_activate_preparation()
     local row = self:_preparation_rows()[self.preparation_cursor]
     if not row or not player then return nil end
     if row.kind == "action" then
-        local result, err = self.session:set_player_ready(player_id, not player.map_ready)
-        if result and (self.session.player_count or 1) == 1 then
+        if self.preparation_edit_only then
+            self.session:leave_preparation()
+            self.preparation_edit_only = false
+            self.preparation_message = "Saved"
+            self.preparation_discard_pending = nil
+            return true
+        end
+        local next_ready = not player.map_ready
+        local networked = self.battle_sync and self.battle_sync:is_networked()
+        local result, err
+        if networked then
+            -- Apply locally for immediate UI feedback, then send the same
+            -- transition and descriptor so the peer can validate and mirror
+            -- the exact player state before the start barrier.
+            if next_ready then
+                local commit, commit_err = self.session:build_loadout_commit(player_id)
+                if not commit then
+                    result, err = nil, commit_err
+                else
+                    -- Client transports do not dispatch their own packets.
+                    -- Register the local descriptor first so the client can
+                    -- pass the all-loadouts gate when the peer Ready arrives.
+                    local local_commit, local_commit_err = self.session:commit_loadout(player_id, commit)
+                    if not local_commit then
+                        result, err = nil, local_commit_err
+                    else
+                        self.transport:send({
+                            type = Command.SET_READY,
+                            player_id = player_id,
+                            commit = commit,
+                        })
+                        if self.session.run_state == Constants.run_states.MAP_PREPARATION then
+                            result, err = self.session:set_player_ready(player_id, true)
+                        else
+                            -- Host transport dispatches its own command
+                            -- synchronously; the ready listener may already
+                            -- have advanced into the encounter.
+                            result, err = true, nil
+                        end
+                    end
+                end
+            else
+                self.transport:send({ type = Command.CANCEL_READY, player_id = player_id })
+                result, err = self.session:set_player_ready(player_id, false)
+            end
+        else
+            result, err = self.session:set_player_ready(player_id, next_ready)
+        end
+        if result and not networked and (self.session.player_count or 1) == 1 then
             local committed, commit_err = self.session:commit_prepared_node()
             if not committed then
                 err = commit_err or "READY_COMMIT_FAILED"
@@ -634,6 +833,8 @@ function Bootstrap:_activate_main_menu(index)
     elseif index == 6 then
         self:open_training_selection("enemy")
     elseif index == 7 then
+        self:open_music_player()
+    elseif index == 8 then
         return true
     end
     return false
@@ -647,13 +848,13 @@ function Bootstrap:_update_network_menu(player_input)
     if player_input.backspace then menu:backspace() end
     if player_input.tab then
         menu:move_cursor(1)
-    elseif player_input.move_y ~= 0 then
-        menu:move_cursor(-player_input.move_y)
+    else
+        menu.cursor = self:_scroll_step("network", menu.cursor, menu:get_item_count(), menu:get_item_count(), player_input.move_y)
     end
     if self.input.get_mouse_position and self.renderer and self.renderer.network_menu_hit_test then
         local mouse_x, mouse_y = self.input:get_mouse_position()
         local hit = self.renderer:network_menu_hit_test(mouse_x, mouse_y, menu:get_item_count())
-        if hit then
+        if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
             menu.cursor = hit
             if player_input.mouse_primary_pressed and hit == menu:get_item_count() then
                 local config = menu:confirm()
@@ -667,6 +868,40 @@ function Bootstrap:_update_network_menu(player_input)
     elseif player_input.cancel then
         self:close_network_menu()
     end
+end
+
+function Bootstrap:_scroll_step(key, cursor, count, visible, direction)
+    local state = self.scroll_states[key]
+    if not state then
+        state = ScrollState.new(count, visible, cursor)
+        self.scroll_states[key] = state
+    end
+    state:set_count(count, visible)
+    state:set_cursor(cursor)
+    return state:update(-(direction or 0))
+end
+
+function Bootstrap:_scroll_drag(key, cursor, count, visible, x, y, left, right, bottom, top)
+    local state = self.scroll_states[key]
+    if not state then
+        state = ScrollState.new(count, visible, cursor)
+        self.scroll_states[key] = state
+    end
+    state:set_count(count, visible)
+    state:set_cursor(cursor)
+    local index = self.renderer and self.renderer:scrollbar_index(x, y, left, right, bottom, top, count, visible)
+    if index then return state:set_cursor(index) end
+    return nil
+end
+
+function Bootstrap:_update_ui_mouse()
+    if not self.input.get_mouse_position then
+        self.ui_mouse_moved = false
+        return
+    end
+    local x, y = self.input:get_mouse_position()
+    self.ui_mouse_moved = x ~= self.ui_mouse_x or y ~= self.ui_mouse_y
+    self.ui_mouse_x, self.ui_mouse_y = x, y
 end
 
 function Bootstrap:open_training_selection(kind)
@@ -717,7 +952,7 @@ function Bootstrap:start_selected_training(index)
             self.stage_adapter.training_return_state = Constants.run_states.CARD_SELECT
         end
     end
-    if self.audio then
+    if self.audio and not self.stage_adapter:is_native_active() then
         self.audio:play_music("spellcard")
     end
     return card
@@ -774,9 +1009,11 @@ function Bootstrap:_choose_battle_failure(index)
 end
 
 function Bootstrap:return_to_menu()
+    self.network_initial_connect = false
     local was_battle = self.session.run_state == Constants.run_states.ENCOUNTER
         or self.session.run_state == Constants.run_states.RUN_FAILED
         or self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED
+        or self.session.run_state == Constants.run_states.REWARD
     if was_battle and not self.suppress_peer_leave
             and self.battle_sync and self.battle_sync:is_networked()
             and self.transport and self.transport.send then
@@ -788,6 +1025,12 @@ function Bootstrap:return_to_menu()
     if self.stage_adapter.training_mode then
         self.stage_adapter:leave_training()
     end
+    if self.stage_adapter and self.stage_adapter.reset_for_new_run then
+        self.stage_adapter:reset_for_new_run()
+    end
+    self.session.current_encounter = nil
+    self.session.room_generation = nil
+    self.session.preparation:reset(self.session.party.player_ids)
     self.session.run_state = Constants.run_states.MENU
     self.menu_cursor = 1
     self.native_remote_inputs = {}
@@ -798,6 +1041,9 @@ function Bootstrap:return_to_menu()
     self.pending_encounter = nil
     self.pending_encounter_start_at = nil
     self.pending_encounter_start_host_at = nil
+    if self.transport and self.transport.set_room_generation then
+        self.transport:set_room_generation(nil)
+    end
     if self.audio then
         self.audio:play_music("menu")
     end
@@ -816,6 +1062,9 @@ function Bootstrap:update()
         end
     end
     player_input = player_input or self.input:poll(self.session.local_player_id)
+    self:_update_ui_mouse()
+    self.ui_mouse_down = player_input.mouse_primary_down == true
+    self:_retry_initial_network_connection()
     if self:_network_start_barrier_enabled() then
         -- Keep the clock handshake alive from the network menu onward. The
         -- host publishes an encounter start timestamp only after the client
@@ -899,17 +1148,23 @@ function Bootstrap:update()
     if network_battle and not native_network_battle then
         battle_inputs = self.battle_sync:before_update(inputs, self.stage_adapter)
     end
-    if self.session.run_state == Constants.run_states.MENU then
+    if self.session.run_state == Constants.run_states.MUSIC_PLAYER then
+        self.music_cursor = self:_scroll_step("music", self.music_cursor, #MusicCatalog, 10, player_input.move_y)
+        if player_input.confirm then
+            local entry = MusicCatalog[self.music_cursor]
+            if entry and self.audio then self.audio:play_original(entry.key) end
+        elseif player_input.cancel then
+            self:close_music_player()
+        end
+    elseif self.session.run_state == Constants.run_states.MENU then
         if self.network_menu:is_open() then
             self:_update_network_menu(player_input)
         else
-            if player_input.move_y ~= 0 then
-                self.menu_cursor = ((self.menu_cursor - 1 - player_input.move_y) % 7) + 1
-            end
+            self.menu_cursor = self:_scroll_step("menu", self.menu_cursor, 8, 8, player_input.move_y)
             if self.input.get_mouse_position and self.renderer and self.renderer.menu_hit_test then
                 local mouse_x, mouse_y = self.input:get_mouse_position()
                 local hit = self.renderer:menu_hit_test(mouse_x, mouse_y)
-                if hit then
+                if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                     self.menu_cursor = hit
                     if player_input.mouse_primary_pressed and self:_activate_main_menu(hit) then return true end
                 end
@@ -921,14 +1176,23 @@ function Bootstrap:update()
             end
         end
     elseif self.session.run_state == Constants.run_states.MAP then
-        if player_input.tab then
-            self:_open_preparation()
+        local equipment_locked = self.session.preparation and self.session.preparation.selected_node_id ~= nil
+        local equipment_button_hit = false
+        if self.input.get_mouse_position and self.renderer and self.renderer.map_equipment_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            equipment_button_hit = self.renderer:map_equipment_hit_test(mouse_x, mouse_y) == true
+            if equipment_button_hit and player_input.mouse_primary_pressed and not equipment_locked then
+                self:_open_preparation(true)
+            end
+        end
+        if player_input.tab and not equipment_locked then
+            self:_open_preparation(false)
         elseif player_input.move_x ~= 0 then
             self.map_scene:move_cursor(player_input.move_x)
         elseif player_input.move_y ~= 0 then
             self.map_scene:move_cursor(player_input.move_y)
         end
-        if player_input.confirm then
+        if player_input.confirm and not equipment_button_hit then
             local first_node = self.map_scene:get_selectable_nodes()[1]
             self:_submit_map_choice(self.map_scene.cursor_node_id or (first_node and first_node.id))
         end
@@ -939,7 +1203,7 @@ function Bootstrap:update()
                 map_x, map_y = self.renderer:screen_to_map(x, y)
             end
             if map_x and map_y then
-                self.map_scene:hover_with_mouse(map_x, map_y)
+                if self.ui_mouse_moved then self.map_scene:hover_with_mouse(map_x, map_y) end
                 if player_input.mouse_primary_pressed then
                     local node = self.map_scene:find_mouse_node(map_x, map_y)
                     self:_submit_map_choice(node and node.id)
@@ -951,16 +1215,22 @@ function Bootstrap:update()
     elseif self.session.run_state == Constants.run_states.MAP_PREPARATION then
         local row_count = #self:_preparation_rows()
         if self.preparation_cursor < 1 or self.preparation_cursor > row_count then self.preparation_cursor = 1 end
-        if player_input.move_y ~= 0 then
-            self.preparation_cursor = ((self.preparation_cursor - 1 - player_input.move_y) % row_count) + 1
+        local preparation_visible = self.renderer and math.max(1, math.floor((self.renderer.height - 245) / 38)) or 12
+        local previous_preparation_cursor = self.preparation_cursor
+        self.preparation_cursor = self:_scroll_step("preparation", self.preparation_cursor, row_count, preparation_visible, player_input.move_y)
+        if self.preparation_cursor ~= previous_preparation_cursor then
             self.preparation_discard_pending = nil
         end
         if self.input.get_mouse_position and self.renderer and self.renderer.preparation_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
-            local hit = self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count)
-            if hit then
-                self.preparation_cursor = hit
-                if player_input.mouse_primary_pressed then self:_activate_preparation() end
+            local visible = math.max(1, math.floor((self.renderer.height - 245) / 38))
+            local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 92, self.renderer.width * 0.65, 88, self.renderer.height - 188, row_count, visible)
+            local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+                if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
+                    self.preparation_cursor = hit
+                end
+                if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation() end
             end
         end
         if player_input.confirm then
@@ -986,19 +1256,93 @@ function Bootstrap:update()
             end
         elseif player_input.tab or player_input.cancel then
             self.session:leave_preparation()
+            self.preparation_edit_only = false
             self.preparation_message = ""
             self.preparation_discard_pending = nil
         end
-    elseif self.session.run_state == Constants.run_states.CARD_SELECT or self.session.run_state == Constants.run_states.NON_SPELL_SELECT or self.session.run_state == Constants.run_states.ENEMY_SELECT then
-        if player_input.move_y ~= 0 then
-            self.training_cursor = ((self.training_cursor - 1 - player_input.move_y) % #self.selection_catalog) + 1
+    elseif self.session.run_state == Constants.run_states.SHOP then
+        local shop_count = (self.session.shop_service and #self.session.shop_service:get_offers() or 0) + 1
+        if self.shop_cursor < 1 or self.shop_cursor > shop_count then self.shop_cursor = 1 end
+        local shop_direction = player_input.move_x
+        if shop_direction == 0 then shop_direction = player_input.move_y end
+        self.shop_cursor = self:_scroll_step("shop", self.shop_cursor, shop_count, shop_count, shop_direction)
+        if self.input.get_mouse_position and self.renderer and self.renderer.shop_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:shop_hit_test(mouse_x, mouse_y)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+                self.shop_cursor = hit
+                if player_input.mouse_primary_pressed then
+                    if hit <= shop_count - 1 then
+                        self.transport:send({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = hit })
+                    else
+                        self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+                    end
+                end
+            end
         end
+        if player_input.confirm then
+            if self.shop_cursor <= shop_count - 1 then
+                self.transport:send({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = self.shop_cursor })
+            else
+                self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+            end
+        elseif player_input.cancel then
+            self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+        end
+    elseif self.session.run_state == Constants.run_states.RELIC_SELECT then
+        local choices = self.session.relic_choices[self.session.local_player_id or 1] or {}
+        local count = math.max(1, #choices)
+        if self.relic_cursor < 1 or self.relic_cursor > count then self.relic_cursor = 1 end
+        self.relic_cursor = self:_scroll_step("relic", self.relic_cursor, count, 5, player_input.move_y)
+        if self.input.get_mouse_position and self.renderer and self.renderer.relic_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:relic_hit_test(self.session, mouse_x, mouse_y)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+                self.relic_cursor = hit
+                if player_input.mouse_primary_pressed and choices[hit] then
+                    self.transport:send({ type = Command.RELIC_CHOICE, player_id = self.session.local_player_id, relic_id = choices[hit] })
+                end
+            end
+        end
+        if player_input.confirm and choices[self.relic_cursor] then
+            self.transport:send({
+                type = Command.RELIC_CHOICE,
+                player_id = self.session.local_player_id,
+                relic_id = choices[self.relic_cursor],
+            })
+        end
+    elseif self.session.run_state == Constants.run_states.REWARD then
+        local choices = self.session.reward_choices or {}
+        local count = math.max(1, #choices)
+        if self.reward_cursor < 1 or self.reward_cursor > count then self.reward_cursor = 1 end
+        local direction = player_input.move_x ~= 0 and player_input.move_x or player_input.move_y
+        self.reward_cursor = self:_scroll_step("reward", self.reward_cursor, count, count, direction)
+        if self.input.get_mouse_position and self.renderer and self.renderer.reward_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:reward_hit_test(mouse_x, mouse_y, count)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+                self.reward_cursor = hit
+                if player_input.mouse_primary_pressed then
+                    self.transport:send({ type = Command.CLAIM_REWARD, player_id = self.session.local_player_id, choice_index = hit })
+                end
+            end
+        end
+        if player_input.confirm then
+            self.transport:send({ type = Command.CLAIM_REWARD, player_id = self.session.local_player_id, choice_index = self.reward_cursor })
+        end
+    elseif self.session.run_state == Constants.run_states.RUN_CLEAR then
+        if player_input.confirm or player_input.cancel then self:return_to_menu() end
+    elseif self.session.run_state == Constants.run_states.CARD_SELECT or self.session.run_state == Constants.run_states.NON_SPELL_SELECT or self.session.run_state == Constants.run_states.ENEMY_SELECT then
+        self.training_cursor = self:_scroll_step("training", self.training_cursor, #self.selection_catalog, 8, player_input.move_y)
         if self.input.get_mouse_position and self.renderer and self.renderer.card_training_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
-            local hit = self.renderer:card_training_hit_test(mouse_x, mouse_y, #self.selection_catalog, self.training_cursor)
-            if hit then
-                self.training_cursor = hit
-                if player_input.mouse_primary_pressed then
+            local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 100, self.renderer.width - 100, 105, 610, #self.selection_catalog, 8)
+            local hit = scrollbar_hit or self.renderer:card_training_hit_test(mouse_x, mouse_y, #self.selection_catalog, self.training_cursor)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+                if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
+                    self.training_cursor = hit
+                end
+                if player_input.mouse_primary_pressed and not scrollbar_hit then
                     self:start_selected_training(hit)
                 end
             end
@@ -1012,13 +1356,11 @@ function Bootstrap:update()
         if self.failure_cursor < 1 or self.failure_cursor > 2 then
             self.failure_cursor = 1
         end
-        if player_input.move_y ~= 0 then
-            self.failure_cursor = ((self.failure_cursor - 1 - player_input.move_y) % 2) + 1
-        end
+        self.failure_cursor = self:_scroll_step("training_failed", self.failure_cursor, 2, 2, player_input.move_y)
         if self.input.get_mouse_position and self.renderer and self.renderer.training_failed_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
             local hit = self.renderer:training_failed_hit_test(mouse_x, mouse_y)
-            if hit then
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                 self.failure_cursor = hit
                 if player_input.mouse_primary_pressed then
                     if hit == 1 then
@@ -1043,13 +1385,11 @@ function Bootstrap:update()
         if self.failure_cursor < 1 or self.failure_cursor > option_count then
             self.failure_cursor = 1
         end
-        if player_input.move_y ~= 0 then
-            self.failure_cursor = ((self.failure_cursor - 1 - player_input.move_y) % option_count) + 1
-        end
+        self.failure_cursor = self:_scroll_step("battle_failed", self.failure_cursor, option_count, option_count, player_input.move_y)
         if self.input.get_mouse_position and self.renderer and self.renderer.battle_failed_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
             local hit = self.renderer:battle_failed_hit_test(mouse_x, mouse_y, option_count)
-            if hit then
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                 self.failure_cursor = hit
                 if player_input.mouse_primary_pressed then
                     self:_choose_battle_failure(hit)
@@ -1116,7 +1456,7 @@ function Bootstrap:render()
         self.stage_adapter:render()
     elseif self.renderer then
         local cursor = (self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED or self.session.run_state == Constants.run_states.RUN_FAILED) and self.failure_cursor or self.training_cursor
-        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message)
+        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog)
     end
 end
 

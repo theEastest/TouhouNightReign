@@ -12,8 +12,14 @@ function MapScene:get_view()
     local map = self.session.map
     local current = map and map:get_current_node()
     local nodes = {}
+    local node_votes = {}
+    for player_id, node_id in pairs(self.session.node_votes or {}) do
+        node_votes[player_id] = node_id
+    end
+    local vote_message = self.session.get_map_vote_message and self.session:get_map_vote_message() or ""
+    local message = vote_message ~= "" and vote_message or self.message
     if not map then
-        return { nodes = nodes, current_node_id = nil, message = self.message }
+        return { nodes = nodes, current_node_id = nil, message = message, node_votes = node_votes }
     end
     for id, node in pairs(map.nodes) do
         nodes[#nodes + 1] = {
@@ -23,6 +29,7 @@ function MapScene:get_view()
             y = node.y,
             links = node.links,
             visited = node.visited,
+            content_seed = node.content_seed,
             selectable = current ~= nil and current:is_linked(id),
             -- The first prototype intentionally exposes the whole route graph.
             revealed = true,
@@ -32,8 +39,9 @@ function MapScene:get_view()
     return {
         nodes = nodes,
         current_node_id = map.current_node_id,
-        message = self.message,
+        message = message,
         cursor_node_id = self.cursor_node_id,
+        node_votes = node_votes,
     }
 end
 

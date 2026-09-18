@@ -39,12 +39,36 @@ function Manager:update(mode, firing, context)
     return result
 end
 
+function Manager:invulnerability_frames()
+    local frames = 0
+    for _, weapon in ipairs(self.weapons) do
+        frames = math.max(frames, tonumber(weapon.invulnerability_frames) or 0)
+    end
+    return frames
+end
+
+function Manager:notify_projectile_hit(instance_id, frame)
+    local transformed = false
+    for _, weapon in ipairs(self.weapons) do
+        if weapon.instance_id == instance_id then
+            transformed = weapon:notify_projectile_hit(frame) or transformed
+        end
+    end
+    return transformed
+end
+
 function Manager:active_ids(mode)
     local result = {}
     for _, weapon in ipairs(self.weapons) do
         if weapon:is_active(mode) then result[#result + 1] = weapon.definition_id end
     end
     return result
+end
+
+function Manager:find(instance_id)
+    for _, weapon in ipairs(self.weapons) do
+        if weapon.instance_id == instance_id then return weapon end
+    end
 end
 
 function Manager:to_table()

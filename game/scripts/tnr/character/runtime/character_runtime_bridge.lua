@@ -4,6 +4,7 @@ local WeightSpeedPolicy = require("tnr.character.runtime.weight_speed_policy")
 local WeaponRuntimeManager = require("tnr.equipment.runtime.weapon_runtime_manager")
 local SupportRuntimeManager = require("tnr.equipment.runtime.support_runtime_manager")
 local ModifierRuntime = require("tnr.equipment.runtime.modifier_runtime")
+local ProjectileFactory = require("tnr.character.runtime.projectile_factory")
 
 local Bridge = {}
 Bridge.__index = Bridge
@@ -30,7 +31,7 @@ end
 local function hash_string(value)
     local hash = 2166136261
     for index = 1, #value do
-        hash = (hash + string.byte(value, index) * 16777619) % 4294967291
+        hash = (hash * 65599 + string.byte(value, index)) % 4294967291
     end
     return string.format("%08x", hash % 4294967296)
 end
@@ -93,6 +94,7 @@ function Bridge:build_descriptor()
     local descriptor = {
         player_id = self.player_id,
         character_id = player.character_id or loadout.character_id or character.character_id,
+        definition_registry_hash = self.registry and self.registry.hash and self.registry:hash() or nil,
         capacity = tonumber(player.current_capacity or character.base_capacity) or 0,
         high_weapons = {}, low_weapons = {}, supports = {},
         self_modifiers = {}, support_modifiers = {},
@@ -135,11 +137,66 @@ function Bridge:create_runtime()
     local descriptor = self:build_descriptor()
     local modifier_runtime = ModifierRuntime.new(player.loadout, self.registry)
     return {
+        player_id = self.player_id,
         descriptor = descriptor,
         weapon_manager = WeaponRuntimeManager.new(player.loadout, self.registry, modifier_runtime),
         support_manager = SupportRuntimeManager.new(player.loadout, self.registry, modifier_runtime),
         modifier_runtime = modifier_runtime,
+        bridge = self,
     }
+end
+
+function Bridge:create_runtime_from_descriptor(descriptor)
+    assert(type(descriptor) == "table", "runtime descriptor is required")
+    local loadout = {
+        high_weapons = {}, low_weapons = {}, supports = {},
+        self_modifiers = {}, support_modifiers = {},
+    }
+    for _, group in ipairs({ "high_weapons", "low_weapons", "supports", "self_modifiers", "support_modifiers" }) do
+        for index, item in ipairs(descriptor[group] or {}) do
+            if item and item ~= false then
+                loadout[group][index] = {
+                    instance_id = item.instance_id or (group .. "_" .. tostring(index)),
+                    definition_id = item.definition_id,
+                    owner_player_id = self.player_id,
+                }
+            end
+        end
+    end
+    local modifier_runtime = ModifierRuntime.new(loadout, self.registry)
+    return {
+        player_id = self.player_id,
+        descriptor = Immutable.copy(descriptor),
+        weapon_manager = WeaponRuntimeManager.new(loadout, self.registry, modifier_runtime),
+        support_manager = SupportRuntimeManager.new(loadout, self.registry, modifier_runtime),
+        modifier_runtime = modifier_runtime,
+        bridge = self,
+    }
+end
+
+function Bridge:update(runtime, mode, firing, context)
+    runtime = runtime or self:create_runtime()
+    context = context or {}
+    if context.paused then return {}, runtime.support_manager.last_entities or {} end
+    context.player_id = self.player_id
+    context.source_player_id = self.player_id
+    local shots = runtime.weapon_manager:update(mode, firing, context)
+    runtime.afterglow_invulnerability = runtime.weapon_manager:invulnerability_frames()
+    local result = {}
+    for _, shot in ipairs(shots) do
+        result[#result + 1] = ProjectileFactory.from_shot(
+            shot, self.player_id, shot.source_instance_id or shot.instance_id)
+    end
+    local support_state = runtime.support_manager:update(
+        context.x, context.y, mode, runtime.modifier_runtime, context.enemies)
+    runtime.support_manager.last_entities = support_state
+    if context.attack_allowed == false then runtime.support_manager.last_modifier_context.clear_pulses = {} end
+    local support_shots = runtime.support_manager:fire(mode, firing and context.attack_allowed ~= false, context)
+    for _, shot in ipairs(support_shots) do
+        result[#result + 1] = ProjectileFactory.from_shot(
+            shot, self.player_id, shot.source_instance_id)
+    end
+    return result, support_state
 end
 
 function Bridge:to_table()

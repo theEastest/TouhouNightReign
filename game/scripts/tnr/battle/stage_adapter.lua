@@ -1,3 +1,4 @@
+local ProjectileRuntime = require("tnr.character.runtime.projectile_runtime")
 local BattleManager = require("tnr.battle.battle_manager")
 local StageDefinitions = require("tnr.stages.definitions")
 local Content = require("tnr.stages.content_catalog")
@@ -5,6 +6,7 @@ local PlayerProfiles = require("tnr.player.player_profile")
 local BattleTick = require("tnr.core.battle_tick")
 local NativeResourcePreflight = require("tnr.stages.native_resource_preflight")
 local CharacterRuntimeBridge = require("tnr.character.runtime.character_runtime_bridge")
+local ProjectileFactory = require("tnr.character.runtime.projectile_factory")
 
 local StageAdapter = {}
 StageAdapter.__index = StageAdapter
@@ -62,20 +64,55 @@ function StageAdapter.new(session, stage_api, lstg, audio)
         runtime = nil,
         native_bridge = rawget(_G, "TNRNativeLegacy"),
         native_active = false,
+        character_runtime = nil,
+        character_runtimes = {},
+        character_bridges = {},
+        projectile_stats = { by_source = {}, total = 0 },
+        legacy_shot_calls = 0,
+        runtime_shot_calls = 0,
     }, StageAdapter)
+end
+
+function StageAdapter:_build_character_runtimes()
+    self.character_runtimes = {}
+    self.character_bridges = {}
+    local commits = self.session.loadout_commits or {}
+    local local_id = self.session.local_player_id or 1
+    for _, session_player in ipairs(self.session.players:get_players()) do
+        local player_id = session_player.player_id
+        local bridge = CharacterRuntimeBridge.new(self.session, player_id, self.session.equipment_registry)
+        local builder = player_id ~= local_id and commits[player_id]
+            and bridge.create_runtime_from_descriptor or bridge.create_runtime
+        local argument = player_id ~= local_id and commits[player_id] or nil
+        local ok, runtime
+        if argument then
+            ok, runtime = pcall(builder, bridge, argument)
+        else
+            ok, runtime = pcall(builder, bridge)
+        end
+        if not ok then
+            error("character runtime build failed for player " .. tostring(player_id) .. ": " .. tostring(runtime), 0)
+        end
+        if not runtime then
+            error("character runtime build returned no runtime for player " .. tostring(player_id), 0)
+        end
+        runtime.bridge = bridge
+        self.character_bridges[player_id] = bridge
+        self.character_runtimes[player_id] = runtime
+    end
+    local local_id = self.session.local_player_id or 1
+    self.character_runtime = self.character_runtimes[local_id]
+    return self.character_runtimes
 end
 
 function StageAdapter:start(encounter)
     self.active_encounter = encounter
-    local runtime_bridge = CharacterRuntimeBridge.new(self.session,
-        self.session.local_player_id or 1, self.session.equipment_registry)
-    local runtime_ok, runtime_value = pcall(runtime_bridge.create_runtime, runtime_bridge)
-    self.character_runtime = runtime_ok and runtime_value or nil
+    self.projectile_stats = { by_source = {}, total = 0 }
+    self.legacy_shot_calls = 0
+    self.runtime_shot_calls = 0
+    self:_build_character_runtimes()
     self.native_preflight = NativeResourcePreflight.run(".", { encounter and encounter.id })
     self.battle:begin(encounter)
-    if self.audio then
-        self.audio:play_music("stage")
-    end
     if self.native_bridge and self.native_bridge.start_room and encounter.type ~= "TRAINING" then
         self.training_mode = false
         self.native_active = true
@@ -90,22 +127,36 @@ function StageAdapter:start(encounter)
             self.native_bridge.set_player_state(self.session:get_player(self.session.local_player_id or 1))
         end
         self.native_bridge.start_room(room_type, encounter.content_seed or self.session.run_seed or 1)
+        if self.audio and self.native_bridge.get_music_hint then
+            local hint = self.native_bridge.get_music_hint()
+            if hint then self.audio:play_original(hint) end
+        end
         if self.native_bridge.set_coop then
             self.native_bridge.set_coop((self.session.player_count or 1) > 1, self.session.local_player_id or 1)
         end
         -- Pass immutable runtime descriptors after the native player/proxy
         -- objects exist.  The bridge applies speed, weapon and support data
         -- locally while each peer still simulates projectiles independently.
+        local local_id = self.session.local_player_id or 1
+        local remote_id = local_id == 1 and 2 or 1
         if self.native_bridge.set_loadout_descriptors then
-            local local_id = self.session.local_player_id or 1
             local commits = self.session.loadout_commits or {}
             local local_commit = self.character_runtime and self.character_runtime.descriptor
                 or commits[local_id] or self.session:build_loadout_commit(local_id)
-            local remote_id = local_id == 1 and 2 or 1
             local remote_commit = commits[remote_id]
             self.native_bridge.set_loadout_descriptors(local_commit, remote_commit)
         end
+        if self.native_bridge.set_runtime_drivers then
+            self.native_bridge.set_runtime_drivers(
+                self.character_runtimes[local_id], self.character_runtimes[remote_id])
+        end
+        if self.native_bridge.set_runtime_active then
+            self.native_bridge.set_runtime_active(true)
+        end
         return true
+    end
+    if self.audio then
+        self.audio:play_music("stage")
     end
     if encounter.native_stage and self.stage_api and self.stage_api.Set then
         self.stage_api.Set(encounter.stage_id)
@@ -137,16 +188,48 @@ function StageAdapter:retry_encounter()
         player.alive = true
         player.graze = 0
     end
+    -- A failed native room can leave its legacy objects alive while the
+    -- failure/menu state is displayed.  Clear those objects before creating
+    -- the next attempt; otherwise the new room inherits old enemies and
+    -- bullets until the next stage transition.
+    if self.native_bridge and self.native_bridge.clear_room_objects then
+        pcall(self.native_bridge.clear_room_objects)
+    end
+    if self.native_bridge and self.native_bridge.reset_room then
+        pcall(self.native_bridge.reset_room)
+    end
+    -- Fallback rooms are represented entirely by this adapter.  Discard the
+    -- previous runtime explicitly so no wave, bullet, or support entity can
+    -- leak into the retry attempt.
+    self.runtime = nil
+    self.character_runtime = nil
+    self.character_runtimes = {}
+    self.character_bridges = {}
     self.session.run_state = require("tnr.core.constants").run_states.ENCOUNTER
     self:start(encounter)
     return true
 end
 
 function StageAdapter:reset_for_new_run()
+    if self.native_bridge and self.native_bridge.set_room_generation then
+        self.native_bridge.set_room_generation(nil)
+    end
     if self.native_bridge and self.native_bridge.set_coop then
         self.native_bridge.set_coop(false, self.session.local_player_id or 1)
     end
     self.runtime = nil
+    self.character_runtime = nil
+    self.character_runtimes = {}
+    self.character_bridges = {}
+    self.projectile_stats = { by_source = {}, total = 0 }
+    self.legacy_shot_calls = 0
+    self.runtime_shot_calls = 0
+    if self.native_bridge and self.native_bridge.set_runtime_active then
+        self.native_bridge.set_runtime_active(false)
+    end
+    if self.native_bridge and self.native_bridge.set_runtime_drivers then
+        self.native_bridge.set_runtime_drivers(nil, nil)
+    end
     self.native_active = false
     self.active_encounter = nil
     self.training_mode = false
@@ -166,6 +249,31 @@ function StageAdapter:is_native_active()
     return self.native_active == true and self.native_bridge ~= nil
 end
 
+function StageAdapter:get_combat_runtime_debug()
+    local result = {
+        native_active = self:is_native_active(),
+        legacy_shot_calls = self.legacy_shot_calls or 0,
+        runtime_shot_calls = self.runtime_shot_calls or 0,
+        projectile_stats = self.projectile_stats,
+        players = {},
+    }
+    if self.native_bridge and self.native_bridge.state then
+        local state = self.native_bridge.state() or {}
+        result.native_runtime_active = state.runtime_active == true
+        result.native_legacy_shot_calls = state.legacy_shot_calls or 0
+        result.native_runtime_shot_calls = state.runtime_shot_calls or 0
+    end
+    for player_id, runtime in pairs(self.character_runtimes or {}) do
+        result.players[player_id] = {
+            descriptor = runtime.descriptor,
+            weapons = runtime.weapon_manager and runtime.weapon_manager:to_table() or {},
+            supports = runtime.support_manager and runtime.support_manager:to_table() or {},
+            modifiers = runtime.modifier_runtime and runtime.modifier_runtime:to_table() or {},
+        }
+    end
+    return result
+end
+
 function StageAdapter:start_empty_room(encounter_id)
     local encounter = {
         id = encounter_id or "lan_empty_room",
@@ -173,6 +281,12 @@ function StageAdapter:start_empty_room(encounter_id)
         stage_id = "lan_empty_room",
     }
     self.active_encounter = encounter
+    self.projectile_stats = { by_source = {}, total = 0 }
+    self.legacy_shot_calls = 0
+    self.runtime_shot_calls = 0
+    -- Empty/LAN rooms use the same equipment Runtime as ordinary encounters;
+    -- skipping this build left both players visible but unable to fire.
+    self:_build_character_runtimes()
     self.battle:begin(encounter)
     self.training_mode = false
     self.runtime = self:_create_runtime({ id = encounter.stage_id, kind = "empty", waves = {} })
@@ -197,8 +311,18 @@ function StageAdapter:_create_runtime(definition)
             shoot_cooldown = 0,
             invulnerable = 0,
             bomb_timer = 0,
+            bomb_charge = 0,
+            bomb_charging = false,
+            bomb_charged = false,
+            bomb_hit_charge_timer = 0,
+            bomb_hit_charge_window = 0,
+            bomb_rearmed = true,
             bomb_damage_applied = false,
             graze_radius = 30,
+            combat_runtime = self.character_runtimes[player_id],
+            combat_bridge = self.character_bridges[player_id],
+            support_entities = {},
+            streak_hits = 0, streak_last_frame = nil,
         }
     end
     if not runtime_players[1] then
@@ -207,6 +331,12 @@ function StageAdapter:_create_runtime(definition)
             player_id = 1, x = 640, y = 100, speed = player_profile.normal_speed,
             focus = false, profile = player_profile, shoot_cooldown = 0,
             invulnerable = 0, bomb_timer = 0, bomb_damage_applied = false, graze_radius = 30,
+            bomb_charge = 0, bomb_charging = false, bomb_charged = false, bomb_rearmed = true,
+            bomb_hit_charge_timer = 0, bomb_hit_charge_window = 0,
+            combat_runtime = self.character_runtimes[1],
+            combat_bridge = self.character_bridges[1],
+            support_entities = {},
+            streak_hits = 0, streak_last_frame = nil,
         }
     end
     return {
@@ -291,6 +421,10 @@ function StageAdapter:start_training(card_id)
             self.native_active = false
             error(err)
         end
+        if self.audio and self.native_bridge.get_music_hint then
+            local hint = self.native_bridge.get_music_hint()
+            if hint then self.audio:play_original(hint) end
+        end
         if self.native_bridge.set_coop then
             self.native_bridge.set_coop(false, self.session.local_player_id or 1)
         end
@@ -303,6 +437,7 @@ function StageAdapter:start_training(card_id)
         stage_id = "training_" .. card_id,
     }
     self.battle:begin(self.active_encounter)
+    self:_build_character_runtimes()
     self.runtime = self:_create_runtime({
         id = self.active_encounter.stage_id,
         kind = "boss",
@@ -342,6 +477,10 @@ function StageAdapter:start_enemy_training(enemy_id)
             self.native_active = false
             error(err)
         end
+        if self.audio and self.native_bridge.get_music_hint then
+            local hint = self.native_bridge.get_music_hint()
+            if hint then self.audio:play_original(hint) end
+        end
         if self.native_bridge.set_coop then
             self.native_bridge.set_coop(false, self.session.local_player_id or 1)
         end
@@ -354,6 +493,7 @@ function StageAdapter:start_enemy_training(enemy_id)
         stage_id = "training_enemy_" .. enemy_id,
     }
     self.battle:begin(self.active_encounter)
+    self:_build_character_runtimes()
     self.runtime = self:_create_runtime({
         id = self.active_encounter.stage_id,
         kind = "training",
@@ -579,23 +719,76 @@ function StageAdapter:get_random_alive_player()
     return players[index]
 end
 
-function StageAdapter:_spawn_player_shots(player)
+function StageAdapter:_append_runtime_projectile(shot, player)
     local runtime = self.runtime
-    local shots = player.focus and player.profile.focused_shot or player.profile.normal_shot
-    for _, shot in ipairs(shots) do
-        local angle = math.rad(shot.angle or 90)
-        runtime.player_bullets[#runtime.player_bullets + 1] = {
-            x = player.x + (shot.offset_x or 0),
-            y = player.y + (shot.offset_y or 0),
-            vx = math.cos(angle) * (shot.speed or 24),
-            vy = math.sin(angle) * (shot.speed or 24),
-            speed = shot.speed or 24,
-            damage = shot.damage or 1,
-            radius = shot.radius or 4,
-            focused = player.focus,
-            owner_id = player.player_id,
-        }
+    if not runtime or not shot then return end
+    shot = ProjectileFactory.from_shot(shot, player.player_id, shot.source_instance_id)
+    local source = shot.source_instance_id or shot.projectile_type or "unknown"
+    local owner = runtime.players[shot.owner_player_id or player.player_id]
+    local weapon = owner and owner.combat_runtime and owner.combat_runtime.weapon_manager:find(shot.source_instance_id)
+    if shot.metadata.is_wind_field then
+        local count = 0
+        for _, existing in ipairs(runtime.player_bullets) do
+            if existing.field and existing.owner_id == shot.owner_player_id and existing.source_instance_id == shot.source_instance_id then count = count + 1 end
+        end
+        for index = #runtime.player_bullets, 1, -1 do
+            local existing = runtime.player_bullets[index]
+            if count >= (shot.metadata.max_active_fields or 6) and existing.field
+                    and existing.owner_id == shot.owner_player_id and existing.source_instance_id == shot.source_instance_id then
+                table.remove(runtime.player_bullets, index)
+                count = count - 1
+            end
+        end
     end
+    local bullet = ProjectileRuntime.new(shot, weapon)
+    bullet.owner_id, bullet.focused = shot.owner_player_id, player.focus
+    runtime.player_bullets[#runtime.player_bullets + 1] = bullet
+    self.runtime_shot_calls = self.runtime_shot_calls + 1
+    self.projectile_stats.total = self.projectile_stats.total + 1
+    self.projectile_stats.by_source[source] = (self.projectile_stats.by_source[source] or 0) + 1
+end
+
+function StageAdapter:_update_player_runtime(player, input_state)
+    local bridge = player.combat_bridge
+    local combat = player.combat_runtime
+    if not bridge or not combat then return end
+    local mode = player.focus and "LOW" or "HIGH"
+    local shots, support_entities = bridge:update(combat, mode, input_state.shoot == true, {
+        x = player.x, y = player.y, angle = 90,
+        focus = player.focus, frame = self.runtime and self.runtime.frame or 0,
+        room_generation = self.session.room_generation,
+        attack_allowed = self.session:get_player(player.player_id).alive == true,
+        enemies = self.runtime and self.runtime.enemies or {},
+    })
+    player.support_entities = support_entities or {}
+    if combat.afterglow_invulnerability and combat.afterglow_invulnerability > 0 then
+        player.invulnerable = math.max(player.invulnerable or 0, combat.afterglow_invulnerability)
+    end
+    local clear_pulses = combat.support_manager and combat.support_manager.last_modifier_context
+        and combat.support_manager.last_modifier_context.clear_pulses or nil
+    if clear_pulses and #clear_pulses > 0 then
+        for bullet_index = #self.runtime.bullets, 1, -1 do
+            local bullet = self.runtime.bullets[bullet_index]
+            for _, pulse in ipairs(clear_pulses) do
+                local dx = (bullet.x or 0) - (pulse.x or 0)
+                local dy = (bullet.y or 0) - (pulse.y or 0)
+                if dx * dx + dy * dy <= (pulse.radius or 0) ^ 2 then
+                    table.remove(self.runtime.bullets, bullet_index)
+                    break
+                end
+            end
+        end
+    end
+    for _, shot in ipairs(shots or {}) do
+        self:_append_runtime_projectile(shot, player)
+    end
+end
+
+-- Kept as a small compatibility entry point for debug/tools that explicitly
+-- request one volley. Normal battle updates use _update_player_runtime so
+-- each WeaponRuntime cooldown advances even when the player is not firing.
+function StageAdapter:_spawn_player_shots(player)
+    self:_update_player_runtime(player, { shoot = true })
 end
 
 function StageAdapter:_emit_pattern(enemy)
@@ -940,9 +1133,68 @@ function StageAdapter:update(input)
     for player_id, player in pairs(runtime.players) do
         local input_state = inputs[player_id] or {}
         local session_player = self.session:get_player(player_id)
+        local bomb_profile = player.profile.bomb or {}
+        local max_charge = math.max(1, tonumber(bomb_profile.max_charge_frames) or 180)
+        local function activate_bomb(charged)
+            if not session_player or tonumber(session_player.bomb) == nil or session_player.bomb <= 0 then
+                -- A player can lose the last Bomb between input sampling and
+                -- simulation (reward sync, respawn, or a peer correction).
+                -- Clear every pending charge state instead of leaving a held
+                -- Bomb latched until a later item appears.
+                player.bomb_charging = false
+                player.bomb_charge = 0
+                player.bomb_charged = false
+                player.bomb_hit_charge_timer = 0
+                player.bomb_hit_charge_window = 0
+                return false
+            end
+            if player.bomb_timer > 0 or player.bomb_rearmed == false then return false end
+            self.battle:use_bomb(player_id)
+            if self.audio then self.audio:play_bomb(player.focus == true) end
+            player.bomb_timer = charged and (bomb_profile.charged_duration or bomb_profile.duration)
+                or bomb_profile.duration
+            player.bomb_damage_applied = false
+            player.invulnerable = charged and (bomb_profile.charged_invulnerability or bomb_profile.invulnerability)
+                or bomb_profile.invulnerability
+            player.bomb_charge = charged and max_charge or 0
+            player.bomb_charging = false
+            player.bomb_charged = charged == true
+            player.bomb_rearmed = false
+            player.bomb_hit_charge_timer = 0
+            player.bomb_hit_charge_window = 0
+            runtime.bullets = {}
+            return true
+        end
+        -- A hit while charging schedules a local safety release. The short
+        -- window allows a manual release to upgrade it to the charged form;
+        -- no held-state packet is needed for this decision.
+        if player.bomb_hit_charge_timer and player.bomb_hit_charge_timer > 0 then
+            player.bomb_hit_charge_window = math.max(0, player.bomb_hit_charge_window or 0)
+            if input_state.bomb and player.bomb_hit_charge_window > 0 then
+                activate_bomb(true)
+            else
+                player.bomb_hit_charge_timer = player.bomb_hit_charge_timer - 1
+                player.bomb_hit_charge_window = math.max(0, player.bomb_hit_charge_window - 1)
+                if player.bomb_hit_charge_timer <= 0 then
+                    activate_bomb(false)
+                end
+            end
+        end
         if session_player and session_player.alive then
+            local bomb_count = tonumber(session_player.bomb) or 0
+            if bomb_count <= 0 then
+                player.bomb_charging = false
+                player.bomb_charge = 0
+                player.bomb_charged = false
+                player.bomb_hit_charge_timer = 0
+                player.bomb_hit_charge_window = 0
+            end
             player.focus = input_state.focus == true
-            player.speed = player.focus and player.profile.focused_speed or player.profile.normal_speed
+            local speed_policy = player.combat_runtime and player.combat_runtime.descriptor
+                and player.combat_runtime.descriptor.speed
+            player.speed = player.focus
+                and ((speed_policy and speed_policy.low_speed) or player.profile.focused_speed)
+                or ((speed_policy and speed_policy.high_speed) or player.profile.normal_speed)
             local move_x = input_state.move_x or 0
             local move_y = input_state.move_y or 0
             local move_scale = move_x ~= 0 and move_y ~= 0 and 0.70710678 or 1
@@ -950,13 +1202,26 @@ function StageAdapter:update(input)
             player.y = clamp(player.y + move_y * player.speed * move_scale, WORLD_BOTTOM, WORLD_TOP)
             player.invulnerable = math.max(0, player.invulnerable - 1)
 
-            if input_state.bomb and session_player.bomb > 0 and player.bomb_timer <= 0 then
-                self.battle:use_bomb(player_id)
-                if self.audio then self.audio:play("bomb") end
-                player.bomb_timer = player.profile.bomb.duration
-                player.bomb_damage_applied = false
-                player.invulnerable = player.profile.bomb.invulnerability
-                runtime.bullets = {}
+            local bomb_down = input_state.bomb_down == true
+            if not bomb_down and not player.bomb_charging then
+                player.bomb_rearmed = true
+            end
+            if player.bomb_timer <= 0 then
+                if bomb_down and bomb_count > 0 and player.bomb_rearmed ~= false then
+                    player.bomb_charging = true
+                    player.bomb_charge = math.min(max_charge, (player.bomb_charge or 0) + 1)
+                    if player.bomb_charge >= max_charge then
+                        activate_bomb(true)
+                    end
+                elseif player.bomb_charging then
+                    -- Releasing before the cap emits the normal Bomb. A
+                    -- network peer that only sends the edge still follows
+                    -- the legacy immediate path below.
+                    activate_bomb((player.bomb_charge or 0) >= max_charge)
+                elseif input_state.bomb and input_state.bomb_success ~= false
+                        and player.bomb_rearmed ~= false then
+                    activate_bomb(input_state.bomb_charged == true)
+                end
             end
             if player.bomb_timer > 0 then
                 player.bomb_timer = player.bomb_timer - 1
@@ -964,21 +1229,33 @@ function StageAdapter:update(input)
                 runtime.bullets = {}
                 if not player.bomb_damage_applied then
                     for _, enemy in ipairs(runtime.enemies) do
-                        enemy.hp = enemy.hp - player.profile.bomb.damage
+                        enemy.hp = enemy.hp - (player.bomb_charged and (bomb_profile.charged_damage or bomb_profile.damage)
+                            or bomb_profile.damage)
                         enemy.last_hit_player_id = player_id
                     end
                     player.bomb_damage_applied = true
                 end
             else
                 player.bomb_damage_applied = false
+                if not player.bomb_charging then
+                    player.bomb_charged = false
+                    if player.bomb_rearmed ~= false then player.bomb_charge = 0 end
+                end
             end
 
-            if input_state.shoot and player.shoot_cooldown <= 0 then
-                self:_spawn_player_shots(player)
-                if self.audio then self.audio:play("shot") end
-                player.shoot_cooldown = player.profile.shot_interval
+            local shots_before = self.runtime_shot_calls
+            self:_update_player_runtime(player, input_state)
+            if input_state.shoot and self.runtime_shot_calls > shots_before and self.audio then
+                self.audio:play("shot")
             end
+            -- Legacy profile timers are retained in snapshots for backwards
+            -- compatibility, but no longer control Runtime weapon cadence.
             player.shoot_cooldown = math.max(0, player.shoot_cooldown - 1)
+        else
+            -- Do not keep rendering the last support positions while a
+            -- player is dead/respawning.  They are transient visual entities,
+            -- not persistent inventory objects.
+            player.support_entities = {}
         end
     end
     runtime.bomb_flash = max_bomb_flash
@@ -999,24 +1276,19 @@ function StageAdapter:update(input)
         end
     end
 
+    local fields = {}
     for index = #runtime.player_bullets, 1, -1 do
         local bullet = runtime.player_bullets[index]
-        bullet.x = bullet.x + bullet.vx
-        bullet.y = bullet.y + bullet.vy
-        local hit = false
-        for _, enemy in ipairs(runtime.enemies) do
-            if enemy.hp > 0 and distance_squared(bullet, enemy) <= (enemy.radius + bullet.radius) ^ 2 then
-                enemy.hp = enemy.hp - bullet.damage
-                enemy.last_hit_player_id = bullet.owner_id or 1
-                self.battle:add_score(100, bullet.owner_id or 1, "shot")
-                hit = true
-                break
-            end
-        end
-        if hit or bullet.y > 740 or bullet.x < -30 or bullet.x > 1310 then
-            table.remove(runtime.player_bullets, index)
-        end
+        if not getmetatable(bullet) then setmetatable(bullet, ProjectileRuntime) end
+        bullet:update(runtime.enemies, function(enemy, amount)
+            enemy.hp = enemy.hp - amount
+            enemy.last_hit_player_id = bullet.owner_id or 1
+            self.battle:add_score(100, bullet.owner_id or 1, "shot")
+            return amount > 0
+        end, function(shot) fields[#fields + 1] = shot end)
+        if bullet.dead then table.remove(runtime.player_bullets, index) end
     end
+    for _, shot in ipairs(fields) do self:_append_runtime_projectile(shot, runtime.players[shot.owner_player_id]) end
 
     for _, enemy in ipairs(runtime.enemies) do
         if enemy.hp > 0 then
@@ -1059,9 +1331,20 @@ function StageAdapter:update(input)
                 local graze_distance = (bullet.radius + player.graze_radius) ^ 2
                 local distance = distance_squared(bullet, player)
                 if distance <= collision_distance and player.invulnerable == 0 then
+                    local was_charging = player.bomb_charging == true
+                    if was_charging then
+                        player.bomb_charging = false
+                        player.bomb_charge = 0
+                        player.bomb_hit_charge_timer = 30
+                        player.bomb_hit_charge_window = 18
+                    end
                     player.invulnerable = 90
-                    self.battle:record_player_life_lost(player_id, 1)
-                    self.session:add_life(player_id, -1, "hit")
+                    -- A hit during charge is converted into a local safety
+                    -- Bomb.  It must not also consume a life.
+                    if not was_charging then
+                        self.battle:record_player_life_lost(player_id, 1)
+                        self.session:add_life(player_id, -1, "hit")
+                    end
                     if self.audio then self.audio:play("hit") end
                     consumed = true
                     break
@@ -1082,9 +1365,18 @@ function StageAdapter:update(input)
             for player_id, player in pairs(runtime.players) do
                 local session_player = self.session:get_player(player_id)
                 if session_player and session_player.alive and player.invulnerable == 0 and distance_squared(enemy, player) <= (enemy.radius + player.profile.hitbox_radius) ^ 2 then
+                    local was_charging = player.bomb_charging == true
+                    if was_charging then
+                        player.bomb_charging = false
+                        player.bomb_charge = 0
+                        player.bomb_hit_charge_timer = 30
+                        player.bomb_hit_charge_window = 18
+                    end
                     player.invulnerable = 90
-                    self.battle:record_player_life_lost(player_id, 1)
-                    self.session:add_life(player_id, -1, "enemy_contact")
+                    if not was_charging then
+                        self.battle:record_player_life_lost(player_id, 1)
+                        self.session:add_life(player_id, -1, "enemy_contact")
+                    end
                     if self.audio then self.audio:play("hit") end
                 end
             end
@@ -1143,9 +1435,15 @@ function StageAdapter:get_world_snapshot()
             id = player_id, x = player.x, y = player.y, invulnerable = player.invulnerable,
             focus = player.focus, shoot_cooldown = player.shoot_cooldown,
             bomb_timer = player.bomb_timer, bomb_damage_applied = player.bomb_damage_applied,
+            bomb_charge = player.bomb_charge or 0, bomb_charging = player.bomb_charging == true,
+            bomb_charged = player.bomb_charged == true,
+            bomb_hit_charge_timer = player.bomb_hit_charge_timer or 0,
+            bomb_hit_charge_window = player.bomb_hit_charge_window or 0,
+            bomb_rearmed = player.bomb_rearmed ~= false,
             life = state and state.life or 0, alive = state and state.alive or false,
             bomb = state and state.bomb or 0, score = state and state.score or 0,
             graze = state and state.graze or 0, money = state and state.money or 0,
+            streak_hits = player.streak_hits or 0, streak_last_frame = player.streak_last_frame,
         }
     end
     table.sort(players, function(left, right) return left.id < right.id end)
@@ -1175,10 +1473,29 @@ function StageAdapter:get_world_snapshot()
     end
     local player_bullets = {}
     for _, bullet in ipairs(runtime.player_bullets) do
+        local hit_target_ids = {}
+        for target, hit_age in pairs(bullet.hit_targets or {}) do
+            if type(target) == "table" and target.id ~= nil then
+                hit_target_ids[#hit_target_ids + 1] = { id = target.id, age = hit_age }
+            end
+        end
+        table.sort(hit_target_ids, function(left, right) return tostring(left.id) < tostring(right.id) end)
+        local target_id = type(bullet.target_key) == "table" and bullet.target_key.id or nil
         player_bullets[#player_bullets + 1] = {
             x = bullet.x, y = bullet.y, vx = bullet.vx, vy = bullet.vy,
-            speed = bullet.speed, damage = bullet.damage, radius = bullet.radius,
+            speed = bullet.speed, damage = bullet.damage, base_damage = bullet.base_damage,
+            radius = bullet.radius, angle = bullet.angle,
             focused = bullet.focused, owner_id = bullet.owner_id,
+            penetration = bullet.penetration, targeting = bullet.targeting,
+            projectile_type = bullet.projectile_type, source_instance_id = bullet.source_instance_id,
+            source_type = bullet.source_type, scale = bullet.scale, hitbox_scale = bullet.hitbox_scale,
+            metadata = bullet.metadata, age = bullet.age, max_age = bullet.max_age,
+            beam = bullet.beam, field = bullet.field,
+            tick_interval = bullet.tick_interval, field_radius = bullet.field_radius,
+            beam_width = bullet.beam_width, beam_length = bullet.beam_length,
+            hit_count = bullet.hit_count, hit_target_ids = hit_target_ids,
+            target_selected = bullet.target_selected, target_id = target_id,
+            hit_reported = bullet.hit_reported == true,
         }
     end
     return {
@@ -1204,8 +1521,6 @@ function StageAdapter:get_world_snapshot()
         enemies = enemies,
         bullets = bullets,
         player_bullets = player_bullets,
-        session_money = self.session.money,
-        total_score = self.session.total_score,
         battle = self.battle.active and {
             encounter_id = self.battle.active.encounter_id,
             battle_score = self.battle.active.battle_score,
@@ -1258,15 +1573,8 @@ function StageAdapter:apply_snapshot(snapshot)
     -- Preserve nil for encounters without a spell card; converting it to
     -- false changes the serialized world shape and creates a false desync.
     runtime.card_time_spell = snapshot.card_time_spell
-    self.session.money = snapshot.session_money or self.session.money
-    self.session.total_score = snapshot.total_score or self.session.total_score
     if snapshot.battle and self.battle.active then
         self.battle.active.encounter_id = snapshot.battle.encounter_id or self.battle.active.encounter_id
-        self.battle.active.battle_score = snapshot.battle.battle_score or 0
-        self.battle.active.money_collected = snapshot.battle.money_collected or 0
-        self.battle.active.life_lost = snapshot.battle.life_lost or 0
-        self.battle.active.bomb_used = snapshot.battle.bomb_used or 0
-        self.battle.active.per_player = snapshot.battle.per_player or {}
     end
     for _, player_snapshot in ipairs(snapshot.players or {}) do
         local player = runtime.players[player_snapshot.id]
@@ -1279,15 +1587,19 @@ function StageAdapter:apply_snapshot(snapshot)
             player.speed = player.focus and player.profile.focused_speed or player.profile.normal_speed
             player.shoot_cooldown = player_snapshot.shoot_cooldown or 0
             player.bomb_timer = player_snapshot.bomb_timer or 0
+            player.bomb_charge = player_snapshot.bomb_charge or 0
+            player.bomb_charging = player_snapshot.bomb_charging == true
+            player.bomb_charged = player_snapshot.bomb_charged == true
+            player.bomb_hit_charge_timer = player_snapshot.bomb_hit_charge_timer or 0
+            player.bomb_hit_charge_window = player_snapshot.bomb_hit_charge_window or 0
+            player.bomb_rearmed = player_snapshot.bomb_rearmed ~= false
             player.bomb_damage_applied = player_snapshot.bomb_damage_applied == true
+            player.streak_hits = player_snapshot.streak_hits or 0
+            player.streak_last_frame = player_snapshot.streak_last_frame
         end
         if state then
             state.life = player_snapshot.life or state.life
             state.alive = player_snapshot.alive ~= false and state.life > 0
-            state.bomb = player_snapshot.bomb or state.bomb
-            state.score = player_snapshot.score or state.score
-            state.graze = player_snapshot.graze or state.graze
-            state.money = player_snapshot.money or state.money
         end
     end
     runtime.enemies = {}
@@ -1322,14 +1634,39 @@ function StageAdapter:apply_snapshot(snapshot)
         }
     end
     runtime.player_bullets = {}
+    local enemy_by_id = {}
+    for _, enemy in ipairs(runtime.enemies) do enemy_by_id[enemy.id] = enemy end
     for _, bullet_snapshot in ipairs(snapshot.player_bullets or {}) do
-        runtime.player_bullets[#runtime.player_bullets + 1] = {
+        local owner = runtime.players[bullet_snapshot.owner_id]
+        local weapon = owner and owner.combat_runtime and owner.combat_runtime.weapon_manager
+            and owner.combat_runtime.weapon_manager:find(bullet_snapshot.source_instance_id) or nil
+        local hit_targets = {}
+        for _, hit in ipairs(bullet_snapshot.hit_target_ids or {}) do
+            local target = enemy_by_id[hit.id]
+            if target then hit_targets[target] = hit.age end
+        end
+        runtime.player_bullets[#runtime.player_bullets + 1] = setmetatable({
             x = bullet_snapshot.x, y = bullet_snapshot.y,
             vx = bullet_snapshot.vx, vy = bullet_snapshot.vy,
             speed = bullet_snapshot.speed, damage = bullet_snapshot.damage,
-            radius = bullet_snapshot.radius, focused = bullet_snapshot.focused == true,
-            owner_id = bullet_snapshot.owner_id,
-        }
+            base_damage = bullet_snapshot.base_damage or bullet_snapshot.damage,
+            radius = bullet_snapshot.radius, angle = bullet_snapshot.angle,
+            focused = bullet_snapshot.focused == true,
+            owner_id = bullet_snapshot.owner_id, penetration = bullet_snapshot.penetration,
+            targeting = bullet_snapshot.targeting, projectile_type = bullet_snapshot.projectile_type,
+            source_instance_id = bullet_snapshot.source_instance_id, source_type = bullet_snapshot.source_type,
+            scale = bullet_snapshot.scale, hitbox_scale = bullet_snapshot.hitbox_scale or 1,
+            metadata = bullet_snapshot.metadata or {},
+            age = bullet_snapshot.age or 0, max_age = bullet_snapshot.max_age,
+            beam = bullet_snapshot.beam == true, field = bullet_snapshot.field == true,
+            tick_interval = bullet_snapshot.tick_interval or 1, field_radius = bullet_snapshot.field_radius or 0,
+            beam_width = bullet_snapshot.beam_width, beam_length = bullet_snapshot.beam_length,
+            hit_targets = hit_targets, hit_count = bullet_snapshot.hit_count or 0,
+            target_selected = bullet_snapshot.target_selected == true,
+            target_key = enemy_by_id[bullet_snapshot.target_id],
+            hit_reported = bullet_snapshot.hit_reported == true,
+            weapon = weapon,
+        }, ProjectileRuntime)
     end
     runtime.last_world_hash = self:world_hash()
     return true
@@ -1379,10 +1716,20 @@ function StageAdapter:render()
                 lstg.RenderRect(image, runtime_player.x - hitbox * 2, runtime_player.x + hitbox * 2, runtime_player.y - hitbox * 2, runtime_player.y + hitbox * 2)
             end
         end
+        for _, support in ipairs(runtime_player.support_entities or {}) do
+            if player_state and player_state.alive and lstg.Render then
+                local support_image = runtime_player.focus and "tnr-reimu-blue" or "tnr-reimu-red"
+                lstg.SetImageState(support_image, "", lstg.Color(210, 180, 220, 255))
+                lstg.Render(support_image, support.x, support.y, 0, 0.8, 0.8)
+            end
+        end
     end
     for _, bullet in ipairs(runtime.player_bullets) do
         if lstg.Render then
-            lstg.Render(bullet.focused and "tnr-reimu-blue" or "tnr-reimu-red", bullet.x, bullet.y, 90, 1, 1)
+            local bullet_image = bullet.projectile_type == "reimu_support_blue" and "tnr-reimu-blue"
+                or (bullet.projectile_type == "reimu_support_orange" and "tnr-reimu-orange"
+                    or (bullet.focused and "tnr-reimu-blue" or "tnr-reimu-red"))
+            lstg.Render(bullet_image, bullet.x, bullet.y, 90, bullet.scale or 1, bullet.scale or 1)
         else
             lstg.SetImageState(image, "", lstg.Color(255, 120, 255, 160))
             lstg.RenderRect(image, bullet.x - bullet.radius, bullet.x + bullet.radius, bullet.y - bullet.radius * 2, bullet.y + bullet.radius * 2)
@@ -1433,10 +1780,41 @@ function StageAdapter:render()
         local player_state = self.session:get_player(player_id)
         local runtime_player = runtime.players[player_id]
         if player_state and runtime_player then
-            hud_parts[#hud_parts + 1] = string.format("P%d Score %d  Life %d  Bomb %d  Graze %d", player_id, player_state.score, player_state.life, player_state.bomb, player_state.graze)
+            hud_parts[#hud_parts + 1] = string.format("P%d Score %d  Life %d  Graze %d", player_id, player_state.score, player_state.life, player_state.graze)
         end
     end
+    local local_id = self.session.local_player_id or 1
+    local local_state = self.session:get_player(local_id) or self.session:get_player(1)
+    local team_lives = self.session.party and self.session.party.team_life
+        or (local_state and local_state.life) or 0
+    local local_bombs = local_state and local_state.bomb or 0
+    local local_runtime_player = runtime.players[local_id] or runtime.players[1]
+    local single_player = (self.session.player_count or 1) == 1
+    local lives_label = single_player and "PLAYER LIVES" or "TEAM LIVES"
     lstg.RenderTTF("Sans", table.concat(hud_parts, "     "), 40, 40, 680, 680, 0, lstg.Color(255, 240, 240, 240), 2)
+    local status_color = local_runtime_player and (local_runtime_player.bomb_hit_charge_window or 0) > 0
+        and lstg.Color(255, 80, 80, 255) or lstg.Color(255, 240, 240, 240)
+    lstg.RenderTTF("Sans", string.format("%s %d", lives_label, single_player and (local_state and local_state.life or 0) or team_lives),
+        40, 40, 650, 650, 0, lstg.Color(255, 240, 240, 240), 1.7)
+    lstg.RenderTTF("Sans", string.format("BOMBS %d", local_bombs), 40, 40, 620, 620, 0, status_color, 1.7)
+    -- Bomb charging is a local player action. Keep the bar in the lower-right
+    -- corner so it remains readable without overlapping the team HUD.
+    local bomb_profile = local_runtime_player and local_runtime_player.profile
+        and local_runtime_player.profile.bomb or {}
+    local charge_max = math.max(1, tonumber(bomb_profile.max_charge_frames) or 180)
+    local charge = math.max(0, math.min(charge_max, tonumber(local_runtime_player and local_runtime_player.bomb_charge) or 0))
+    local charge_ratio = charge / charge_max
+    local charge_left, charge_right, charge_bottom, charge_top = 930, 1230, 48, 62
+    local bar_alert = local_runtime_player and (local_runtime_player.bomb_hit_charge_window or 0) > 0
+    lstg.SetImageState(image, "", bar_alert and lstg.Color(255, 45, 45, 75) or lstg.Color(190, 15, 20, 35))
+    lstg.RenderRect(image, charge_left, charge_right, charge_bottom, charge_top)
+    lstg.SetImageState(image, "", bar_alert and lstg.Color(255, 70, 70, 255) or lstg.Color(255, 120, 205, 255))
+    if charge_ratio > 0 then
+        lstg.RenderRect(image, charge_left + 2, charge_left + 2 + (charge_right - charge_left - 4) * charge_ratio,
+            charge_bottom + 2, charge_top - 2)
+    end
+    lstg.RenderTTF("Sans", local_runtime_player and local_runtime_player.bomb_charging and "BOMB CHARGE" or "BOMB READY",
+        charge_left, charge_left, charge_top + 5, charge_top + 5, 0, lstg.Color(255, 235, 225, 240), 0.85)
     lstg.RenderTTF("Sans", phase_text, 40, 40, 640, 640, 0, lstg.Color(255, 220, 220, 220), 1.5)
     if runtime.current_card and runtime.current_card.is_spell then
         local hp_ratio = 0
