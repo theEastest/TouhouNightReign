@@ -42,6 +42,22 @@ function MapState:select_node(node_id)
     return node
 end
 
+function MapState:force_select_node(node_id)
+    -- Authoritative advance used when a client mirrors the host's selected
+    -- node. Deliberately skips the adjacency check so a network peer whose
+    -- local current node briefly lags behind the host can still follow.
+    local node = self.nodes[node_id]
+    if not node then
+        return nil, "unknown node"
+    end
+    if node_id == self.current_node_id then
+        return node
+    end
+    self.current_node_id = node_id
+    node.visited = true
+    return node
+end
+
 function MapState:find_path(start_id, goal_id)
     if not self.nodes[start_id] or not self.nodes[goal_id] then
         return nil

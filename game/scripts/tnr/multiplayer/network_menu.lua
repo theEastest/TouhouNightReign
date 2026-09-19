@@ -15,9 +15,51 @@ local function append_filtered(current, text, pattern, maximum_length)
     return (current .. table.concat(accepted)):sub(1, maximum_length)
 end
 
+local function filter_only(text, pattern, maximum_length)
+    local accepted = {}
+    for character in tostring(text or ""):gmatch(".") do
+        if character:match(pattern) then accepted[#accepted + 1] = character end
+    end
+    return table.concat(accepted):sub(1, maximum_length)
+end
+
+local function load_preset()
+    local ok_storage, DataStorage = pcall(require, "foundation.DataStorage")
+    local ok_path, LocalFileStorage = pcall(require, "foundation.LocalFileStorage")
+    if not (ok_storage and ok_path) then
+        return { ip = "localhost", port = DEFAULT_PORT }
+    end
+    local ok_open, storage = pcall(DataStorage.open,
+        LocalFileStorage.getRootDirectory() .. "/network_preset.json",
+        { ip = "localhost", port = DEFAULT_PORT }, true)
+    if not ok_open or not storage then
+        return { ip = "localhost", port = DEFAULT_PORT }
+    end
+    local root = storage:root()
+    return {
+        ip = tostring(root.ip or "localhost"),
+        port = tostring(root.port or DEFAULT_PORT),
+    }
+end
+
+local function save_preset(ip, port)
+    local ok_storage, DataStorage = pcall(require, "foundation.DataStorage")
+    local ok_path, LocalFileStorage = pcall(require, "foundation.LocalFileStorage")
+    if not (ok_storage and ok_path) then return false end
+    local ok_open, storage = pcall(DataStorage.open,
+        LocalFileStorage.getRootDirectory() .. "/network_preset.json",
+        { ip = "localhost", port = DEFAULT_PORT }, true)
+    if not ok_open or not storage then return false end
+    storage:set("ip", tostring(ip or "localhost"))
+    storage:set("port", tostring(port or DEFAULT_PORT))
+    pcall(storage.save, storage, false, true)
+    return true
+end
+
 function NetworkMenu.new()
+    local preset = load_preset()
     return setmetatable({
-        mode = nil, cursor = 1, ip = "localhost", port = DEFAULT_PORT, seed = "",
+        mode = nil, cursor = 1, ip = preset.ip, port = preset.port, seed = "",
         status = nil, status_is_error = false, replace_on_input = {},
     }, NetworkMenu)
 end
@@ -74,6 +116,21 @@ function NetworkMenu:append_text(text)
     end
 end
 
+function NetworkMenu:paste_text(text)
+    local field = self:get_fields()[self.cursor]
+    if not field then return end
+    -- Pasting replaces the whole field so a copied value like "192.168.1.7"
+    -- lands exactly as intended instead of appending to leftover characters.
+    self.replace_on_input[self.cursor] = false
+    if field.id == "ip" then
+        self.ip = filter_only(text, "[A-Za-z0-9%.:%-]", 253)
+    elseif field.id == "port" then
+        self.port = filter_only(text, "%d", 5)
+    elseif field.id == "seed" then
+        self.seed = filter_only(text, "%d", 10)
+    end
+end
+
 function NetworkMenu:backspace()
     local field = self:get_fields()[self.cursor]
     if not field then return end
@@ -119,6 +176,7 @@ function NetworkMenu:confirm()
     if self.mode == "host" and self.cursor == 1 and trim(self.seed) == "" then
         local config, err = self:validate()
         if not config then self:set_error(err); return nil, err end
+        save_preset(self.ip, self.port)
         return config
     end
     if self.cursor < field_count then
@@ -132,6 +190,7 @@ function NetworkMenu:confirm()
     end
     local config, err = self:validate()
     if not config then self:set_error(err); return nil, err end
+    save_preset(self.ip, self.port)
     return config
 end
 

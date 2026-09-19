@@ -20,6 +20,7 @@ function PlayerInput.new(player_id, tick, values)
         tab = values.tab == true,
         backspace = values.backspace == true,
         text = tostring(values.text or ""),
+        paste = tostring(values.paste or ""),
         mouse_primary_pressed = values.mouse_primary_pressed == true,
         mouse_primary_down = values.mouse_primary_down == true,
     }

@@ -113,6 +113,21 @@ function Bootstrap.create(options)
             stage_adapter:start(event.encounter)
         end
     end)
+    session:on(Event.NODE_SELECTED, function(event)
+        -- The host is the authority that advances the shared map. Broadcast
+        -- the selected node so a client whose local current node briefly lags
+        -- behind the host still follows the exact node instead of diverging.
+        if instance and instance.transport and instance.transport.is_host
+                and instance.transport:is_host()
+                and instance.battle_sync and instance.battle_sync:is_networked()
+                and event and event.node_id ~= nil then
+            instance.transport:send({
+                type = Command.SYNC_NODE,
+                node_id = event.node_id,
+                player_id = 1,
+            })
+        end
+    end)
 
     instance = setmetatable({
         session = session,
@@ -845,6 +860,8 @@ function Bootstrap:_update_network_menu(player_input)
     local text = player_input.text or ""
     if self.input.consume_text then text = text .. self.input:consume_text() end
     if text ~= "" then menu:append_text(text) end
+    local paste = player_input.paste or ""
+    if paste ~= "" then menu:paste_text(paste) end
     if player_input.backspace then menu:backspace() end
     if player_input.tab then
         menu:move_cursor(1)

@@ -146,6 +146,7 @@ local PRE_ROOM_COMMANDS = {
     LOADOUT_COMMIT = true,
     ENCOUNTER_READY = true,
     START_ENCOUNTER_AT = true,
+    SYNC_NODE = true,
 }
 
 function LANTransport.new(options)

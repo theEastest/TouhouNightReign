@@ -582,10 +582,41 @@ vote_client_transport:update()
 assert_equal(vote_client_session.node_votes[1], network_vote_node_id, "client should receive the host's map vote")
 vote_client_transport:send({ type = Command.VOTE_NODE, node_id = network_vote_node_id, player_id = 2 })
 vote_host_transport:update()
-vote_client_transport:update()
 assert_equal(vote_host_session.current_node_id, network_vote_node_id, "host should enter the agreed network node")
+-- The client no longer advances on its own vote; it must follow the host's
+-- authoritative SYNC_NODE command (emitted by the host when the shared map
+-- advances). Send that command and verify both peers land on the same node.
+assert_equal(vote_client_session.current_node_id, vote_host_session.map.start_node_id, "client must wait for the host before advancing")
+vote_host_transport:send({ type = Command.SYNC_NODE, node_id = network_vote_node_id, player_id = 1 })
+vote_client_transport:update()
 assert_equal(vote_client_session.current_node_id, network_vote_node_id, "client should enter the same agreed network node")
 assert_equal(vote_host_session.run_state, vote_client_session.run_state, "map consensus must leave both peers in the same state")
+
+-- A SYNC_NODE must repair a diverged client even when the node is no longer
+-- adjacent to the client's stale current node. This is the exact deadlock the
+-- authoritative command exists to prevent.
+local diverge_host_session = GameSession.new({ run_seed = 13579, player_count = 2, local_player_id = 1 }):start_new()
+local diverge_client_session = GameSession.new({ run_seed = 13579, player_count = 2, local_player_id = 2 }):start_new()
+local diverge_links = diverge_host_session.map:get_current_node().links
+local diverge_first = diverge_links[1]
+local diverge_second = diverge_links[2]
+-- Host advances two nodes ahead (first then a successor), client stays put.
+diverge_host_session:dispatch({ type = Command.VOTE_NODE, node_id = diverge_first, player_id = 1 })
+diverge_host_session:dispatch({ type = Command.VOTE_NODE, node_id = diverge_first, player_id = 2 })
+local second_links = diverge_host_session.map:get_node(diverge_first).links
+assert_true(second_links and #second_links > 0, "divergence test needs a deeper node to advance into")
+local diverge_third = second_links[1]
+diverge_host_session:dispatch({ type = Command.VOTE_NODE, node_id = diverge_third, player_id = 1 })
+diverge_host_session:dispatch({ type = Command.VOTE_NODE, node_id = diverge_third, player_id = 2 })
+assert_true(diverge_host_session.current_node_id ~= diverge_client_session.current_node_id,
+    "host must be ahead of a client that has not received any sync")
+-- Client is several nodes behind; force it to the host's current node even
+-- though that node is not adjacent to the client's local current node.
+diverge_client_session:dispatch({ type = Command.SYNC_NODE, node_id = diverge_host_session.current_node_id, player_id = 1 })
+assert_equal(diverge_client_session.current_node_id, diverge_host_session.current_node_id,
+    "authoritative sync must move a lagging client straight onto the host node")
+assert_equal(diverge_client_session.run_state, diverge_host_session.run_state,
+    "authoritative sync must align the run state as well")
 
 local mouse_vote_host, mouse_vote_client = FakeTransport.create_pair()
 local p2_mouse_bootstrap = Bootstrap.create({
@@ -624,6 +655,24 @@ assert_equal(p2_mouse_command.kind, "command", "P2 mouse click should send a net
 assert_equal(p2_mouse_command.payload.type, Command.VOTE_NODE, "P2 mouse click should send a map vote")
 assert_equal(p2_mouse_command.payload.player_id, 2, "P2 mouse vote must retain the local player id")
 assert_equal(p2_mouse_command.payload.node_id, p2_mouse_node.id, "P2 mouse vote should target the clicked node")
+
+-- When the host's session advances a node, the bootstrap must broadcast a
+-- SYNC_NODE command so the client follows the authoritative node.
+local sync_host_transport, sync_client_transport = FakeTransport.create_pair()
+local sync_bootstrap = Bootstrap.create({
+    transport = sync_host_transport,
+    network_role = "host",
+    local_player_id = 1,
+    player_count = 2,
+    run_seed = 86420,
+})
+sync_bootstrap:start_game(86420)
+local sync_target = sync_bootstrap.session.map:get_current_node().links[1]
+sync_bootstrap.session:dispatch({ type = Command.SELECT_NODE, node_id = sync_target, player_id = 1 })
+local sync_broadcast = sync_client_transport:poll()
+assert_equal(sync_broadcast.kind, "command", "host node advance must broadcast a command")
+assert_equal(sync_broadcast.payload.type, Command.SYNC_NODE, "host node advance must broadcast SYNC_NODE")
+assert_equal(sync_broadcast.payload.node_id, sync_target, "SYNC_NODE must carry the authoritative node id")
 
 local menu_session = GameSession.new({ run_seed = 4321 })
 assert_equal(menu_session.run_state, Constants.run_states.MENU, "fresh session must open on menu")

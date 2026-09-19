@@ -314,25 +314,17 @@ function GameSession:vote_node(node_id, player_id)
         end
         agreed_node_id = candidate_node_id
     end
+    -- In a networked room the host (local player 1) is the only authority
+    -- that advances the map. The client records votes locally but waits for
+    -- the host's SYNC_NODE command so both peers can never diverge onto
+    -- different nodes from a late or reordered vote packet.
+    if self.player_count > 1 and self.local_player_id ~= 1 then
+        return vote_event
+    end
     return self:select_node(agreed_node_id, player_id)
 end
 
-function GameSession:select_node(node_id, player_id)
-    if self.run_state ~= Constants.run_states.MAP then
-        return nil, "当前不在地图状态"
-    end
-    if self.preparation_required and not self._committing_prepared then
-        node_id = tonumber(node_id)
-        if not node_id or not self.map:is_adjacent(node_id) then return nil, "节点不是当前节点的相邻节点" end
-        self.preparation:set_selected_node(node_id)
-        self.run_state = Constants.run_states.MAP_PREPARATION
-        self:emit(Event.PREPARATION_CHANGED, { open = true, selected_node_id = node_id })
-        return self.map:get_node(node_id)
-    end
-    local node, err = self.map:select_node(node_id)
-    if not node then
-        return nil, err
-    end
+function GameSession:_advance_node(node, player_id)
     self.node_votes = {}
     self.current_node_id = node.id
     self.party:set_current_node(node.id)
@@ -369,6 +361,48 @@ function GameSession:select_node(node_id, player_id)
         self:emit(Event.PLACEHOLDER_ENTERED, { node_id = node.id, node_type = node.type })
     end
     return node
+end
+
+function GameSession:select_node(node_id, player_id)
+    if self.run_state ~= Constants.run_states.MAP then
+        return nil, "当前不在地图状态"
+    end
+    if self.preparation_required and not self._committing_prepared then
+        node_id = tonumber(node_id)
+        if not node_id or not self.map:is_adjacent(node_id) then return nil, "节点不是当前节点的相邻节点" end
+        self.preparation:set_selected_node(node_id)
+        self.run_state = Constants.run_states.MAP_PREPARATION
+        self:emit(Event.PREPARATION_CHANGED, { open = true, selected_node_id = node_id })
+        return self.map:get_node(node_id)
+    end
+    local node, err = self.map:select_node(node_id)
+    if not node then
+        return nil, err
+    end
+    return self:_advance_node(node, player_id)
+end
+
+function GameSession:sync_node(node_id, player_id)
+    -- Authoritative node mirror for a network client. The host already
+    -- validated the vote and advanced; the client simply follows the exact
+    -- node so both peers stay on the same node even when a late vote or
+    -- reordered packet would otherwise make `is_adjacent` disagree.
+    if self.run_state ~= Constants.run_states.MAP
+            and self.run_state ~= Constants.run_states.MAP_PREPARATION then
+        return nil, "当前不在地图状态"
+    end
+    node_id = tonumber(node_id)
+    if node_id == self.current_node_id then
+        -- Already on the authoritative node (for example the host's own
+        -- local dispatch of its broadcast). Do not re-emit node/encounter
+        -- events for a node we are already standing on.
+        return self.map:get_node(node_id)
+    end
+    local node, err = self.map:force_select_node(node_id)
+    if not node then
+        return nil, err
+    end
+    return self:_advance_node(node, player_id)
 end
 
 function GameSession:shop_purchase(player_id, slot)
@@ -795,6 +829,8 @@ function GameSession:dispatch(command)
         return self:select_node(command.node_id, command.player_id)
     elseif command_type == Command.VOTE_NODE then
         return self:vote_node(command.node_id, command.player_id)
+    elseif command_type == Command.SYNC_NODE then
+        return self:sync_node(command.node_id, command.player_id)
     elseif command_type == Command.ADD_MONEY then
         return self:add_money(command.player_id or 1, command.amount, command.source)
     elseif command_type == Command.ADD_SCORE then

@@ -32,6 +32,9 @@ function LuaSTGInputProvider.new(lstg, options)
         bindings = options.bindings or DEFAULT_BINDINGS,
         text_input = nil,
         text_input_checked = false,
+        clipboard = nil,
+        clipboard_checked = false,
+        paste_down = {},
         bomb_charge = {},
         bomb_previous = {},
         bomb_fired = {},
@@ -50,6 +53,39 @@ function LuaSTGInputProvider:_ensure_text_input()
         self.text_input = window:queryInterface("lstg.Window.TextInputExtension")
     end
     return self.text_input
+end
+
+function LuaSTGInputProvider:_ensure_clipboard()
+    if self.clipboard_checked then return self.clipboard end
+    self.clipboard_checked = true
+    local ok, Clipboard = pcall(require, "lstg.Clipboard")
+    self.clipboard = ok and Clipboard or nil
+    return self.clipboard
+end
+
+function LuaSTGInputProvider:_read_clipboard()
+    local clipboard = self:_ensure_clipboard()
+    if not clipboard or type(clipboard.getText) ~= "function" then return "" end
+    local ok, text, err = pcall(clipboard.getText, clipboard)
+    if not ok or text == nil then return "" end
+    return tostring(text)
+end
+
+function LuaSTGInputProvider:_poll_paste(player_id, keyboard)
+    -- Ctrl+V pastes the system clipboard into the focused text field. Use
+    -- edge detection so a held modifier does not repeat the paste every frame.
+    local ctrl = resolve_key(keyboard, "LeftControl") or resolve_key(keyboard, "RightControl")
+        or resolve_key(keyboard, "Control")
+    local v_key = resolve_key(keyboard, "V")
+    if not ctrl or not v_key then return "" end
+    local ctrl_down = self:key_down(ctrl)
+    local v_down = self:key_down(v_key)
+    local was_paste = self.paste_down[player_id] == true
+    self.paste_down[player_id] = (ctrl_down and v_down) or nil
+    if (ctrl_down and v_down) and not was_paste then
+        return self:_read_clipboard()
+    end
+    return ""
 end
 
 function LuaSTGInputProvider:begin_text_input()
@@ -106,6 +142,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
     local right = self:key_down(resolve_key(keyboard, binding.right))
     local up = self:key_down(resolve_key(keyboard, binding.up))
     local down = self:key_down(resolve_key(keyboard, binding.down))
+    local paste_text = self:_poll_paste(player_id, keyboard)
     local primary = false
     if type(mouse.GetKeyState) == "function" and mouse.Primary ~= nil then
         local ok, state = pcall(mouse.GetKeyState, mouse.Primary)
@@ -143,6 +180,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
             cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
             tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
             backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
+            paste = paste_text,
             mouse_primary_pressed = primary_pressed,
             mouse_primary_down = primary,
         })
@@ -164,6 +202,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
                 cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
                 tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
                 backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
+                paste = paste_text,
                 mouse_primary_pressed = primary_pressed,
                 mouse_primary_down = primary,
             })
@@ -207,6 +246,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
         cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
         tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
         backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
+        paste = paste_text,
         -- On a LAN peer the locally controlled player may be P2, so mouse
         -- input belongs to whichever player this provider is polling.
         mouse_primary_pressed = primary_pressed,
