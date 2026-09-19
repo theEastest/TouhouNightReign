@@ -335,6 +335,11 @@ function system:init(p, slot)
     p.nextshoot = p.nextshoot or 0
     p.nextspell = p.nextspell or 0
     p.nextsp = p.nextsp or 0
+    -- The legacy Reimu frame routine reads `nextcollect` directly (the
+    -- original THlib player_class initialized it, but the compact player
+    -- system does not). Initialize it here so the first frame never hits
+    -- "attempt to compare number with nil".
+    p.nextcollect = p.nextcollect or 0
     p.item = p.item or 1
     p.death = p.death or 0
     p.protect = p.protect or 120

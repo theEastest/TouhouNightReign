@@ -1947,8 +1947,13 @@ local function load_legacy_content()
         -- Water-drop bullets are animated sprites, not frames in bullet1.
         -- The activity export uses both the normal and dark variants.
         pcall(LoadTexture, "bullet_water_drop", "Thlib/bullet/bullet_water_drop.png", true)
-        for index = 1, 8 do
-            local x = 48 * (index - 1)
+        -- Bullet frame indices span 1..16 (see LegacyTHlib/bullet/bullet.lua),
+        -- but the water-drop sheet only carries 8 distinct frames. Load all
+        -- 16 animation names, mapping 9..16 back onto frames 1..8, so a
+        -- `water_drop_dark9..16` lookup can never fail at runtime.
+        for index = 1, 16 do
+            local source_index = ((index - 1) % 8) + 1
+            local x = 48 * (source_index - 1)
             pcall(LoadAnimation, "water_drop" .. index, "bullet_water_drop", x, 0, 48, 32, 1, 4, 4, 4, 4)
             pcall(SetAnimationState, "water_drop" .. index, "mul+add")
             pcall(LoadAnimation, "water_drop_dark" .. index, "bullet_water_drop", x, 0, 48, 32, 1, 4, 4, 4, 4)

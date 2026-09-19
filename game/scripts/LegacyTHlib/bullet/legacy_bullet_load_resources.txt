@@ -77,20 +77,29 @@ for i = 1, 8 do
 end
 --------------------------
 --------water_drop--------
+-- Bullet frame indices span 1..16, but these animated sheets only carry
+-- 8 distinct frames. Load all 16 names and map 9..16 back onto 1..8 so a
+-- runtime lookup (for example water_drop_dark10) can never fail.
 LoadTexture('bullet_water_drop', 'THlib/bullet/bullet_water_drop.png')
-for i = 1, 8 do
-    LoadAnimation('water_drop' .. i, 'bullet_water_drop', 48 * (i - 1), 0, 48, 32, 1, 4, 4, 4, 4)
+for i = 1, 16 do
+    local src = (i - 1) % 8 + 1
+    LoadAnimation('water_drop' .. i, 'bullet_water_drop', 48 * (src - 1), 0, 48, 32, 1, 4, 4, 4, 4)
     SetAnimationState('water_drop' .. i, 'mul+add')
 end
-for i = 1, 8 do
-    LoadAnimation('water_drop_dark' .. i, 'bullet_water_drop', 48 * (i - 1), 0, 48, 32, 1, 4, 4, 4, 4)
+for i = 1, 16 do
+    local src = (i - 1) % 8 + 1
+    LoadAnimation('water_drop_dark' .. i, 'bullet_water_drop', 48 * (src - 1), 0, 48, 32, 1, 4, 4, 4, 4)
 end
 --------------------------
 --------music-------------
 LoadTexture('bullet_music', 'THlib/bullet/bullet_music.png')
-for i = 1, 8 do
-    LoadAnimation('music' .. i, 'bullet_music', 60 * (i - 1), 0, 60, 32, 1, 3, 8, 4, 4)
+for i = 1, 16 do
+    local src = (i - 1) % 8 + 1
+    LoadAnimation('music' .. i, 'bullet_music', 60 * (src - 1), 0, 60, 32, 1, 3, 8, 4, 4)
 end
 ------silence-------------
 LoadTexture('bullet6', 'THlib/bullet/bullet6.png')
 LoadImageGroup('silence', 'bullet6', 192, 0, 32, 32, 1, 8, 4.5, 4.5)
+for i = 9, 16 do
+    CopyImage('silence' .. i, 'silence' .. ((i - 1) % 8 + 1))
+end
