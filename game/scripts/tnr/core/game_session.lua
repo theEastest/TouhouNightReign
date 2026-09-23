@@ -15,6 +15,10 @@ local AcquisitionService = require("tnr.equipment.acquisition_service")
 local EquipmentInstance = require("tnr.equipment.equipment_instance")
 local Phase1Catalog = require("tnr.equipment.phase1_catalog")
 local CapacityProgression = require("tnr.character.runtime.capacity_progression")
+local CharacterRegistry = require("tnr.character.character_registry")
+local ReimuDefinition = require("tnr.character.reimu_definition")
+local MarisaDefinition = require("tnr.character.marisa_definition")
+local SanaeDefinition = require("tnr.character.sanae_definition")
 local LegacyStateAdapter = require("tnr.core.legacy_state_adapter")
 local LoadoutCommit = require("tnr.multiplayer.loadout_commit")
 local ShopService = require("tnr.shop.shop_service")
@@ -39,12 +43,20 @@ function GameSession.new(options)
         default_seed = options.run_seed,
         run_seed = nil,
         run_state = Constants.run_states.MENU,
+        -- The run is split into three floors (like a Slay-the-Spire act): each
+        -- floor has its own map, its own boss pool and its own difficulty
+        -- band. Clearing a floor's boss advances to the next floor.
+        floor = 1,
+        floor_count = math.max(1, math.floor(tonumber(options.floor_count) or 3)),
         map = nil,
         current_node_id = nil,
         players = PlayerManager.new(),
         party = PartyState.new({}, nil),
         preparation = PreparationState.new({}),
         equipment_registry = options.equipment_registry or Phase1Catalog.registry,
+        character_registry = options.character_registry or CharacterRegistry.new({
+            ReimuDefinition, MarisaDefinition, SanaeDefinition,
+        }),
         preparation_required = options.preparation_required == true,
         _committing_prepared = false,
         money = 0,
@@ -63,6 +75,11 @@ function GameSession.new(options)
         god_mode = {},
         player_count = math.max(1, math.min(2, math.floor(options.player_count or 1))),
         local_player_id = options.local_player_id or 1,
+        -- Character chosen on the pre-map select screen. `character_by_player`
+        -- lets a co-op run give each player their own character; the local id
+        -- is the fallback used by single player.
+        local_character_id = options.character_id or "reimu",
+        character_by_player = options.character_by_player or {},
         room_generation = nil,
         loadout_commits = {},
         shop_service = nil,
@@ -116,7 +133,25 @@ function GameSession:emit(event_type, payload)
     return event
 end
 
-function GameSession:start_new(run_seed)
+--- Set the character the local player will use for the next run. Called by the
+--- pre-map character select screen. Validates against the registry when one is
+--- available so an unknown id can never enter a run.
+function GameSession:set_local_character(character_id)
+    character_id = tostring(character_id or "")
+    if character_id == "" then return nil, "character_id is required" end
+    if self.character_registry and not self.character_registry:has(character_id) then
+        return nil, "unknown character: " .. character_id
+    end
+    self.local_character_id = character_id
+    self.character_by_player[self.local_player_id or 1] = character_id
+    return character_id
+end
+
+function GameSession:get_local_character()
+    return self.local_character_id or "reimu"
+end
+
+function GameSession:start_new(run_seed, floor)
     run_seed = tonumber(run_seed) or self.default_seed
     if not run_seed then
         local seconds = os.time()
@@ -125,24 +160,40 @@ function GameSession:start_new(run_seed)
     end
     self.run_seed = math.floor(run_seed)
     self.run_state = Constants.run_states.MAP
-    self.map = MapGenerator.generate(self.run_seed, self.map_config)
+    -- A fresh run always starts at floor 1 unless a floor is explicitly given
+    -- (for example when a debug command jumps straight to a later floor).
+    self.floor = math.max(1, math.min(self.floor_count, math.floor(tonumber(floor) or 1)))
+    local map_config = self.map_config or {}
+    map_config.floor = self.floor
+    self.map = MapGenerator.generate(self.run_seed + (self.floor - 1) * 100003, map_config)
     self.map:reveal()
     self.current_node_id = self.map.current_node_id
     self.players = PlayerManager.new()
     local player_ids = {}
     for player_id = 1, self.player_count do
         player_ids[#player_ids + 1] = player_id
-        self.players:add_player(player_id, { character_id = "reimu", life = 3, bomb = 3 })
+        local character_id = self.character_by_player and self.character_by_player[player_id]
+            or self.local_character_id or "reimu"
+        local character_definition = self.character_registry and self.character_registry:get(character_id) or nil
+        self.players:add_player(player_id, {
+            character_id = character_id,
+            character_definition = character_definition,
+            life = 3,
+            bomb = 3,
+        })
     end
     self.party = PartyState.new(player_ids, self.current_node_id)
     self.preparation:reset(player_ids)
     for _, player_id in ipairs(player_ids) do
         local player = self:get_player(player_id)
-        if player.character_id == "reimu" then
-            player.loadout:set_slot("high_weapons", 1, EquipmentInstance.new(Phase1Catalog.initial.high_weapon, player_id))
-            player.loadout:set_slot("low_weapons", 1, EquipmentInstance.new(Phase1Catalog.initial.low_weapon, player_id))
-            player.loadout:set_slot("supports", 1, EquipmentInstance.new(Phase1Catalog.initial.support, player_id))
-            player.loadout.character_relic = Phase1Catalog.initial.relic.relic_id
+        local kit = Phase1Catalog.initial_by_character
+            and Phase1Catalog.initial_by_character[player.character_id]
+            or Phase1Catalog.initial
+        if kit then
+            player.loadout:set_slot("high_weapons", 1, EquipmentInstance.new(kit.high_weapon, player_id))
+            player.loadout:set_slot("low_weapons", 1, EquipmentInstance.new(kit.low_weapon, player_id))
+            player.loadout:set_slot("supports", 1, EquipmentInstance.new(kit.support, player_id))
+            player.loadout.character_relic = kit.relic.relic_id
             player.loadout:set_definition_lookup(self.equipment_registry)
         end
     end
@@ -181,6 +232,43 @@ function GameSession:start_new(run_seed)
         self.relic_runtime:emit("ON_BATTLE_START", player_id)
     end
     return self
+end
+
+-- Advance to the next floor. The party, equipment, money and relics are kept;
+-- only the map, node progress and per-floor encounter state are rebuilt.
+function GameSession:advance_floor()
+    if self.run_state ~= Constants.run_states.FLOOR_CLEAR then
+        return nil, "当前不在层间过渡状态"
+    end
+    if not self.run_seed then
+        return nil, "尚未开始一局游戏"
+    end
+    if self.floor >= self.floor_count then
+        return nil, "已经是最后一层"
+    end
+    self.floor = self.floor + 1
+    -- Rebuild the floor map from the same run seed so the run stays
+    -- reproducible while each floor has a distinct layout.
+    local map_config = self.map_config or {}
+    map_config.floor = self.floor
+    self.map = MapGenerator.generate(self.run_seed + (self.floor - 1) * 100003, map_config)
+    self.map:reveal()
+    self.current_node_id = self.map.current_node_id
+    self.node_votes = {}
+    self.battle_failure_votes = {}
+    self.visited_nodes = { [self.current_node_id] = true }
+    self.current_encounter = nil
+    self.room_generation = nil
+    self.party:set_current_node(self.current_node_id)
+    self.preparation:reset(self.party.player_ids)
+    for _, player_id in ipairs(self.party.player_ids or {}) do
+        local player = self:get_player(player_id)
+        if player then player:set_map_ready(false) end
+    end
+    self.run_state = Constants.run_states.MAP
+    self:emit(Event.FLOOR_ENTERED, { floor = self.floor, node_id = self.current_node_id })
+    self:emit(Event.MAP_ENTERED, { node_id = self.current_node_id, run_seed = self.run_seed, floor = self.floor })
+    return true
 end
 
 -- The host selects the seed once and sends it to the peer. Hosts dispatch
@@ -342,6 +430,8 @@ function GameSession:_advance_node(node, player_id)
             stage_id = definition.stage_id,
             reward_table = definition.reward_table,
             content_seed = node.content_seed,
+            floor = self.floor,
+            band = node.band,
             room_generation = string.format("%s:%s:%s", tostring(self.run_seed), tostring(node.id), tostring(node.content_seed or "0")),
         }
         self.room_generation = self.current_encounter.room_generation
@@ -587,21 +677,26 @@ function GameSession:complete_battle(values)
             end
         end
         if is_boss then
-            self.run_state = Constants.run_states.RELIC_SELECT
-            -- Preserve the result for the clear screen, but invalidate the
-            -- native room before notifying listeners so delayed packets from
-            -- this encounter cannot contaminate a future run.
+            -- A floor boss ends the current floor. Only the final floor's
+            -- boss leads to the run-clear relic screen; earlier floors advance
+            -- to the next floor's map.
             self.current_encounter = nil
             self.room_generation = nil
-            self.relic_choices = {}
-            local relic_ids = { "reimu_initial_relic_plus", "test_relic", "test_relic_bonus" }
-            for _, player_id in ipairs(self.party.player_ids or {}) do
-                self.relic_choices[player_id] = {}
-                for index, relic_id in ipairs(relic_ids) do
-                    self.relic_choices[player_id][index] = relic_id
+            if self.floor < self.floor_count then
+                self.run_state = Constants.run_states.FLOOR_CLEAR
+                self:emit(Event.FLOOR_CLEARED, { floor = self.floor, next_floor = self.floor + 1 })
+            else
+                self.run_state = Constants.run_states.RELIC_SELECT
+                self.relic_choices = {}
+                local relic_ids = { "reimu_initial_relic_plus", "test_relic", "test_relic_bonus" }
+                for _, player_id in ipairs(self.party.player_ids or {}) do
+                    self.relic_choices[player_id] = {}
+                    for index, relic_id in ipairs(relic_ids) do
+                        self.relic_choices[player_id][index] = relic_id
+                    end
                 end
+                self:emit(Event.RELIC_CHOICE_ENTERED, { choices = self.relic_choices })
             end
-            self:emit(Event.RELIC_CHOICE_ENTERED, { choices = self.relic_choices })
         elseif encounter and (encounter.type == Constants.node_types.ENEMY
                 or encounter.type == Constants.node_types.ELITE) then
             self.run_state = Constants.run_states.REWARD
@@ -672,6 +767,46 @@ function GameSession:complete_battle(values)
         self:emit(Event.BATTLE_FAILED, { result = result })
     end
     return result
+end
+
+function GameSession:unclaim_reward(player_id, choice_index)
+    if self.run_state ~= Constants.run_states.REWARD then
+        return nil, "NOT_REWARD_SELECT"
+    end
+    player_id = tonumber(player_id) or self.local_player_id or 1
+    choice_index = tonumber(choice_index)
+    if not choice_index then return nil, "INVALID_REWARD_CHOICE" end
+    local claims = self.reward_claims[player_id]
+    if not claims then return nil, "NO_CLAIM" end
+    local claim_index
+    for index, claim in ipairs(claims) do
+        if claim.choice_index == choice_index then claim_index = index break end
+    end
+    if not claim_index then return nil, "NO_CLAIM" end
+    local claim = claims[claim_index]
+    -- Undo the granted effect so re-selecting cannot double the reward.
+    if claim.kind == "EQUIPMENT" and claim.acquired then
+        local player = self:get_player(player_id)
+        local inventory = player and player.loadout and player.loadout.inventory
+        if inventory then
+            for index, item in ipairs(inventory.items) do
+                if item and item.instance_id == (claim.equipment and claim.equipment.instance_id) then
+                    inventory:remove(index)
+                    break
+                end
+            end
+        end
+    elseif claim.kind == "RESOURCE" then
+        if claim.resource == "bomb" then
+            self:add_bomb(player_id, -(claim.amount or 1), "reward_deselect")
+        elseif claim.resource == "life" then
+            self.party:add_team_life(-(claim.amount or 1))
+            self:emit(Event.LIFE_CHANGED, { player_id = player_id, amount = -(claim.amount or 1), source = "reward_deselect", team_life = self.party.team_life })
+        end
+    end
+    table.remove(claims, claim_index)
+    self:emit(Event.REWARD_CLAIMED, { claim = claim, choices = self.reward_choices, removed = true })
+    return true
 end
 
 function GameSession:claim_reward(player_id, choice_index)
@@ -806,6 +941,8 @@ function GameSession:debug_goto(node_id)
             stage_id = definition.stage_id,
             reward_table = definition.reward_table,
             content_seed = node.content_seed,
+            floor = self.floor,
+            band = node.band,
             room_generation = string.format("%s:%s:%s", tostring(self.run_seed), tostring(node.id), tostring(node.content_seed or "0")),
         }
         self.room_generation = self.current_encounter.room_generation
@@ -831,6 +968,8 @@ function GameSession:dispatch(command)
         return self:vote_node(command.node_id, command.player_id)
     elseif command_type == Command.SYNC_NODE then
         return self:sync_node(command.node_id, command.player_id)
+    elseif command_type == Command.ADVANCE_FLOOR then
+        return self:advance_floor()
     elseif command_type == Command.ADD_MONEY then
         return self:add_money(command.player_id or 1, command.amount, command.source)
     elseif command_type == Command.ADD_SCORE then
@@ -885,6 +1024,8 @@ function GameSession:dispatch(command)
         return self:shop_ready(command.player_id or self.local_player_id)
     elseif command_type == Command.RELIC_CHOICE then
         return self:choose_relic(command.player_id or self.local_player_id, command.relic_id)
+    elseif command_type == Command.UNCLAIM_REWARD then
+        return self:unclaim_reward(command.player_id or self.local_player_id, command.choice_index)
     elseif command_type == Command.CLAIM_REWARD then
         if self.run_state ~= Constants.run_states.REWARD then
             local pending_player_id = tonumber(command.player_id) or self.local_player_id

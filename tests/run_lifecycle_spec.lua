@@ -25,7 +25,22 @@ return function(assert_equal, assert_true)
     local boss = session.map:get_node(session.map.boss_node_id)
     session:debug_goto(boss.id)
     session:complete_battle({ clear_state = true, reward_eligible = false, player_id = 1 })
-    assert_equal(session.run_state, Constants.run_states.RELIC_SELECT, "boss clear opens relic choice")
+    -- Floor one's boss transitions to the next floor instead of ending the run.
+    assert_equal(session.run_state, Constants.run_states.FLOOR_CLEAR, "floor boss clear opens the floor transition")
+    assert_true(session:advance_floor(), "the run advances to the next floor")
+    assert_equal(session.run_state, Constants.run_states.MAP, "advancing a floor returns to the map")
+    -- Walk the remaining floors up to the final boss.
+    while session.floor < session.floor_count do
+        local next_boss = session.map:get_node(session.map.boss_node_id)
+        session:debug_goto(next_boss.id)
+        session:complete_battle({ clear_state = true, reward_eligible = false, player_id = 1 })
+        assert_equal(session.run_state, Constants.run_states.FLOOR_CLEAR, "floor boss clear opens the floor transition")
+        assert_true(session:advance_floor(), "the run advances to the next floor")
+    end
+    local final_boss = session.map:get_node(session.map.boss_node_id)
+    session:debug_goto(final_boss.id)
+    session:complete_battle({ clear_state = true, reward_eligible = false, player_id = 1 })
+    assert_equal(session.run_state, Constants.run_states.RELIC_SELECT, "final boss clear opens relic choice")
     assert_true(session:choose_relic(1, session.relic_choices[1][2]), "boss relic choice succeeds")
     assert_equal(session.run_state, Constants.run_states.RUN_CLEAR, "relic choice completes run")
 end

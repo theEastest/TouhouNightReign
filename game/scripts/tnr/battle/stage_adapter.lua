@@ -117,6 +117,8 @@ function StageAdapter:start(encounter)
         self.training_mode = false
         self.native_active = true
         local room_type = encounter.type == "BOSS" and "boss" or (encounter.type == "ELITE" and "elite" or "enemy")
+        local floor = tonumber(encounter.floor) or tonumber(self.session.floor) or 1
+        local band = tonumber(encounter.band)
         if self.native_bridge.set_room_generation then
             self.native_bridge.set_room_generation(encounter.room_generation)
         end
@@ -126,7 +128,7 @@ function StageAdapter:start(encounter)
         if self.native_bridge.set_player_state then
             self.native_bridge.set_player_state(self.session:get_player(self.session.local_player_id or 1))
         end
-        self.native_bridge.start_room(room_type, encounter.content_seed or self.session.run_seed or 1)
+        self.native_bridge.start_room(room_type, encounter.content_seed or self.session.run_seed or 1, floor, band)
         if self.audio and self.native_bridge.get_music_hint then
             local hint = self.native_bridge.get_music_hint()
             if hint then self.audio:play_original(hint) end
@@ -308,6 +310,7 @@ function StageAdapter:_create_runtime(definition)
             speed = player_profile.normal_speed,
             focus = false,
             profile = player_profile,
+            character_id = character_id,
             shoot_cooldown = 0,
             invulnerable = 0,
             bomb_timer = 0,
@@ -329,7 +332,7 @@ function StageAdapter:_create_runtime(definition)
         local player_profile = PlayerProfiles.reimu
         runtime_players[1] = {
             player_id = 1, x = 640, y = 100, speed = player_profile.normal_speed,
-            focus = false, profile = player_profile, shoot_cooldown = 0,
+            focus = false, profile = player_profile, character_id = "reimu", shoot_cooldown = 0,
             invulnerable = 0, bomb_timer = 0, bomb_damage_applied = false, graze_radius = 30,
             bomb_charge = 0, bomb_charging = false, bomb_charged = false, bomb_rearmed = true,
             bomb_hit_charge_timer = 0, bomb_hit_charge_window = 0,
@@ -1706,11 +1709,17 @@ function StageAdapter:render()
     local frame = math.floor(runtime.frame / 4) % 8 + 1
     for player_id, runtime_player in pairs(runtime.players) do
         local player_state = self.session:get_player(player_id)
+        -- Use the character's own sprite sheet when it shipped; fall back to
+        -- Reimu so the fallback runtime always has a body to draw.
+        local character_prefix = "tnr-" .. tostring(runtime_player.character_id or "reimu")
+        if not (lstg.CheckRes and lstg.CheckRes(1, character_prefix .. frame)) then
+            character_prefix = "tnr-reimu"
+        end
         if player_state and player_state.alive and runtime_player.invulnerable % 6 < 3 then
             local player_color = player_id == 1 and lstg.Color(255, 120, 180, 255) or lstg.Color(255, 120, 220, 150)
             lstg.SetImageState(image, "", player_color)
             if lstg.Render then
-                lstg.Render("tnr-reimu" .. frame, runtime_player.x, runtime_player.y, 0, 1, 1)
+                lstg.Render(character_prefix .. frame, runtime_player.x, runtime_player.y, 0, 1, 1)
             else
                 local hitbox = runtime_player.profile.hitbox_radius
                 lstg.RenderRect(image, runtime_player.x - hitbox * 2, runtime_player.x + hitbox * 2, runtime_player.y - hitbox * 2, runtime_player.y + hitbox * 2)
@@ -1718,7 +1727,7 @@ function StageAdapter:render()
         end
         for _, support in ipairs(runtime_player.support_entities or {}) do
             if player_state and player_state.alive and lstg.Render then
-                local support_image = runtime_player.focus and "tnr-reimu-blue" or "tnr-reimu-red"
+                local support_image = runtime_player.focus and (character_prefix .. "-blue") or (character_prefix .. "-red")
                 lstg.SetImageState(support_image, "", lstg.Color(210, 180, 220, 255))
                 lstg.Render(support_image, support.x, support.y, 0, 0.8, 0.8)
             end

@@ -43,6 +43,12 @@ local RelicRuntimeSpec = require("relic_runtime_spec")
 local RunLifecycleSpec = require("run_lifecycle_spec")
 local CombatRuntimeIntegrationSpec = require("combat_runtime_integration_spec")
 local GuideEquipmentSpec = require("guide_equipment_spec")
+local EquipmentInfoSpec = require("equipment_info_spec")
+local DifficultyFloorSpec = require("difficulty_floor_spec")
+local ShopRewardSpec = require("shop_reward_spec")
+local BossSequenceSpec = require("boss_sequence_spec")
+local DialogOverrideSpec = require("dialog_override_spec")
+local CharacterSelectSpec = require("character_select_spec")
 local AudioManagerSpec = require("audio_manager_spec")
 
 local function assert_equal(left, right, message)
@@ -70,6 +76,12 @@ RelicRuntimeSpec(assert_equal, assert_true)
 RunLifecycleSpec(assert_equal, assert_true)
 CombatRuntimeIntegrationSpec(assert_equal, assert_true)
 GuideEquipmentSpec(assert_equal, assert_true)
+EquipmentInfoSpec(assert_equal, assert_true)
+DifficultyFloorSpec(assert_equal, assert_true)
+ShopRewardSpec(assert_equal, assert_true)
+BossSequenceSpec(assert_equal, assert_true)
+DialogOverrideSpec(assert_equal, assert_true)
+CharacterSelectSpec(assert_equal, assert_true)
 AudioManagerSpec(assert_equal, assert_true)
 
 local scroll = ScrollState.new(20, 8, 1)
@@ -317,6 +329,26 @@ training_bootstrap.input:set_pending({ confirm = true })
 training_bootstrap:update()
 assert_equal(training_bootstrap.session.run_state, Constants.run_states.CARD_TRAINING, "card selection should start training")
 
+-- Menu equipment catalog: index 8 opens a browsable, localized catalog and
+-- Esc returns to the main menu.
+local catalog_bootstrap = Bootstrap.create({})
+catalog_bootstrap:init()
+catalog_bootstrap.menu_cursor = 8
+catalog_bootstrap.input:set_pending({ confirm = true })
+catalog_bootstrap:update()
+assert_equal(catalog_bootstrap.session.run_state, Constants.run_states.EQUIPMENT_CATALOG,
+    "menu entry eight should open the equipment catalog")
+assert_true(#catalog_bootstrap.catalog_entries > 0, "catalog must contain equipment")
+for _, entry in ipairs(catalog_bootstrap.catalog_entries) do
+    assert_true(entry.definition.test_only ~= true, "catalog must exclude test-only equipment")
+    assert_true(tostring(entry.definition.display_name):find("[\228-\233]") ~= nil,
+        "catalog equipment must expose a Chinese name: " .. tostring(entry.id))
+end
+catalog_bootstrap.input:set_pending({ cancel = true })
+catalog_bootstrap:update()
+assert_equal(catalog_bootstrap.session.run_state, Constants.run_states.MENU,
+    "cancel should close the equipment catalog")
+
 local nonspell_bootstrap = Bootstrap.create({})
 nonspell_bootstrap:init()
 nonspell_bootstrap:open_training_selection("nonspell")
@@ -377,6 +409,10 @@ assert_equal(created_network_config.mode, "host", "host menu must create a host 
 assert_equal(created_network_config.host, "0.0.0.0", "host menu should only require a port")
 assert_equal(created_network_config.port, 28123, "host menu should forward its port")
 assert_equal(host_menu_bootstrap.session.local_player_id, 1, "server should control P1")
+assert_equal(host_menu_bootstrap.session.run_state, Constants.run_states.CHARACTER_SELECT,
+    "host should pick a character before entering the shared map")
+host_menu_bootstrap.input:set_pending({ confirm = true })
+host_menu_bootstrap:update()
 assert_equal(host_menu_bootstrap.session.run_state, Constants.run_states.MAP, "server should enter the shared map")
 assert_equal(host_menu_bootstrap.stage_adapter.runtime, nil, "server should wait for map consensus before entering a room")
 
@@ -393,6 +429,10 @@ assert_equal(created_network_config.mode, "client", "join menu must create a cli
 assert_equal(created_network_config.host, "localhost", "join menu must forward localhost")
 assert_equal(created_network_config.port, 28234, "join menu should forward its port")
 assert_equal(join_menu_bootstrap.session.local_player_id, 2, "client should control P2")
+assert_equal(join_menu_bootstrap.session.run_state, Constants.run_states.CHARACTER_SELECT,
+    "client should pick a character before entering the shared map")
+join_menu_bootstrap.input:set_pending({ confirm = true })
+join_menu_bootstrap:update()
 assert_equal(join_menu_bootstrap.session.run_state, Constants.run_states.MAP, "client should enter the shared map")
 
 local coop_session = GameSession.new({ run_seed = 654, player_count = 2 })

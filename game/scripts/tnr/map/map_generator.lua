@@ -2,6 +2,7 @@ local Constants = require("tnr.core.constants")
 local RNG = require("tnr.core.rng")
 local MapNode = require("tnr.map.map_node")
 local MapState = require("tnr.map.map_state")
+local WaveDifficulty = require("tnr.stages.wave_difficulty")
 
 local Generator = {}
 
@@ -15,6 +16,7 @@ local DEFAULTS = {
     event_ratio = 0.20,
     shop_ratio = 0.10,
     ordinary_stage_variants = 6,
+    floor = 1,
 }
 
 local function merged_config(config)
@@ -28,6 +30,7 @@ local function merged_config(config)
     result.node_count = math.max(8, math.floor(result.node_count))
     result.min_boss_hops = math.min(result.min_boss_hops, result.node_count - 1)
     result.ordinary_stage_variants = math.min(6, math.max(1, math.floor(result.ordinary_stage_variants)))
+    result.floor = math.max(1, math.min(3, math.floor(tonumber(result.floor) or 1)))
     return result
 end
 
@@ -214,12 +217,20 @@ function Generator.generate(run_seed, config)
         connect_layers(rng, nodes, layers[layer_index], layers[layer_index + 1], config.max_links)
     end
 
+    -- Ordinary rooms carry the six-band difficulty of their floor and
+    -- position. Boss/elite rooms carry the floor so the native layer can pick
+    -- from the matching fixed pool.
+    local floor = math.max(1, math.min(3, math.floor(tonumber(config.floor) or 1)))
     for id, node in pairs(nodes) do
+        node.floor = floor
         if node.type == Constants.node_types.ENEMY then
+            node.band = WaveDifficulty.band_for(floor, node.x)
             node.encounter_id = string.format("ordinary_stage_%02d", rng:next_int(1, config.ordinary_stage_variants))
         elseif node.type == Constants.node_types.ELITE then
+            node.band = (floor - 1) * 2 + 2
             node.encounter_id = "elite_stage_01"
         elseif node.type == Constants.node_types.BOSS then
+            node.band = floor * 2
             node.encounter_id = "boss_stage_01"
         end
     end

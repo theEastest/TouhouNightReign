@@ -3,6 +3,54 @@ local legacy_loaded = false
 local native_stage
 local native_boss_class
 local native_card_list
+-- Dialogue override bookkeeping. Each `boss.dialog.New` block in a boss class
+-- is assigned an index so the JSON override for the matching block can be
+-- applied when the card runs.
+local native_dialog_block_index = setmetatable({}, { __mode = "k" })
+local native_boss_key_for_class = setmetatable({}, { __mode = "k" })
+local native_current_dialog_card = nil
+local native_active_character
+
+--- Which player character is active, used to pick the dialogue variant and
+--- the native player class.
+native_active_character = function()
+    -- The room layer publishes the chosen character through the player state.
+    local state = rawget(_G, "tnr_native_player_state")
+    if type(state) == "table" and state.character_id then return tostring(state.character_id) end
+    local current = rawget(_G, "player") or rawget(_G, "lstg") and lstg.player
+    if current and current.character_id then return tostring(current.character_id) end
+    return "reimu"
+end
+
+--- Assign a stable dialogue-block index to every dialog card of a boss class
+--- and remember which data key the class belongs to.
+local function native_index_dialog_blocks(boss_key, class)
+    if not class or type(class.cards) ~= "table" then return end
+    native_boss_key_for_class[class] = boss_key
+    local block = 0
+    for _, card in ipairs(class.cards) do
+        if type(card) == "table" and card.is_dialog == true and not native_dialog_block_index[card] then
+            local index = block
+            native_dialog_block_index[card] = index
+            block = block + 1
+            -- Wrap the dialogue card's init so the override cursor is set to
+            -- this block right before the author's script emits sentences.
+            if type(card.init) == "function" then
+                local native_init = card.init
+                card.init = function(self, ...)
+                    DialogOverride.begin(boss_key, index, native_active_character())
+                    local ok, err = pcall(native_init, self, ...)
+                    if not ok then
+                        DialogOverride.end_dialogue()
+                        error(err, 0)
+                    end
+                    return ok
+                end
+            end
+        end
+    end
+end
+
 local native_player
 local native_render_func
 local native_mode = "card"
@@ -13,6 +61,10 @@ local native_enemy_training_error = nil
 local native_enemy_boss_error = nil
 local native_enemy_training_seen_alive = false
 local native_room_seed = 0
+local native_room_floor = 1
+local native_room_band = 1
+local FloorBonus = require("tnr.battle.floor_bonus")
+local DialogOverride = require("tnr.stages.dialog_override")
 local native_room_music_hint
 local native_room_generation = 0
 -- Shared TNR encounter identity used on the wire. The native counter remains
@@ -72,6 +124,47 @@ local native_original_object_colli
 local native_original_enemy_kill
 local native_original_reimu_spell
 local native_original_reimu_shoot
+-- Native legacy player classes per TNR character id. `reimu_player` etc. are
+-- globals defined by the included THlib character scripts.
+local native_player_class_by_character = {
+    reimu = "reimu_player",
+    marisa = "marisa_player",
+    sanae = "sanae_player",
+}
+
+--- Resolve the native legacy player class for a character id.
+local function native_player_class_for(character_id)
+    local name = native_player_class_by_character[character_id]
+    if not name then return nil end
+    return rawget(_G, name)
+end
+
+-- Legacy sprite names for each character's support option and body. Used when
+-- rendering the remote player and its options on the local screen.
+local native_character_sprites = {
+    reimu = { body = "reimu_player1", support = "reimu_support" },
+    marisa = { body = "marisa_player1", support = "marisa_support" },
+    sanae = { body = "sanae_player1", support = "sanae_support" },
+}
+
+local function native_character_sprites_for(character_id)
+    return native_character_sprites[character_id] or native_character_sprites.reimu
+end
+
+-- Bomb/VFX classes created by each character's spell implementation. Used to
+-- track stale bomb effects across room transitions per character.
+local native_bomb_effect_classes = {}
+
+--- Register the bomb-effect classes for a character so its spell VFX can be
+--- tracked and cleaned across room transitions. Called after THlib is loaded.
+local function native_register_bomb_classes(character_id, names)
+    native_bomb_effect_classes[character_id] = native_bomb_effect_classes[character_id] or {}
+    for _, name in ipairs(names) do
+        local class = rawget(_G, name)
+        if class then native_bomb_effect_classes[character_id][class] = true end
+    end
+end
+
 local native_play_remote_bomb
 local native_damage_owner_context
 local native_bomb_effects = {}
@@ -492,52 +585,60 @@ local function native_install_aggro_hooks()
             return native_original_enemy_kill(self, ...)
         end
     end
-    -- Track original Reimu Bomb objects so a stale effect cannot survive a
-    -- room transition indefinitely. The original spell implementation and
-    -- its damage are otherwise left untouched.
-    if reimu_player and type(reimu_player.spell) == "function" then
-        native_original_reimu_spell = reimu_player.spell
-        reimu_player.spell = function(self, ...)
-            local before = {}
-            if ObjList and GROUP_PLAYER_BULLET then
-                for _, object in ObjList(GROUP_PLAYER_BULLET) do before[object] = true end
-            end
-            -- A full local charge uses the same finite charged Kekkai path as
-            -- the remote replay. Ordinary key-up Bombs retain the legacy
-            -- spell implementation and its original high/low visuals.
-            if native_local_bomb_charged then
-                local focus = self.slow == 1
-                native_play_remote_bomb(native_local_player_id, focus, true)
-                self.nextspell = focus and 360 or 420
-                self.protect = 480
-                return true
-            end
-            local result = native_original_reimu_spell(self, ...)
-            if ObjList and GROUP_PLAYER_BULLET then
-                for _, object in ObjList(GROUP_PLAYER_BULLET) do
-                    if not before[object]
-                            and (object.class == reimu_kekkai or object.class == reimu_sp_ef1) then
-                        object._tnr_bomb_effect = true
-                        object._tnr_bomb_created_frame = stage and stage.current_stage
-                            and tonumber(stage.current_stage.frame_count) or 0
-                        native_bomb_effects[#native_bomb_effects + 1] = object
+    native_register_bomb_classes("reimu", { "reimu_kekkai", "reimu_sp_ef1" })
+    native_register_bomb_classes("marisa", { "marisa_sp_ef" })
+    native_register_bomb_classes("sanae", { "sanae_bf", "sanae_dmg" })
+    -- Track the original Bomb effects for every playable character so a stale
+    -- effect cannot survive a room transition indefinitely. The original
+    -- spell implementations and their damage are otherwise left untouched.
+    for _, character_id in ipairs({ "reimu", "marisa", "sanae" }) do
+        local player_class = native_player_class_for(character_id)
+        if player_class and type(player_class.spell) == "function" then
+            local native_original_spell = player_class.spell
+            if character_id == "reimu" then native_original_reimu_spell = native_original_spell end
+            player_class.spell = function(self, ...)
+                local before = {}
+                if ObjList and GROUP_PLAYER_BULLET then
+                    for _, object in ObjList(GROUP_PLAYER_BULLET) do before[object] = true end
+                end
+                -- A full local charge uses the same finite charged path as the
+                -- remote replay. Ordinary key-up Bombs retain the legacy spell
+                -- implementation and its original high/low visuals.
+                if native_local_bomb_charged then
+                    local focus = self.slow == 1
+                    native_play_remote_bomb(native_local_player_id, focus, true)
+                    self.nextspell = focus and 360 or 420
+                    self.protect = 480
+                    return true
+                end
+                local result = native_original_spell(self, ...)
+                local bomb_classes = native_bomb_effect_classes[character_id]
+                if ObjList and GROUP_PLAYER_BULLET and bomb_classes then
+                    for _, object in ObjList(GROUP_PLAYER_BULLET) do
+                        if not before[object] and bomb_classes[object.class] then
+                            object._tnr_bomb_effect = true
+                            object._tnr_bomb_created_frame = stage and stage.current_stage
+                                and tonumber(stage.current_stage.frame_count) or 0
+                            native_bomb_effects[#native_bomb_effects + 1] = object
+                        end
                     end
                 end
+                return result
             end
-            return result
         end
-    end
-    if reimu_player and type(reimu_player.shoot) == "function" then
-        native_original_reimu_shoot = reimu_player.shoot
-        reimu_player.shoot = function(self, ...)
-            if native_runtime_active then
-                -- Formal TNR rooms create projectiles through the shared
-                -- descriptor runtime.  Suppress the fixed legacy volley so
-                -- empty or modified loadouts cannot be bypassed by THlib.
-                return true
+        if player_class and type(player_class.shoot) == "function" then
+            local native_original_shoot = player_class.shoot
+            if character_id == "reimu" then native_original_reimu_shoot = native_original_shoot end
+            player_class.shoot = function(self, ...)
+                if native_runtime_active then
+                    -- Formal TNR rooms create projectiles through the shared
+                    -- descriptor runtime. Suppress the fixed legacy volley so
+                    -- empty or modified loadouts cannot be bypassed by THlib.
+                    return true
+                end
+                native_legacy_shot_calls = native_legacy_shot_calls + 1
+                return native_original_shoot(self, ...)
             end
-            native_legacy_shot_calls = native_legacy_shot_calls + 1
-            return native_original_reimu_shoot(self, ...)
         end
     end
     -- Most reference aiming helpers ultimately call Angle(x1,y1,x2,y2).
@@ -994,12 +1095,14 @@ local function native_ensure_remote_player()
             support = 0,
             lh = 0,
             sp = nil,
-            image = "reimu_player1",
+            character_id = "reimu",
+            image = nil,
             hidden = false,
         }
         native_remote_generation = native_room_generation
     end
-    native_remote_player.image = native_remote_player.image or "reimu_player1"
+    local remote_sprites = native_character_sprites_for(native_remote_player.character_id)
+    native_remote_player.image = native_remote_player.image or remote_sprites.body
     native_remote_player.shoot_cooldown = tonumber(native_remote_player.shoot_cooldown) or 0
     native_remote_player.support = tonumber(native_remote_player.support) or 0
     native_remote_player.lh = tonumber(native_remote_player.lh) or 0
@@ -1034,18 +1137,19 @@ local function native_render_remote_player()
             }
         end
         local support_count = native_runtime_active and 0 or math.min(4, math.floor(support + 0.999))
-        pcall(SetImageState, "reimu_support", "", Color(180, 255, 255, 255))
+        local remote_sprites = native_character_sprites_for(remote.character_id)
+        pcall(SetImageState, remote_sprites.support, "", Color(180, 255, 255, 255))
         local shown = 0
         for index = 1, 4 do
             local entry = layout[index]
             if shown < support_count and type(entry) == "table"
                     and (tonumber(entry[3]) or 0) > 0.5 then
                 shown = shown + 1
-                pcall(Render, "reimu_support", render_x + (tonumber(entry[1]) or 0),
+                pcall(Render, remote_sprites.support, render_x + (tonumber(entry[1]) or 0),
                     render_y + (tonumber(entry[2]) or 0), 0)
             end
         end
-        local image = remote.image or "reimu_player1"
+        local image = remote.image or remote_sprites.body
         local rendered = pcall(function()
             SetImageState(image, "", Color(210, 255, 255, 255))
             Render(image, render_x, render_y, 0, 1)
@@ -1482,7 +1586,7 @@ local function valid_catalog_card(card, require_spell)
         and type(native_card.init) == "function"
 end
 
-local function catalog_cards(require_spell, elite_only)
+local function catalog_cards(require_spell, elite_only, pool_filter)
     local module_name = require_spell and "tnr.training.card_training_catalog"
         or "tnr.training.nonspell_training_catalog"
     local source = require(module_name)
@@ -1490,7 +1594,8 @@ local function catalog_cards(require_spell, elite_only)
     for _, card in ipairs(source) do
         local class = _editor_class and _editor_class[card.legacy_boss]
         if valid_catalog_card(card, require_spell)
-                and (not elite_only or (class and #class.cards < 3)) then
+                and (not elite_only or (class and #class.cards < 3))
+                and (not pool_filter or pool_filter(card.legacy_boss)) then
             result[#result + 1] = card
         end
     end
@@ -1498,8 +1603,16 @@ local function catalog_cards(require_spell, elite_only)
     return result
 end
 
-local function select_catalog_card(seed, require_spell, elite_only, salt)
-    local pool = catalog_cards(require_spell, elite_only)
+local function select_catalog_card(seed, require_spell, elite_only, salt, pool_filter)
+    local pool = catalog_cards(require_spell, elite_only, pool_filter)
+    if #pool == 0 and elite_only then
+        pool = catalog_cards(require_spell, false, pool_filter)
+    end
+    if #pool == 0 and pool_filter then
+        -- The floor pool may not contain a usable card for this room type;
+        -- widen to the full catalog rather than failing the room.
+        pool = catalog_cards(require_spell, elite_only)
+    end
     if #pool == 0 and elite_only then
         pool = catalog_cards(require_spell, false)
     end
@@ -1524,24 +1637,32 @@ local function build_native_card_sequence(class, slot)
         return nil
     end
     local cards = { selected }
+    -- Walk backwards to recover the entrance movement that places the Boss on
+    -- screen. Dialogues must never be included (they wait on UI input), but
+    -- they must not stop the walk either: the reference stage order is often
+    -- `move -> dialog -> card`, so skipping the dialog is the only way to find
+    -- the entrance move. Without it the Boss stays off screen and the room
+    -- shows no Boss at all (for example the Cirno non-spell).
+    local pending_moves = {}
     for previous_index = slot - 1, 1, -1 do
         local previous = class.cards[previous_index]
         if not previous then
             break
         end
         if previous.is_combat == true then
+            -- Another combat card precedes this one; keep the selection scoped.
             break
         end
-        -- Dialogues belong to the full-stage flow and can wait on UI input
-        -- forever in a room that starts after an enemy wave. Preserve only
-        -- movement setup needed to bring the Boss on screen.
         if previous.is_dialog then
-            break
+            -- Skip the dialogue but keep looking for the entrance move.
         elseif previous.is_move then
-            table.insert(cards, 1, previous)
+            table.insert(pending_moves, 1, previous)
         else
             break
         end
+    end
+    for _, move in ipairs(pending_moves) do
+        table.insert(cards, 1, move)
     end
     return cards
 end
@@ -1635,6 +1756,46 @@ local function select_catalog_wave(seed)
     if #pool == 0 then return nil end
     table.sort(pool, function(left, right) return left.id < right.id end)
     return pool[(seeded_value(seed, 17) % #pool) + 1]
+end
+
+-- Ordinary rooms select a wave whose content-based difficulty tier matches the
+-- node's six-band progression. Falls back to the nearest available band so a
+-- thin band can never leave the room empty.
+local WaveDifficulty = require("tnr.stages.wave_difficulty")
+local function select_catalog_wave_for_band(seed, band)
+    local source = require("tnr.training.enemy_training_catalog")
+    local target = math.max(1, math.min(6, math.floor(tonumber(band) or 1)))
+    local by_band = {}
+    for _, wave in ipairs(source) do
+        if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= 10
+                and type(wave.members) == "table" and #wave.members > 0 then
+            local has_loaded_class = false
+            for _, member in ipairs(wave.members) do
+                if type(member) == "table" and _editor_class[member.class_name] then
+                    has_loaded_class = true
+                    break
+                end
+            end
+            if has_loaded_class then
+                local tier = WaveDifficulty.tier_of(wave)
+                by_band[tier] = by_band[tier] or {}
+                by_band[tier][#by_band[tier] + 1] = wave
+            end
+        end
+    end
+    -- Prefer the exact band; otherwise widen outward until a tier is found.
+    local chosen
+    for offset = 0, 5 do
+        for _, candidate in ipairs({ target - offset, target + offset }) do
+            if not chosen and by_band[candidate] and #by_band[candidate] > 0 then
+                chosen = by_band[candidate]
+            end
+        end
+        if chosen then break end
+    end
+    if not chosen then return select_catalog_wave(seed) end
+    table.sort(chosen, function(left, right) return left.id < right.id end)
+    return chosen[(seeded_value(seed, 29 + target) % #chosen) + 1]
 end
 
 local function select_native_nonspell(class)
@@ -1885,15 +2046,39 @@ local function load_legacy_content()
             pcall(lstg.LoadTexture, "bullet" .. index, path, true)
         end
         Include("THlib.lua")
+        -- Dialogue override hook. The reference export hard-codes its boss
+        -- conversations; when the extracted JSON has a matching entry the text
+        -- argument is replaced so the conversation can be edited without
+        -- touching the compiled scripts. Missing entries keep the original.
+        if boss and boss.dialog and type(boss.dialog.sentence) == "function" then
+            local native_sentence = boss.dialog.sentence
+            boss.dialog.sentence = function(self, image, position, text, ...)
+                local override = DialogOverride.next_text and DialogOverride.next_text() or nil
+                if override ~= nil and override ~= "" then text = override end
+                return native_sentence(self, image, position, text, ...)
+            end
+        end
         -- Native rooms are driven by the same LegacyTHlib player system as
         -- the reference game. That system reads the replay action state for
         -- movement, so keep a direct handle for network-frame injection.
         native_input_replay = require("foundation.input.replay")
         spellcard_background = spellcard_background or default_spellcard_background or _spellcard_background
         -- Character scripts are separate from THlib.lua in the reference
-        -- project; load Reimu explicitly so native rooms use her real shot,
-        -- focus and bomb implementation.
-        lstg.DoFile("Thlib/player/reimu/reimu.lua")
+        -- project; load each playable character explicitly so native rooms use
+        -- the real shot, focus and bomb implementation for the selected
+        -- character. A missing character script is skipped so the others still
+        -- load.
+        for _, character_path in ipairs({
+            "Thlib/player/reimu/reimu.lua",
+            "Thlib/player/marisa/marisa.lua",
+            "Thlib/player/sanae/sanae.lua",
+        }) do
+            local ok_character, character_error = pcall(lstg.DoFile, character_path)
+            if not ok_character then
+                print("TNR legacy character load failed " .. character_path
+                    .. ": " .. tostring(character_error))
+            end
+        end
         local classic_groups = {
             { "preimg", 80, 0, 32, 32, 1, 8 },
             { "arrow_big", 0, 0, 16, 16, 1, 16 },
@@ -2047,6 +2232,7 @@ local function setup_native_stage()
         boss_key = "Reimu:Normal"
     end
     native_boss_class = _editor_class[boss_key]
+    native_index_dialog_blocks(boss_key, native_boss_class)
     local boss_class = native_boss_class
     local card_index = tonumber(os.getenv("TNR_LEGACY_CARD_INDEX")) or 4
     local requested_name = os.getenv("TNR_LEGACY_CARD_NAME")
@@ -2136,7 +2322,13 @@ local function setup_native_stage()
             lstg.var.bomb = math.max(0, tonumber(native_player_state.bomb))
         end
         if native_room_started then
-            native_player = New(reimu_player)
+            -- Spawn the native legacy player matching the character chosen on
+            -- the select screen. Fall back to Reimu if the class is missing so
+            -- a bad id can never leave the room without a player.
+            local character_id = native_active_character()
+            local player_class = native_player_class_for(character_id) or reimu_player
+            native_active_player_class = player_class
+            native_player = New(player_class)
             local start_x = native_coop_enabled and (native_local_player_id == 1 and -36 or 36) or 0
             native_player.x, native_player.y = start_x, -176
             native_player.group = GROUP_PLAYER
@@ -2193,6 +2385,7 @@ local function setup_native_stage()
         -- the native Boss entrance sequence cannot overlap the wave.
         if native_mode ~= "enemy" and native_boss_class and native_card_list then
             self.boss = New(native_boss_class, native_card_list)
+            FloorBonus.apply(self.boss, native_room_floor, true)
         end
     end
     function native_stage:frame()
@@ -2221,6 +2414,9 @@ local function setup_native_stage()
                         ok, object = false, nil
                     end
                     if ok and object then
+                        -- Small enemies only receive the last-floor
+                        -- amplification, never a floor-1 attenuation.
+                        FloorBonus.apply(object, native_room_floor, false)
                         -- Preserve the source spawn index. The host can then
                         -- send a compact death/position state keyed by this
                         -- index, and the client can remove the exact enemy
@@ -2257,6 +2453,7 @@ local function setup_native_stage()
                 if not native_enemy_training_only and native_boss_class and native_card_list then
                     local ok, boss_object = pcall(New, native_boss_class, native_card_list)
                     if ok and boss_object then
+                        FloorBonus.apply(boss_object, native_room_floor, true)
                         self.boss = boss_object
                         print("TNR ordinary room entered original nonspell after wave (setup cards="
                             .. tostring(#native_card_list) .. ")")
@@ -2413,6 +2610,7 @@ do
                 index, kind, tostring(boss_key))
         end
         native_boss_class = class
+        native_index_dialog_blocks(boss_key, class)
         if type(class.bgm) == "string" and class.bgm ~= "" then
             native_room_music_hint = class.bgm
         end
@@ -2482,11 +2680,14 @@ do
         return true, wave
     end
 
-    local function bridge_start_room(room_type, seed)
+    local function bridge_start_room(room_type, seed, floor, band)
         native_reset_aggro()
         native_room_generation = native_room_generation + 1
         room_type = tostring(room_type or "enemy"):lower()
         native_room_seed = tonumber(seed) or 1
+        native_room_floor = math.max(1, math.min(3, math.floor(tonumber(floor) or 1)))
+        native_room_band = tonumber(band)
+            or ((native_room_floor - 1) * 2 + 1)
         native_pick_random_focus()
         native_room_started = true
         native_mode = room_type
@@ -2516,23 +2717,32 @@ do
         native_last_applied_enemy_kill_generation = 0
         if room_type == "boss" then
             native_direct_card = false
-            -- Select a real imported spell from the same pool exposed by
-            -- Spellcard Practice.  The selected class keeps its complete
-            -- original card sequence for a boss room.
-            local selected_card, selected_class = select_catalog_card(native_room_seed, true, false, 31)
+            -- Select a real imported spell from this floor's fixed boss pool.
+            -- The selected class keeps its complete original card sequence.
+            local BossPools = require("tnr.stages.boss_pools")
+            local floor = native_room_floor
+            local selected_card, selected_class = select_catalog_card(native_room_seed, true, false, 31,
+                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end)
             native_boss_class = selected_class
+            if selected_class then native_index_dialog_blocks(selected_card and selected_card.legacy_boss, selected_class) end
             native_card_list = native_boss_class and native_boss_class.cards or nil
             native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
         elseif room_type == "elite" then
             native_direct_card = false
-            local selected_card, selected_class = select_catalog_card(native_room_seed, true, true, 47)
+            local BossPools = require("tnr.stages.boss_pools")
+            local floor = native_room_floor
+            local selected_card, selected_class = select_catalog_card(native_room_seed, true, true, 47,
+                function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end)
             native_boss_class = selected_class
+            if selected_class then native_index_dialog_blocks(selected_card and selected_card.legacy_boss, selected_class) end
             native_card_list = native_boss_class and native_boss_class.cards or nil
             native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             if not native_boss_class then
                 local fallback_card, fallback_class, fallback_slot =
-                    select_catalog_card(native_room_seed, true, false, 53)
+                    select_catalog_card(native_room_seed, true, false, 53,
+                        function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end)
                 native_boss_class = fallback_class
+                if fallback_class then native_index_dialog_blocks(fallback_card and fallback_card.legacy_boss, fallback_class) end
                 native_card_list = fallback_class and fallback_class.cards or nil
                 native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             end
@@ -2540,18 +2750,22 @@ do
             native_mode = "enemy"
             native_direct_card = false
             native_enemy_training_only = false
-            -- The first phase is the original small-enemy composition.  Keep
-            -- a seeded original Boss class/card ready for the post-wave
-            -- nonspell instead of treating the room as enemy-only.
-            local nonspell, selected_class, nonspell_slot = select_catalog_card(native_room_seed, false, false, 61)
+            -- Ordinary rooms use the floor's weakest boss pool for the
+            -- post-wave nonspell so the interlude matches the floor.
+            local BossPools = require("tnr.stages.boss_pools")
+            local floor = native_room_floor
+            local nonspell, selected_class, nonspell_slot = select_catalog_card(native_room_seed, false, false, 61,
+                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end)
             native_boss_class = selected_class
+            if selected_class then native_index_dialog_blocks(nonspell and nonspell.legacy_boss, selected_class) end
             native_card_list = build_native_card_sequence(selected_class, nonspell_slot)
             if not native_boss_class or not native_card_list then
                 native_enemy_boss_error = "no original nonspell with a valid entrance sequence was selected"
             end
-            -- Pick from the exact same wave list used by Enemy Practice.  The
-            -- wave retains original constructor arguments and spawn timing.
-            local original_wave = select_catalog_wave(native_room_seed)
+            -- Pick a wave whose content tier matches the node's six-band
+            -- difficulty progression. The wave retains original constructor
+            -- arguments and spawn timing.
+            local original_wave = select_catalog_wave_for_band(native_room_seed, native_room_band)
             native_enemy_specs = build_native_enemy_specs(original_wave, native_room_seed)
             native_room_music_hint = music_for_legacy_stage(original_wave
                 and (original_wave.source_stage or original_wave.legacy_stage))
@@ -2625,6 +2839,9 @@ do
         end,
         set_player_state = function(player_state)
             native_player_state = player_state
+            -- Publish the character id so the native player class resolver and
+            -- the dialogue override can pick the right variant.
+            _G.tnr_native_player_state = player_state
             return true
         end,
         set_loadout_descriptors = function(local_descriptor, remote_descriptor)
@@ -2772,48 +2989,55 @@ do
                 native_runtime_fire(native_runtime_drivers[remote_id], native_remote_player,
                     native_remote_input, remote_id)
                 native_remote_player.shoot_cooldown = 1
-            elseif native_remote_input.shoot and native_remote_player.shoot_cooldown <= 0
-                    and reimu_player and type(reimu_player.shoot) == "function" then
-                local support = math.max(0, tonumber(native_remote_player.support) or 4)
-                local support_layout = native_remote_player.sp
-                if type(support_layout) ~= "table" or not support_layout[1] then
-                    support_layout = {
-                        {-36, -12, 1}, {-16, -32, 1},
-                        {16, -32, 1}, {36, -12, 1},
+            elseif native_remote_input.shoot and native_remote_player.shoot_cooldown <= 0 then
+                -- Fire the remote character's own legacy shot so each peer
+                -- renders the correct projectile pattern for the other player.
+                local remote_class = native_player_class_for(native_remote_player.character_id)
+                    or reimu_player
+                if remote_class and type(remote_class.shoot) == "function" then
+                    local support = math.max(0, tonumber(native_remote_player.support) or 4)
+                    local support_layout = native_remote_player.sp
+                    if type(support_layout) ~= "table" or not support_layout[1] then
+                        support_layout = {
+                            {-36, -12, 1}, {-16, -32, 1},
+                            {16, -32, 1}, {36, -12, 1},
+                        }
+                    end
+                    local current = stage and stage.current_stage
+                    local angle_layout = native_player and native_player.anglelist
+                    if type(angle_layout) ~= "table" then
+                        angle_layout = {
+                            {90, 90, 90, 90},
+                            {90, 90, 90, 90},
+                            {100, 80, 90, 90},
+                            {110, 100, 80, 70},
+                            {110, 100, 80, 70},
+                        }
+                    end
+                    local shooter = {
+                        x = native_remote_player.x,
+                        y = native_remote_player.y,
+                        support = support,
+                        sp = support_layout,
+                        anglelist = angle_layout,
+                        imgs = remote_class.imgs,
+                        A = 0.5, B = 0.5,
+                        slow = native_remote_input.focus and 1 or 0,
+                        supportx = native_remote_player.supportx or native_remote_player.x,
+                        supporty = native_remote_player.supporty or native_remote_player.y,
+                        nextshoot = 0,
+                        timer = current and (tonumber(current.frame_count) or 0) or 0,
+                        target = nil,
                     }
+                    if type(remote_class.findtarget) == "function" then
+                        pcall(remote_class.findtarget, shooter)
+                    end
+                    local previous_owner = native_damage_owner_context
+                    native_damage_owner_context = remote_id
+                    pcall(remote_class.shoot, shooter)
+                    native_damage_owner_context = previous_owner
+                    native_remote_player.shoot_cooldown = 4
                 end
-                local current = stage and stage.current_stage
-                local angle_layout = native_player.anglelist
-                if type(angle_layout) ~= "table" then
-                    angle_layout = {
-                        {90, 90, 90, 90},
-                        {90, 90, 90, 90},
-                        {100, 80, 90, 90},
-                        {110, 100, 80, 70},
-                        {110, 100, 80, 70},
-                    }
-                end
-                local shooter = {
-                    x = native_remote_player.x,
-                    y = native_remote_player.y,
-                    support = support,
-                    sp = support_layout,
-                    anglelist = angle_layout,
-                    slow = native_remote_input.focus and 1 or 0,
-                    supportx = native_remote_player.supportx or native_remote_player.x,
-                    supporty = native_remote_player.supporty or native_remote_player.y,
-                    nextshoot = 0,
-                    timer = current and (tonumber(current.frame_count) or 0) or 0,
-                    target = nil,
-                }
-                if player_class and type(player_class.findtarget) == "function" then
-                    pcall(player_class.findtarget, shooter)
-                end
-                local previous_owner = native_damage_owner_context
-                native_damage_owner_context = remote_id
-                pcall(reimu_player.shoot, shooter)
-                native_damage_owner_context = previous_owner
-                native_remote_player.shoot_cooldown = 4
             end
             -- A packet carries a monotonically increasing input tick. Use it
             -- as the Bomb edge identity instead of a boolean latch: cached

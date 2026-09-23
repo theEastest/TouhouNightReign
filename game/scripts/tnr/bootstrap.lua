@@ -16,9 +16,9 @@ local NonSpellCatalog = require("tnr.training.nonspell_training_catalog")
 local EnemyCatalog = require("tnr.training.enemy_training_catalog")
 local BattleSync = require("tnr.multiplayer.battle_sync")
 local LANTransport = require("tnr.multiplayer.lan_transport")
-local NetworkMenu = require("tnr.multiplayer.network_menu")
-local NativeSyncAudit = require("tnr.multiplayer.native_sync_audit")
+local NetworkMenu = require("tnr.multiplayer.network_menu")local NativeSyncAudit = require("tnr.multiplayer.native_sync_audit")
 local ScrollState = require("tnr.ui.scroll_state")
+local CharacterCatalog = require("tnr.character.character_catalog")
 
 local Bootstrap = {}
 Bootstrap.__index = Bootstrap
@@ -143,11 +143,22 @@ function Bootstrap.create(options)
         menu_cursor = 1,
         training_cursor = 1,
         music_cursor = 1,
+        catalog_cursor = 1,
+        catalog_entries = nil,
+        -- Character select (shown after choosing single player or a network
+        -- mode, before the map is generated).
+        character_cursor = 1,
+        character_catalog = CharacterCatalog,
+        -- Deferred action to run once the character is confirmed.
+        pending_start = nil,
         failure_cursor = 1,
         preparation_cursor = 1,
         preparation_message = "",
         preparation_discard_pending = nil,
         preparation_edit_only = false,
+        -- When the loadout screen is opened from the shop it is rendered as an
+        -- overlay on top of the shop state; exiting returns to the shop.
+        preparation_overlay = false,
         shop_cursor = 1,
         relic_cursor = 1,
         reward_cursor = 1,
@@ -267,6 +278,65 @@ function Bootstrap:close_music_player()
     if self.audio then
         self.audio:play_music("menu")
     end
+end
+
+--- Build a stable, sorted list of every non-test equipment definition.
+function Bootstrap:_equipment_catalog_entries()
+    local registry = self.session and self.session.equipment_registry
+    if not registry then return {} end
+    local entries = {}
+    for id, definition in pairs(registry:all()) do
+        if definition.test_only ~= true then
+            entries[#entries + 1] = { id = id, definition = definition }
+        end
+    end
+    table.sort(entries, function(left, right)
+        local left_type = tostring(left.definition.equipment_type or "")
+        local right_type = tostring(right.definition.equipment_type or "")
+        if left_type ~= right_type then return left_type < right_type end
+        return tostring(left.id) < tostring(right.id)
+    end)
+    return entries
+end
+
+function Bootstrap:open_equipment_catalog()
+    self.catalog_entries = self:_equipment_catalog_entries()
+    self.catalog_cursor = 1
+    self.scroll_states["catalog"] = nil
+    self.session.run_state = Constants.run_states.EQUIPMENT_CATALOG
+end
+
+function Bootstrap:close_equipment_catalog()
+    self.session.run_state = Constants.run_states.MENU
+    self.menu_cursor = 1
+    self.scroll_states["menu"] = nil
+end
+
+--- Open the character select screen. `start_action` is the deferred action to
+--- run after the player confirms a character (for example `start_game` or
+--- `start_network_game`).
+function Bootstrap:open_character_select(start_action)
+    self.character_cursor = 1
+    self.pending_start = start_action
+    self.session.run_state = Constants.run_states.CHARACTER_SELECT
+end
+
+function Bootstrap:close_character_select()
+    self.pending_start = nil
+    self.session.run_state = Constants.run_states.MENU
+    self.menu_cursor = 1
+end
+
+--- Confirm the highlighted character and run the deferred start action.
+function Bootstrap:confirm_character_select()
+    local entry = self.character_catalog[self.character_cursor]
+    if not entry then return nil, "no character selected" end
+    local applied, err = self.session:set_local_character(entry.id)
+    if not applied then return nil, err end
+    local action = self.pending_start
+    self.pending_start = nil
+    if action then return action() end
+    return true
 end
 
 function Bootstrap:_network_start_barrier_enabled()
@@ -655,7 +725,8 @@ function Bootstrap:start_network_game(config)
         run_seed = self.network_seed or 1
     end
     self:close_network_menu()
-    self:start_game(run_seed)
+    -- The run seed is fixed at connect time on the host so both peers agree.
+    -- The actual room starts only after the character select screen confirms.
     if config.mode == "host" and self.transport.send then
         self.transport:send({ type = Command.SET_RUN_SEED, run_seed = run_seed, player_id = 1 })
     end
@@ -664,6 +735,9 @@ function Bootstrap:start_network_game(config)
     else
         self.stage_adapter.network_status = string.format("已连接 %s:%d", config.host, config.port)
     end
+    self:open_character_select(function()
+        self:start_game(run_seed)
+    end)
     return true
 end
 
@@ -751,6 +825,12 @@ function Bootstrap:_activate_preparation()
     local row = self:_preparation_rows()[self.preparation_cursor]
     if not row or not player then return nil end
     if row.kind == "action" then
+        if self.preparation_overlay then
+            -- Opened from the shop: the action row just closes the overlay and
+            -- returns to the shop instead of toggling the map Ready flag.
+            self:close_preparation_overlay()
+            return true
+        end
         if self.preparation_edit_only then
             self.session:leave_preparation()
             self.preparation_edit_only = false
@@ -832,11 +912,116 @@ function Bootstrap:_activate_preparation()
     end
 end
 
+function Bootstrap:_update_preparation(player_input, overlay)
+    local row_count = #self:_preparation_rows()
+    if self.preparation_cursor < 1 or self.preparation_cursor > row_count then self.preparation_cursor = 1 end
+    local preparation_visible = self.renderer and math.max(1, math.floor((self.renderer.height - 245) / 38)) or 12
+    local previous_preparation_cursor = self.preparation_cursor
+    self.preparation_cursor = self:_scroll_step("preparation", self.preparation_cursor, row_count, preparation_visible, player_input.move_y)
+    if self.preparation_cursor ~= previous_preparation_cursor then
+        self.preparation_discard_pending = nil
+    end
+    if self.input.get_mouse_position and self.renderer and self.renderer.preparation_hit_test then
+        local mouse_x, mouse_y = self.input:get_mouse_position()
+        local visible = math.max(1, math.floor((self.renderer.height - 245) / 38))
+        local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 92, self.renderer.width * 0.65, 88, self.renderer.height - 188, row_count, visible)
+        local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor)
+        if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+            if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
+                self.preparation_cursor = hit
+            end
+            if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation() end
+        end
+    end
+    if player_input.confirm then
+        self:_activate_preparation()
+    elseif player_input.backspace then
+        local row = self:_preparation_rows()[self.preparation_cursor]
+        local player_id = self.session.local_player_id or 1
+        -- Both inventory items and currently equipped items can be discarded.
+        -- Discarding an equipped item first unequips it, then removes it, so
+        -- the slot is freed and the item is gone for good.
+        local discardable = row and (row.kind == "inventory" or row.kind == "equipped")
+            and row.instance and row.instance ~= false
+        if discardable then
+            local pending = self.preparation_discard_pending
+            if not pending or pending.player_id ~= player_id
+                    or pending.group ~= row.group
+                    or pending.index ~= row.index
+                    or pending.instance_id ~= row.instance.instance_id then
+                self.preparation_discard_pending = {
+                    player_id = player_id,
+                    group = row.group,
+                    index = row.index,
+                    instance_id = row.instance.instance_id,
+                }
+                self.preparation_message = "再次按 Backspace 确认丢弃"
+                return
+            end
+            if row.kind == "equipped" then
+                local unequipped, unequip_err = self.session:dispatch({
+                    type = Command.UNEQUIP_ITEM,
+                    player_id = player_id,
+                    slot_type = row.group,
+                    slot_index = row.index,
+                })
+                if not unequipped then
+                    self.preparation_message = unequip_err or "卸下失败"
+                    self.preparation_discard_pending = nil
+                    return
+                end
+                local player = self.session:get_player(player_id)
+                local items = player and player.loadout and player.loadout.inventory.items or {}
+                local target_index
+                for index, item in ipairs(items) do
+                    if item and item.instance_id == row.instance.instance_id then target_index = index break end
+                end
+                if target_index then
+                    local result, err = self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = player_id, inventory_index = target_index })
+                    self.preparation_message = result and "装备已丢弃" or (err or "丢弃失败")
+                else
+                    self.preparation_message = "装备已卸下"
+                end
+            else
+                local result, err = self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = player_id, inventory_index = row.index })
+                self.preparation_message = result and "仓库物品已丢弃" or (err or "丢弃失败")
+            end
+            self.preparation_discard_pending = nil
+        end
+    elseif player_input.tab or player_input.cancel then
+        if overlay then
+            self:close_preparation_overlay()
+        else
+            self.session:leave_preparation()
+            self.preparation_edit_only = false
+            self.preparation_message = ""
+            self.preparation_discard_pending = nil
+        end
+    end
+end
+
+function Bootstrap:open_preparation_overlay()
+    self.preparation_cursor = 1
+    self.preparation_edit_only = false
+    self.preparation_message = ""
+    self.preparation_discard_pending = nil
+    self.preparation_overlay = true
+end
+
+function Bootstrap:close_preparation_overlay()
+    self.preparation_overlay = false
+    self.preparation_discard_pending = nil
+    self.preparation_message = ""
+end
+
 function Bootstrap:_activate_main_menu(index)
     if index == 1 then
+        -- Single player picks a character before the map is generated.
         self.session.player_count = 1
         self.session.local_player_id = 1
-        self:start_game()
+        self:open_character_select(function()
+            self:start_game()
+        end)
     elseif index == 2 then
         self:open_network_menu("host")
     elseif index == 3 then
@@ -850,6 +1035,8 @@ function Bootstrap:_activate_main_menu(index)
     elseif index == 7 then
         self:open_music_player()
     elseif index == 8 then
+        self:open_equipment_catalog()
+    elseif index == 9 then
         return true
     end
     return false
@@ -1062,6 +1249,9 @@ function Bootstrap:return_to_menu()
         self.transport:set_room_generation(nil)
     end
     if self.audio then
+        -- Stop any battle/stage track before switching to the menu theme so
+        -- returning from a room can never leave the stage BGM playing.
+        self.audio:stop_all_music()
         self.audio:play_music("menu")
     end
 end
@@ -1173,11 +1363,46 @@ function Bootstrap:update()
         elseif player_input.cancel then
             self:close_music_player()
         end
+    elseif self.session.run_state == Constants.run_states.CHARACTER_SELECT then
+        local catalog = self.character_catalog or CharacterCatalog
+        local count = math.max(1, #catalog)
+        if self.character_cursor < 1 or self.character_cursor > count then self.character_cursor = 1 end
+        local direction = player_input.move_x ~= 0 and player_input.move_x or player_input.move_y
+        self.character_cursor = self:_scroll_step("character", self.character_cursor, count, count, direction)
+        if self.input.get_mouse_position and self.renderer and self.renderer.character_select_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:character_select_hit_test(mouse_x, mouse_y, count)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed) then
+                self.character_cursor = hit
+                if player_input.mouse_primary_pressed then self:confirm_character_select() end
+            end
+        end
+        if player_input.confirm then
+            self:confirm_character_select()
+        elseif player_input.cancel then
+            -- Abort: disconnect a pending network session and return to menu.
+            if self.transport and self.transport.disconnect then self.transport:disconnect() end
+            self:close_character_select()
+        end
+    elseif self.session.run_state == Constants.run_states.EQUIPMENT_CATALOG then
+        local entries = self.catalog_entries or self:_equipment_catalog_entries()
+        self.catalog_entries = entries
+        self.catalog_cursor = self:_scroll_step("catalog", self.catalog_cursor, #entries, 10, player_input.move_y)
+        if self.input.get_mouse_position and self.renderer and self.renderer.equipment_catalog_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            local hit = self.renderer:equipment_catalog_hit_test(mouse_x, mouse_y, #entries, self.catalog_cursor)
+            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed) then
+                self.catalog_cursor = hit
+            end
+        end
+        if player_input.cancel or player_input.confirm then
+            self:close_equipment_catalog()
+        end
     elseif self.session.run_state == Constants.run_states.MENU then
         if self.network_menu:is_open() then
             self:_update_network_menu(player_input)
         else
-            self.menu_cursor = self:_scroll_step("menu", self.menu_cursor, 8, 8, player_input.move_y)
+            self.menu_cursor = self:_scroll_step("menu", self.menu_cursor, 9, 9, player_input.move_y)
             if self.input.get_mouse_position and self.renderer and self.renderer.menu_hit_test then
                 local mouse_x, mouse_y = self.input:get_mouse_position()
                 local hit = self.renderer:menu_hit_test(mouse_x, mouse_y)
@@ -1229,60 +1454,30 @@ function Bootstrap:update()
                 self.map_scene.cursor_node_id = nil
             end
         end
-    elseif self.session.run_state == Constants.run_states.MAP_PREPARATION then
-        local row_count = #self:_preparation_rows()
-        if self.preparation_cursor < 1 or self.preparation_cursor > row_count then self.preparation_cursor = 1 end
-        local preparation_visible = self.renderer and math.max(1, math.floor((self.renderer.height - 245) / 38)) or 12
-        local previous_preparation_cursor = self.preparation_cursor
-        self.preparation_cursor = self:_scroll_step("preparation", self.preparation_cursor, row_count, preparation_visible, player_input.move_y)
-        if self.preparation_cursor ~= previous_preparation_cursor then
-            self.preparation_discard_pending = nil
-        end
-        if self.input.get_mouse_position and self.renderer and self.renderer.preparation_hit_test then
-            local mouse_x, mouse_y = self.input:get_mouse_position()
-            local visible = math.max(1, math.floor((self.renderer.height - 245) / 38))
-            local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 92, self.renderer.width * 0.65, 88, self.renderer.height - 188, row_count, visible)
-            local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor)
-            if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
-                if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
-                    self.preparation_cursor = hit
-                end
-                if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation() end
-            end
-        end
-        if player_input.confirm then
-            self:_activate_preparation()
-        elseif player_input.backspace then
-            local row = self:_preparation_rows()[self.preparation_cursor]
-            if row and row.kind == "inventory" then
-                local player_id = self.session.local_player_id or 1
-                local pending = self.preparation_discard_pending
-                if not pending or pending.player_id ~= player_id
-                        or pending.index ~= row.index
-                        or pending.instance_id ~= row.instance.instance_id then
-                    self.preparation_discard_pending = {
-                        player_id = player_id,
-                        index = row.index,
-                        instance_id = row.instance.instance_id,
-                    }
-                    self.preparation_message = "Press Backspace again to confirm discard"
-                    return
-                end
-                local result, err = self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = self.session.local_player_id or 1, inventory_index = row.index })
-                self.preparation_message = result and "仓库物品已丢弃" or (err or "丢弃失败")
-            end
-        elseif player_input.tab or player_input.cancel then
-            self.session:leave_preparation()
-            self.preparation_edit_only = false
-            self.preparation_message = ""
-            self.preparation_discard_pending = nil
-        end
+    elseif self.preparation_overlay or self.session.run_state == Constants.run_states.MAP_PREPARATION then
+        self:_update_preparation(player_input, self.preparation_overlay)
     elseif self.session.run_state == Constants.run_states.SHOP then
         local shop_count = (self.session.shop_service and #self.session.shop_service:get_offers() or 0) + 1
         if self.shop_cursor < 1 or self.shop_cursor > shop_count then self.shop_cursor = 1 end
         local shop_direction = player_input.move_x
         if shop_direction == 0 then shop_direction = player_input.move_y end
         self.shop_cursor = self:_scroll_step("shop", self.shop_cursor, shop_count, shop_count, shop_direction)
+        -- The loadout screen can be opened from the shop at any time (Tab, the
+        -- top-right button or the mouse click) so a full inventory can be
+        -- managed without leaving the shop.
+        local equipment_button_hit = false
+        if self.input.get_mouse_position and self.renderer and self.renderer.shop_equipment_hit_test then
+            local mouse_x, mouse_y = self.input:get_mouse_position()
+            equipment_button_hit = self.renderer:shop_equipment_hit_test(mouse_x, mouse_y) == true
+            if equipment_button_hit and player_input.mouse_primary_pressed then
+                self:open_preparation_overlay()
+                return
+            end
+        end
+        if player_input.tab and not equipment_button_hit then
+            self:open_preparation_overlay()
+            return
+        end
         if self.input.get_mouse_position and self.renderer and self.renderer.shop_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
             local hit = self.renderer:shop_hit_test(mouse_x, mouse_y)
@@ -1305,6 +1500,19 @@ function Bootstrap:update()
             end
         elseif player_input.cancel then
             self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+        end
+    elseif self.session.run_state == Constants.run_states.FLOOR_CLEAR then
+        -- The floor transition is a short confirmation screen. Confirming
+        -- advances the shared run; in a LAN game the host owns the run seed so
+        -- the command is broadcast so both peers rebuild the same next floor.
+        if player_input.confirm then
+            if self.battle_sync and self.battle_sync:is_networked() then
+                if self.transport:is_host() then
+                    self.transport:send({ type = Command.ADVANCE_FLOOR, player_id = 1 })
+                end
+            else
+                self.session:advance_floor()
+            end
         end
     elseif self.session.run_state == Constants.run_states.RELIC_SELECT then
         local choices = self.session.relic_choices[self.session.local_player_id or 1] or {}
@@ -1334,18 +1542,31 @@ function Bootstrap:update()
         if self.reward_cursor < 1 or self.reward_cursor > count then self.reward_cursor = 1 end
         local direction = player_input.move_x ~= 0 and player_input.move_x or player_input.move_y
         self.reward_cursor = self:_scroll_step("reward", self.reward_cursor, count, count, direction)
+        -- Selecting an already-claimed choice again cancels that selection, so
+        -- a mis-click before confirming the whole reward is recoverable.
+        local function is_claimed(index)
+            local claims = self.session.reward_claims and self.session.reward_claims[self.session.local_player_id or 1] or {}
+            for _, claim in ipairs(claims) do
+                if claim.choice_index == index then return true end
+            end
+            return false
+        end
+        local function toggle_claim(index)
+            local command_type = is_claimed(index) and Command.UNCLAIM_REWARD or Command.CLAIM_REWARD
+            self.transport:send({ type = command_type, player_id = self.session.local_player_id, choice_index = index })
+        end
         if self.input.get_mouse_position and self.renderer and self.renderer.reward_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
             local hit = self.renderer:reward_hit_test(mouse_x, mouse_y, count)
             if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                 self.reward_cursor = hit
                 if player_input.mouse_primary_pressed then
-                    self.transport:send({ type = Command.CLAIM_REWARD, player_id = self.session.local_player_id, choice_index = hit })
+                    toggle_claim(hit)
                 end
             end
         end
         if player_input.confirm then
-            self.transport:send({ type = Command.CLAIM_REWARD, player_id = self.session.local_player_id, choice_index = self.reward_cursor })
+            toggle_claim(self.reward_cursor)
         end
     elseif self.session.run_state == Constants.run_states.RUN_CLEAR then
         if player_input.confirm or player_input.cancel then self:return_to_menu() end
@@ -1473,7 +1694,7 @@ function Bootstrap:render()
         self.stage_adapter:render()
     elseif self.renderer then
         local cursor = (self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED or self.session.run_state == Constants.run_states.RUN_FAILED) and self.failure_cursor or self.training_cursor
-        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog)
+        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog, self.catalog_cursor, self.catalog_entries, self.preparation_overlay, self.character_cursor, self.character_catalog)
     end
 end
 
