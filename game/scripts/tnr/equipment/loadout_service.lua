@@ -4,6 +4,16 @@ local Constants = require("tnr.core.constants")
 local LoadoutService = {}
 LoadoutService.__index = LoadoutService
 
+-- States in which the player may edit their loadout. The shop exposes the
+-- loadout screen as an overlay and the reward flow also grants equipment, so
+-- both are accepted alongside the map and preparation screens.
+local function loadout_editable(run_state)
+    return run_state == Constants.run_states.MAP
+        or run_state == Constants.run_states.MAP_PREPARATION
+        or run_state == Constants.run_states.SHOP
+        or run_state == Constants.run_states.REWARD
+end
+
 local SLOT_TYPES = {
     high_weapons = "HIGH_WEAPON",
     low_weapons = "LOW_WEAPON",
@@ -24,7 +34,7 @@ function LoadoutService:can_equip(instance, slot_type, slot_index, player_id, ig
     if not instance then return false, "MISSING_INSTANCE" end
     local player = self.session:get_player(player_id)
     if not player or not player.loadout then return false, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION then
+    if not loadout_editable(self.session.run_state) then
         return false, "NOT_MAP"
     end
     if not ignore_lock and self.session.preparation and not self.session.preparation:can_edit(player_id) then
@@ -74,7 +84,7 @@ end
 function LoadoutService:equip_from_inventory(player_id, inventory_index, slot_type, slot_index)
     local player = self.session:get_player(player_id)
     if not player then return nil, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION then return nil, "NOT_MAP" end
+    if not loadout_editable(self.session.run_state) then return nil, "NOT_MAP" end
     local inventory = player.loadout.inventory
     local instance = inventory and inventory.items[inventory_index]
     local ok, err = self:can_equip(instance, slot_type, slot_index, player_id)
@@ -120,7 +130,7 @@ end
 function LoadoutService:unequip(player_id, slot_type, slot_index)
     local player = self.session:get_player(player_id)
     if not player then return nil, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION then return nil, "NOT_MAP" end
+    if not loadout_editable(self.session.run_state) then return nil, "NOT_MAP" end
     if self.session.preparation and not self.session.preparation:can_edit(player_id) then return nil, "LOADOUT_LOCKED" end
     local instance = player.loadout:get_slot(slot_type, slot_index)
     if not instance then return nil, "EMPTY_SLOT" end
@@ -134,7 +144,7 @@ end
 function LoadoutService:move_inventory(player_id, from_index, to_index)
     local player = self.session:get_player(player_id)
     if not player then return nil, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION then return nil, "NOT_MAP" end
+    if not loadout_editable(self.session.run_state) then return nil, "NOT_MAP" end
     if self.session.preparation and not self.session.preparation:can_edit(player_id) then return nil, "LOADOUT_LOCKED" end
     local inventory = player.loadout.inventory
     if not inventory.items[from_index] or to_index < 1 or to_index > inventory.capacity then return nil, "INVALID_SLOT" end
@@ -152,7 +162,7 @@ end
 function LoadoutService:discard_inventory(player_id, inventory_index)
     local player = self.session:get_player(player_id)
     if not player then return nil, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION then return nil, "NOT_MAP" end
+    if not loadout_editable(self.session.run_state) then return nil, "NOT_MAP" end
     if self.session.preparation and not self.session.preparation:can_edit(player_id) then return nil, "LOADOUT_LOCKED" end
     return player.loadout.inventory:remove(inventory_index)
 end

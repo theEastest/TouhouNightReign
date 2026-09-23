@@ -76,4 +76,28 @@ return function(assert_equal, assert_true)
         assert_true(claim_result.pending == true or claim_result.acquired == true,
             "a full-inventory equipment reward is recorded as pending or acquired")
     end
+
+    -- The loadout screen opened from the shop runs while the run state is
+    -- SHOP, so equipping and unequipping must be accepted there. This used to
+    -- report NOT_MAP and silently did nothing.
+    local Command = require("tnr.core.command")
+    local shop_session = GameSession.new({ run_seed = 31, player_count = 1 }):start_new()
+    shop_session.run_state = Constants.run_states.SHOP
+    local shop_player = shop_session:get_player(1)
+    local shop_inventory = shop_player.loadout.inventory
+    shop_inventory:add(EquipmentInstance.new(shop_session.equipment_registry:get("hakurei_sealing_needle"), 1))
+    local inventory_before = shop_inventory:count()
+    local equipped, equip_err = shop_session:dispatch({
+        type = Command.EQUIP_ITEM, player_id = 1, inventory_index = 1,
+        slot_type = "high_weapons", slot_index = 2,
+    })
+    assert_true(equipped ~= nil, "equipping from the shop must succeed: " .. tostring(equip_err))
+    assert_equal(shop_inventory:count(), inventory_before - 1,
+        "equipping from the shop removes the item from the inventory")
+    local removed, unequip_err = shop_session:dispatch({
+        type = Command.UNEQUIP_ITEM, player_id = 1, slot_type = "high_weapons", slot_index = 2,
+    })
+    assert_true(removed ~= nil, "unequipping from the shop must succeed: " .. tostring(unequip_err))
+    assert_equal(shop_inventory:count(), inventory_before,
+        "unequipping from the shop returns the item to the inventory")
 end

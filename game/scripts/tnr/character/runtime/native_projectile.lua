@@ -26,7 +26,15 @@ local function sprite(kind)
     if kind == "MarisaLaser" or kind == "marisa_spark" then
         return image("laser", "Thlib/player/marisa/MarisaLaser.png"), 1, 0
     end
-    if kind == "reimu_bullet_red" or kind == "reimu_bullet_blue" or kind == "reimu_bullet_orange" then return kind, 1, 0 end
+    if kind == "reimu_bullet_red" then
+        return image("reimu-bullet-red", "Thlib/player/reimu/reimu.png", 192, 160, 64, 16), 1, 0
+    end
+    if kind == "reimu_bullet_blue" then
+        return image("reimu-bullet-blue", "Thlib/player/reimu/reimu.png", 0, 160, 16, 16), 1, 0
+    end
+    if kind == "reimu_bullet_orange" then
+        return image("reimu-bullet-orange", "Thlib/player/reimu/reimu.png", 64, 176, 64, 16), 1, 0
+    end
     print("Missing Asset: equipment projectile " .. tostring(kind) .. "; using debug sprite")
     return "tnr-white", 0.5, 0
 end

@@ -317,7 +317,13 @@ end
 --
 -- These must be declared before `preparation_hit_test`, otherwise that local
 -- function would resolve the names to nil globals at call time.
-local SLOT_W, SLOT_H, SLOT_GAP = 145, 105, 18
+--
+-- Each group occupies its own row, stacked from the top of the panel downward.
+-- Keeping the groups in distinct rows is what prevents the weight bar (drawn in
+-- the header band) from overlapping the first slot row.
+local SLOT_W, SLOT_H, SLOT_GAP = 130, 58, 14
+local SLOT_ROW_PITCH = 88 -- label height + slot height + spacing between rows
+local SLOT_GRID_TOP = 460 -- top edge of the first slot row (bottom-up)
 
 local function preparation_groups(loadout)
     local function group_count(key, fallback)
@@ -325,18 +331,24 @@ local function preparation_groups(loadout)
         local count = type(list) == "table" and #list or 0
         return math.max(1, count > 0 and count or fallback)
     end
-    return {
-        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", x = 100, y = 525,
-          count = group_count("high_weapons", 3) },
-        { key = "low_weapons", label = "LOW-SPEED WEAPONS", x = 100, y = 375,
-          count = group_count("low_weapons", 3) },
-        { key = "supports", label = "SUPPORT", x = 100, y = 225,
-          count = group_count("supports", 1) },
-        { key = "self_modifiers", label = "SELF BUFFS", x = 320, y = 225,
-          count = group_count("self_modifiers", 2) },
-        { key = "support_modifiers", label = "SUPPORT BUFFS", x = 100, y = 75,
-          count = group_count("support_modifiers", 2) },
+    local layout = {
+        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", fallback = 3 },
+        { key = "low_weapons", label = "LOW-SPEED WEAPONS", fallback = 3 },
+        { key = "supports", label = "SUPPORT", fallback = 1 },
+        { key = "self_modifiers", label = "SELF BUFFS", fallback = 2 },
+        { key = "support_modifiers", label = "SUPPORT BUFFS", fallback = 2 },
     }
+    local groups = {}
+    for index, entry in ipairs(layout) do
+        groups[#groups + 1] = {
+            key = entry.key,
+            label = entry.label,
+            x = 100,
+            y = SLOT_GRID_TOP - (index - 1) * SLOT_ROW_PITCH,
+            count = group_count(entry.key, entry.fallback),
+        }
+    end
+    return groups
 end
 
 function MapRenderer:preparation_hit_test(x, y, row_count, cursor, loadout)
@@ -518,15 +530,16 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
     self:draw_panel(62, 810, 48, self.height - 82)
     self:draw_panel(828, self.width - 62, 48, self.height - 82)
     self:draw_text("EQUIPMENT LOADOUT", 88, self.height - 116, 1.18, COLORS.accent, 0)
-    -- Weight bar: current weight against the character's capacity. The bar
-    -- turns gold below half capacity (ultralight, which doubles high speed),
-    -- and red when overloaded.
+    -- Weight bar: current weight against the character's capacity. It lives in
+    -- the header band above the slot grid, so it can never overlap a slot row.
+    -- The bar turns gold below half capacity (ultralight, which doubles high
+    -- speed) and highlights when overloaded.
     local capacity = player and tonumber(player.current_capacity) or 0
     local weight = loadout and loadout:get_total_weight(registry) or 0
     local WeightPolicy = require("tnr.character.runtime.weight_speed_policy")
     local weight_class = WeightPolicy.classify(weight, capacity)
     local bar_left, bar_right = 88, 470
-    local bar_bottom, bar_top = self.height - 168, self.height - 154
+    local bar_bottom, bar_top = self.height - 168, self.height - 158
     local fill_color = COLORS.accent
     local class_label = ""
     if weight_class == "ULTRALIGHT" then
@@ -542,7 +555,7 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
         draw_rect(lstg, self.white, fill_color, bar_left, bar_left + (bar_right - bar_left) * ratio, bar_bottom, bar_top)
     end
     self:draw_text(string.format("负重 %.1f / %d%s", weight, capacity, class_label),
-        88, self.height - 196, 0.72, COLORS.muted, 0)
+        88, self.height - 140, 0.72, COLORS.muted, 0)
     local slot_w, slot_h, gap = SLOT_W, SLOT_H, SLOT_GAP
     for _, group in ipairs(groups) do
         self:draw_text(group.label, group.x, group.y + slot_h + 13, 0.64, COLORS.muted, 0)
