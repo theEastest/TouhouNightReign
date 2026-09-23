@@ -128,6 +128,14 @@ function AudioManager:stop_all_music()
     if not self.lstg then return end
     local stop = self.lstg.StopMusic
     if type(stop) == "function" then
+        -- Explicitly stop the two tracks this manager is tracking first. The
+        -- native stage BGM is registered as a legacy MusicRecord and may not
+        -- appear in the enumerable music pools, so relying on EnumRes alone
+        -- can leave the battle track playing after returning to the menu.
+        if self.current_original_music then pcall(stop, self.current_original_music) end
+        if self.current_music and self.loaded["music:" .. self.current_music] then
+            pcall(stop, self.loaded["music:" .. self.current_music].id)
+        end
         for _, resource in pairs(self:_enum_music()) do
             pcall(stop, resource)
         end

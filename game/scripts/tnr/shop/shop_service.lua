@@ -86,7 +86,14 @@ function ShopService:purchase(player_id, slot)
         if not definition then return nil, "UNKNOWN_DEFINITION" end
         local instance = EquipmentInstance.new(definition, player_id)
         local acquired, err = self.session.acquisition_service:acquire(player_id, instance)
-        if not acquired then return nil, err or "INVENTORY_FULL" end
+        if not acquired then
+            -- A full inventory must not leave a pending acquisition behind:
+            -- the shop has no accept/reject UI, and a pending item blocks
+            -- SHOP_READY forever (the shop could never be left). Surface the
+            -- failure as a purchase error instead and clear any pending state.
+            self.session.acquisition_service:reject_pending(player_id)
+            return nil, err or "INVENTORY_FULL"
+        end
         self.session:add_money(player_id, -price, "shop")
     else
         return nil, "UNSUPPORTED_OFFER"
@@ -99,7 +106,12 @@ function ShopService:set_ready(player_id, value)
     if self.session.run_state ~= Constants.run_states.SHOP then return nil, "NOT_SHOP" end
     player_id = tonumber(player_id)
     if not self.session:get_player(player_id) then return nil, "UNKNOWN_PLAYER" end
-    if self.session.acquisition_service:get_pending(player_id) then return nil, "PENDING_ACQUISITION" end
+    if self.session.acquisition_service:get_pending(player_id) then
+        -- Defensive: a pending acquisition has no accept/reject UI inside the
+        -- shop and would otherwise trap the player. Discard it so leaving the
+        -- shop always succeeds.
+        self.session.acquisition_service:reject_pending(player_id)
+    end
     self.ready[player_id] = value == true
     for _, candidate_id in ipairs(self.session.party.player_ids or {}) do
         if self.ready[candidate_id] ~= true then return false end

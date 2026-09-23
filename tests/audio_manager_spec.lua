@@ -31,5 +31,19 @@ return function(assert_equal, assert_true)
     local before_repeat = #events
     assert_true(audio:play_original("BGM-YEWAN"), "same reference BGM continues")
     assert_equal(#events, before_repeat, "same reference BGM does not restart")
+
+    -- Switching back to the menu theme must explicitly stop the tracked
+    -- original battle track, even when it is absent from the enumerable pools.
+    events = {}
+    fake.EnumRes = function() return {}, {} end
+    assert_true(audio:play_music("menu"), "menu BGM restarts after a battle")
+    local stopped_original = false
+    for _, event in ipairs(events) do
+        if event == "stop:BGM-YEWAN" then stopped_original = true end
+    end
+    assert_true(stopped_original, "returning to menu must explicitly stop the tracked original BGM")
+    assert_equal(audio.current_original_music, nil, "original BGM tracking is cleared on menu return")
+    assert_equal(audio.current_music, "menu", "menu BGM becomes the tracked track")
+
     _G.LoadMusicRecord = old_record
 end
