@@ -45,6 +45,35 @@ game.audio:attach_native()
 function GameInit()
     lstg.LoadTexture("tnr-white-texture", "assets/texture/white.png", false)
     lstg.LoadImage("tnr-white", "tnr-white-texture", 0, 0, 16, 16)
+    -- Playable character sprite sheets. Each is loaded independently and a
+    -- missing sheet is skipped so one absent character cannot break the boot.
+    local character_sheets = {
+        reimu = "assets/players/reimu/reimu.png",
+        marisa = "assets/players/marisa/marisa.png",
+        sanae = "assets/players/sanae/sanae.png",
+    }
+    for character_id, path in pairs(character_sheets) do
+        local key = "tnr-" .. character_id .. "-texture"
+        local image_group = "tnr-" .. character_id
+        local ok_texture = pcall(lstg.LoadTexture, key, path, false)
+        if ok_texture then
+            if lstg.LoadImageGroup then
+                pcall(lstg.LoadImageGroup, image_group, key, 0, 0, 32, 48, 8, 3, 0.5, 0.5)
+            else
+                for row = 0, 2 do
+                    for column = 0, 7 do
+                        local frame = row * 8 + column + 1
+                        pcall(lstg.LoadImage, image_group .. frame, key, column * 32, row * 48, 32, 48, 16, 24)
+                    end
+                end
+            end
+            -- Straight shots reuse the top row of the sheet.
+            pcall(lstg.LoadImage, image_group .. "-red", key, 192, 160, 64, 16, 16, 16)
+            pcall(lstg.LoadImage, image_group .. "-blue", key, 0, 160, 16, 16, 16, 16)
+        end
+    end
+    -- Compatibility aliases: the fallback renderer and older code refer to the
+    -- Reimu-named images directly.
     lstg.LoadTexture("tnr-reimu-texture", "assets/players/reimu/reimu.png", false)
     if lstg.LoadImageGroup then
         lstg.LoadImageGroup("tnr-reimu", "tnr-reimu-texture", 0, 0, 32, 48, 8, 3, 0.5, 0.5)
