@@ -311,6 +311,34 @@ function MapRenderer:render_map(view, session, mouse_x, mouse_y)
     lstg.EndScene()
 end
 
+-- Slot grid layout shared by the preparation renderer and its hit test so
+-- mouse and keyboard stay in sync. Slot counts come from the character's
+-- loadout, which differs per character.
+--
+-- These must be declared before `preparation_hit_test`, otherwise that local
+-- function would resolve the names to nil globals at call time.
+local SLOT_W, SLOT_H, SLOT_GAP = 145, 105, 18
+
+local function preparation_groups(loadout)
+    local function group_count(key, fallback)
+        local list = loadout and loadout[key]
+        local count = type(list) == "table" and #list or 0
+        return math.max(1, count > 0 and count or fallback)
+    end
+    return {
+        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", x = 100, y = 525,
+          count = group_count("high_weapons", 3) },
+        { key = "low_weapons", label = "LOW-SPEED WEAPONS", x = 100, y = 375,
+          count = group_count("low_weapons", 3) },
+        { key = "supports", label = "SUPPORT", x = 100, y = 225,
+          count = group_count("supports", 1) },
+        { key = "self_modifiers", label = "SELF BUFFS", x = 320, y = 225,
+          count = group_count("self_modifiers", 2) },
+        { key = "support_modifiers", label = "SUPPORT BUFFS", x = 100, y = 75,
+          count = group_count("support_modifiers", 2) },
+    }
+end
+
 function MapRenderer:preparation_hit_test(x, y, row_count, cursor, loadout)
     if not x or not y then return nil end
     local groups = preparation_groups(loadout)
@@ -445,30 +473,6 @@ function MapRenderer:render_preparation_legacy(session, cursor, message, mouse_x
     self:draw_text(message or "方向键选择   Enter 操作/Ready   Tab/Esc 返回地图", self.width * 0.5, 58, 0.72, COLORS.muted, 1 + 4)
     lstg.EndScene()
     return #rows
-end
-
--- Slot grid layout shared by the preparation renderer and its hit test so
--- mouse and keyboard stay in sync. Slot counts come from the character's
--- loadout, which differs per character.
-local SLOT_W, SLOT_H, SLOT_GAP = 145, 105, 18
-local function preparation_groups(loadout)
-    local function group_count(key, fallback)
-        local list = loadout and loadout[key]
-        local count = type(list) == "table" and #list or 0
-        return math.max(1, count > 0 and count or fallback)
-    end
-    return {
-        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", x = 100, y = 525,
-          count = group_count("high_weapons", 3) },
-        { key = "low_weapons", label = "LOW-SPEED WEAPONS", x = 100, y = 375,
-          count = group_count("low_weapons", 3) },
-        { key = "supports", label = "SUPPORT", x = 100, y = 225,
-          count = group_count("supports", 1) },
-        { key = "self_modifiers", label = "SELF BUFFS", x = 320, y = 225,
-          count = group_count("self_modifiers", 2) },
-        { key = "support_modifiers", label = "SUPPORT BUFFS", x = 100, y = 75,
-          count = group_count("support_modifiers", 2) },
-    }
 end
 
 function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse_y, mouse_down, edit_only, overlay)

@@ -46,4 +46,43 @@ return function(assert_equal, assert_true)
     assert_equal(WeightPolicy.classify(101, 100), "OVERLOAD", "over capacity is overloaded")
     assert_equal(WeightPolicy.high_speed(4.5, 100, 0), 9.0, "ultralight doubles high speed")
     assert_equal(WeightPolicy.high_speed(4.5, 100, 100), 4.5, "normal weight keeps base speed")
+
+    -- Regression: the preparation screen and its hit test must render for every
+    -- character. The hit test reads the shared slot-grid layout, so a mis-scoped
+    -- local previously crashed render_preparation with a nil call.
+    local Bootstrap = require("tnr.bootstrap")
+    local MapRenderer = require("tnr.ui.map_renderer")
+    local mock = {
+        Color = function() return {} end, SetImageState = function() end, RenderRect = function() end,
+        RenderTTF = function() end, BeginScene = function() end, EndScene = function() end,
+        RenderClear = function() end, SetViewport = function() end, SetScissorRect = function() end,
+        SetOrtho = function() end, Render = function() end,
+    }
+    local renderer = MapRenderer.new(mock, 1280, 720)
+    renderer.white = "white"
+    for _, character_id in ipairs({ "reimu", "marisa", "sanae" }) do
+        local bootstrap = Bootstrap.create({})
+        bootstrap:init()
+        bootstrap.renderer = renderer
+        bootstrap:open_character_select(function() bootstrap:start_game(7) end)
+        for index, entry in ipairs(bootstrap.character_catalog) do
+            if entry.id == character_id then bootstrap.character_cursor = index end
+        end
+        bootstrap:confirm_character_select()
+        bootstrap.session.run_state = Constants.run_states.MAP_PREPARATION
+        local rendered = pcall(function() bootstrap:render() end)
+        assert_true(rendered, character_id .. " preparation screen must render")
+        -- Every group slot must be hit-testable with the character's loadout.
+        local loadout = bootstrap:_local_loadout()
+        local rows = #bootstrap:_preparation_rows()
+        for _, key in ipairs({ "high_weapons", "low_weapons", "supports",
+                "self_modifiers", "support_modifiers" }) do
+            local slot_count = #loadout[key]
+            for slot = 1, slot_count do
+                local hit = renderer:preparation_hit_test(0, 0, rows, 1, loadout)
+                assert_true(hit == nil or type(hit) == "number",
+                    character_id .. " hit test must not crash for " .. key)
+            end
+        end
+    end
 end
