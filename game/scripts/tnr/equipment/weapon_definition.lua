@@ -6,16 +6,20 @@ local methods = {}
 
 function WeaponDefinition.new(spec)
     spec = spec or {}
+    -- `name` is retained as an English reference label. The player-facing
+    -- name prefers the Chinese localization so the UI never shows English ids.
     local data = {
         equipment_id = spec.weapon_id,
-        display_name = spec.name or spec.display_name_zh or spec.display_name or spec.weapon_id,
-        display_name_zh = spec.display_name_zh or spec.name or spec.display_name or spec.weapon_id,
-        display_name_en = spec.display_name_en or spec.display_name or spec.weapon_id,
+        display_name = spec.display_name_zh or spec.display_name or spec.name or spec.weapon_id,
+        display_name_zh = spec.display_name_zh or spec.display_name or spec.name or spec.weapon_id,
+        display_name_en = spec.display_name_en or spec.name or spec.display_name or spec.weapon_id,
         equipment_type = "WEAPON",
         rarity = spec.rarity,
         weight = spec.weight,
         unique = spec.unique,
         test_only = spec.test_only == true,
+        description = spec.description,
+        description_zh = spec.description_zh or spec.description,
         tags = spec.tags,
         metadata = spec.metadata,
     }
@@ -32,6 +36,8 @@ function WeaponDefinition.new(spec)
     result.display_name_zh = data.display_name_zh
     result.display_name_en = data.display_name_en
     result.rarity = data.rarity
+    result.description = spec.description
+    result.description_zh = spec.description_zh or spec.description
     result.fire_interval = tonumber(spec.fire_interval) or 0
     result.damage = tonumber(spec.damage) or 0
     result.projectile_type = spec.projectile_type

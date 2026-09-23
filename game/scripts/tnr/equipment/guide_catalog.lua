@@ -32,6 +32,7 @@ local definitions = {
     weapon({
         weapon_id = "hakurei_sealing_needle", display_name_zh = "封魔针",
         display_name_en = "Sealing Needle", slot = "HIGH", rarity = "COMMON", weight = 16,
+        description = "高速发射成对的封魔针。",
         fire_interval = 4, count = 2, damage = 2.0, projectile_speed = 24,
         projectile_type = "reimu_bullet_red", penetration = 0, targeting = "NONE",
         pattern = "straight", metadata = { pattern = "straight", projectile_count = 2, spread = 0 },
@@ -40,6 +41,7 @@ local definitions = {
     weapon({
         weapon_id = "hakurei_persuasion_needle", display_name_zh = "贯刺",
         display_name_en = "Piercing Needle", slot = "HIGH", rarity = "RARE", weight = 22,
+        description = "能贯穿一个敌人的高速灵针。",
         fire_interval = 5, count = 2, damage = 2.6, projectile_speed = 28,
         projectile_type = "reimu_bullet_red", penetration = 1, targeting = "NONE",
         pattern = "straight", metadata = { pattern = "straight", projectile_count = 2, spread = 0 },
@@ -48,6 +50,7 @@ local definitions = {
     weapon({
         weapon_id = "hakurei_dream_sealing_needle", display_name_zh = "妖怪封针",
         display_name_en = "Yokai-Sealing Needle", slot = "LOW", rarity = "LEGENDARY", weight = 30,
+        description = "低速发射的强力封魔针，连续命中同一目标会不断叠加伤害。",
         fire_interval = 5, count = 2, damage = 3.2, projectile_speed = 28,
         projectile_type = "reimu_bullet_red", penetration = 0, targeting = "NONE",
         pattern = "straight", metadata = {
@@ -63,6 +66,7 @@ local definitions = {
     weapon({
         weapon_id = "marisa_magic_missile", display_name_zh = "魔法飞弹",
         display_name_en = "Magic Missile", slot = "HIGH", rarity = "COMMON", weight = 18,
+        description = "发射稳定的双联魔法飞弹。",
         fire_interval = 6, count = 2, damage = 3.0, projectile_speed = 20,
         projectile_type = "marisa_bullet", penetration = 0, targeting = "NONE",
         pattern = "straight", metadata = { pattern = "straight", projectile_count = 2, spread = 0 },
@@ -71,6 +75,7 @@ local definitions = {
     weapon({
         weapon_id = "marisa_earthlight_ray", display_name_zh = "地光射线",
         display_name_en = "Earthlight Ray", slot = "LOW", rarity = "RARE", weight = 26,
+        description = "周期发射短时贯穿激光。",
         fire_interval = 12, damage = 0.9, projectile_speed = 0,
         projectile_type = "MarisaLaser", penetration = 0, targeting = "FORWARD",
         pattern = "beam", metadata = {
@@ -82,6 +87,7 @@ local definitions = {
     weapon({
         weapon_id = "marisa_master_spark_weapon", display_name_zh = "极限火花",
         display_name_en = "Limit Spark", slot = "LOW", rarity = "LEGENDARY", weight = 38,
+        description = "光束成功命中敌人时，下一个光束会概率变成小型极限火花。",
         fire_interval = 6, damage = 1.0, projectile_speed = 0,
         projectile_type = "marisa_spark", penetration = 0, targeting = "FORWARD",
         pattern = "beam", metadata = {
@@ -97,6 +103,7 @@ local definitions = {
     weapon({
         weapon_id = "sanae_sky_serpent", display_name_zh = "天空之蛇",
         display_name_en = "Sky Serpent", slot = "HIGH", rarity = "COMMON", weight = 18,
+        description = "发射具有弱追踪能力的风刃。",
         fire_interval = 7, count = 2, damage = 2.4, projectile_speed = 16,
         projectile_type = "sanae_wind2", penetration = 0, targeting = "NEAREST_ENEMY",
         pattern = "straight", metadata = {
@@ -109,6 +116,7 @@ local definitions = {
     weapon({
         weapon_id = "sanae_cobalt_spread", display_name_zh = "钴蓝散射",
         display_name_en = "Cobalt Spread", slot = "HIGH", rarity = "RARE", weight = 24,
+        description = "向前方扇形释放五枚风弹。",
         fire_interval = 9, count = 5, damage = 2.8, projectile_speed = 17,
         projectile_type = "sanae_wind", penetration = 0, targeting = "NONE",
         pattern = "spread", metadata = {
@@ -119,6 +127,7 @@ local definitions = {
     weapon({
         weapon_id = "sanae_yasaka_divine_wind", display_name_zh = "八坂神风",
         display_name_en = "Yasaka's Divine Wind", slot = "LOW", rarity = "LEGENDARY", weight = 32,
+        description = "风刃命中后留下持续伤害旋风。",
         fire_interval = 10, count = 2, damage = 3.4, projectile_speed = 18,
         projectile_type = "sanae_wind", penetration = 0, targeting = "NONE",
         pattern = "straight", metadata = {
@@ -133,6 +142,7 @@ local definitions = {
     modifier({
         modifier_id = "self_duplex_barrier", display_name_zh = "二重结界",
         display_name_en = "Duplex Barrier", modifier_type = "SELF_MODIFIER", rarity = "RARE",
+        description = "每轮射击追加两枚侧向低伤弹。",
         metadata = { runtime_effect = "volley", extra_projectile_offsets = { -10, 10 },
             allow_legendary_trigger = true, no_recursive_trigger = true },
         tags = { "self", "weapon_fire" },
@@ -140,6 +150,7 @@ local definitions = {
     modifier({
         modifier_id = "self_giant_yinyang_projectile", display_name_zh = "狂放封玉",
         display_name_en = "Giant Yin-Yang Projectile", modifier_type = "SELF_MODIFIER", rarity = "RARE",
+        description = "弹体更大、更强，但速度稍慢。",
         metadata = { runtime_effect = "projectile_scale", projectile_scale = 1.30,
             hitbox_scale = 1.30, damage_multiplier = 1.10, speed_multiplier = 0.70,
             visual_scale_cap = 3, hitbox_scale_cap = 2 },
@@ -148,6 +159,7 @@ local definitions = {
     modifier({
         modifier_id = "self_high_speed_casting", display_name_zh = "高速咏唱",
         display_name_en = "High-Speed Casting", modifier_type = "SELF_MODIFIER", rarity = "COMMON",
+        description = "提高射速，但降低单发伤害。",
         metadata = { runtime_effect = "cast_speed_damage", fire_interval_multiplier = 0.75,
             damage_multiplier = 0.85, min_fire_interval = 1 },
         tags = { "self", "weapon" },
@@ -155,6 +167,7 @@ local definitions = {
     modifier({
         modifier_id = "self_magic_penetration", display_name_zh = "风祝贯通",
         display_name_en = "Magic Penetration", modifier_type = "SELF_MODIFIER", rarity = "COMMON",
+        description = "所有自身弹体获得额外穿透，但是伤害下降为原有的70%。",
         metadata = { runtime_effect = "penetration_bonus", penetration_bonus = 1,
             damage_multiplier = 0.70, infinite_penetration_unchanged = true },
         tags = { "self", "penetration" },
@@ -162,6 +175,7 @@ local definitions = {
     modifier({
         modifier_id = "self_homing_formula", display_name_zh = "诱导法",
         display_name_en = "Homing Formula", modifier_type = "SELF_MODIFIER", rarity = "RARE",
+        description = "让直射弹获得弱追踪能力。",
         metadata = { runtime_effect = "homing_formula", direct_targeting = "NEAREST_ENEMY",
             already_homing_turn_multiplier = 1.20 },
         tags = { "self", "targeting" },
@@ -169,6 +183,7 @@ local definitions = {
     modifier({
         modifier_id = "self_afterglow", display_name_zh = "短期记忆",
         display_name_en = "Afterglow", modifier_type = "SELF_MODIFIER", rarity = "RARE",
+        description = "每第10轮射击会延迟复制一次，并获得短暂无敌。",
         metadata = { runtime_effect = "afterglow", fire_threshold = 10,
             delay_frames = 10, copied_damage_multiplier = 1.0,
             player_invincibility = true, pending_fires_clear_on_exit = true },
@@ -180,6 +195,7 @@ local definitions = {
     support({
         support_id = "support_hakurei_yinyang_orb", display_name_zh = "阴阳玉",
         display_name_en = "Yin-Yang Orb", rarity = "COMMON", weight = 24,
+        description = "四枚阴阳玉，高速追踪、低速集中。",
         entity_count = 4, activation_mode = "ALWAYS", attack_mode = "INDEPENDENT",
         formation = { type = "FOLLOW", radius = 24 }, metadata = {
             high_projectile_type = "reimu_bullet_blue", high_projectile_count = 1,
@@ -192,6 +208,7 @@ local definitions = {
     support({
         support_id = "support_marisa_orreries_sun", display_name_zh = "行星仪",
         display_name_en = "Orreries Sun", rarity = "RARE", weight = 30,
+        description = "三枚轨道魔导器提供激光与飞弹支援。",
         entity_count = 3, activation_mode = "ALWAYS", attack_mode = "INDEPENDENT",
         formation = { type = "ORBIT", high_radius = 42, low_radius = 28 }, metadata = {
             high_projectile_type = "MarisaLaser", high_projectile_count = 1,
@@ -204,6 +221,7 @@ local definitions = {
     support({
         support_id = "support_sanae_snakeskin_amulet", display_name_zh = "长蛇戒指",
         display_name_en = "Shed Snakeskin Amulet", rarity = "RARE", weight = 22,
+        description = "两枚高质量风祝子机提供精准风刃。",
         entity_count = 2, activation_mode = "ALWAYS", attack_mode = "INDEPENDENT",
         formation = { type = "FOLLOW", radius = 30 }, metadata = {
             high_projectile_type = "sanae_wind2", high_projectile_count = 1,
@@ -216,6 +234,7 @@ local definitions = {
     support({
         support_id = "support_hakurei_ward_array", display_name_zh = "护身法",
         display_name_en = "Hakurei Ward Array", rarity = "RARE", weight = 18,
+        description = "不主动攻击，周期产生近身消弹结界。",
         entity_count = 4, activation_mode = "PASSIVE", attack_mode = "NONE",
         formation = { type = "FOLLOW", radius = 24 }, metadata = {
             runtime_effect = "support_bullet_clear", clear_interval_frames = 180,
@@ -227,6 +246,7 @@ local definitions = {
     modifier({
         modifier_id = "support_modifier_front_formation", display_name_zh = "置于阵前",
         display_name_en = "Forward Formation", modifier_type = "SUPPORT_MODIFIER", rarity = "COMMON",
+        description = "所有子机集中到自机前方一排。",
         conflict_group = "support_formation_override",
         metadata = { runtime_effect = "front_concentration", formation = "FRONT" },
         tags = { "support", "formation" },
@@ -234,6 +254,7 @@ local definitions = {
     modifier({
         modifier_id = "support_modifier_orbit_formation", display_name_zh = "护置身侧",
         display_name_en = "Orbital Formation", modifier_type = "SUPPORT_MODIFIER", rarity = "RARE",
+        description = "所有子机围绕自机持续环绕。",
         conflict_group = "support_formation_override",
         metadata = { runtime_effect = "orbit_formation", formation = "ORBIT", high_radius = 42, low_radius = 28 },
         tags = { "support", "formation" },
@@ -241,6 +262,7 @@ local definitions = {
     modifier({
         modifier_id = "support_modifier_high_phantom_charge", display_name_zh = "幻影冲锋",
         display_name_en = "Phantom Charge", modifier_type = "SUPPORT_MODIFIER", rarity = "COMMON",
+        description = "高速模式下子机优先位移到玩家前方±30°范围内最近的有效敌人下方进行攻击。",
         conflict_group = "support_target_high",
         metadata = { runtime_effect = "auto_target", active_mode = "HIGH",
             target = "NEAREST_ENEMY", interpolation = "SMOOTH" },
@@ -249,6 +271,7 @@ local definitions = {
     modifier({
         modifier_id = "support_modifier_low_phantom_edge", display_name_zh = "神影无锋",
         display_name_en = "Phantom Edge", modifier_type = "SUPPORT_MODIFIER", rarity = "COMMON",
+        description = "低速模式下子机优先位移到玩家前方±30°范围内最近的有效敌人下方进行攻击。",
         conflict_group = "support_target_low",
         metadata = { runtime_effect = "auto_target", active_mode = "LOW",
             target = "NEAREST_ENEMY", interpolation = "SMOOTH" },
@@ -257,6 +280,7 @@ local definitions = {
     modifier({
         modifier_id = "support_modifier_barrier_pulse", display_name_zh = "结界脉冲",
         display_name_en = "Barrier Pulse", modifier_type = "SUPPORT_MODIFIER", rarity = "RARE",
+        description = "子机周期释放小范围消弹脉冲。",
         metadata = { runtime_effect = "staggered_bullet_clear", cycle_frames = 240,
             clear_radius_ratio = 2.0, local_only = true, boss_damage = false },
         tags = { "support", "bullet_clear" },

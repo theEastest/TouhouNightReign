@@ -330,4 +330,12 @@ return function(assert_equal, assert_true)
     end
     assert_true(control_stage.runtime.players[1].x > start_x, "fallback player movement remains responsive")
     assert_true(control_stage.runtime_shot_calls > 0, "default loadout produces shots during a live update")
+
+    -- Every production item must expose a player-facing description; the shop,
+    -- loadout and reward detail panels all read this single field.
+    for _, id in ipairs(production) do
+        local definition = Catalog.registry:get(id)
+        assert_true(type(definition.description) == "string" and definition.description ~= "",
+            id .. " must expose a player-facing description")
+    end
 end
