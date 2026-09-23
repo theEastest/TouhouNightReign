@@ -4,6 +4,8 @@ RewardService.__index = RewardService
 function RewardService.new(config, options)
     options = options or {}
     return setmetatable({
+        -- Additive thresholds: every satisfied tier contributes, so a higher
+        -- stage score grants the lower tiers as well.
         thresholds = config or {
             { score = 10000, money = 100 },
             { score = 50000, bomb = 1 },
@@ -90,17 +92,18 @@ function RewardService:calculate(battle_result)
     if not battle_result.reward_eligible then
         return reward
     end
+    -- Additive tiers: every threshold at or below the score contributes its
+    -- reward, so a 100k stage pays 100 money + 1 bomb + 1 life cumulatively.
+    -- Prefer the reference stage score; fall back to the battle score when the
+    -- stage score was not reported (for example a direct manager call).
+    local score = tonumber(battle_result.stage_score) or 0
+    if score <= 0 then score = tonumber(battle_result.battle_score) or 0 end
     for _, threshold in ipairs(self.thresholds) do
-        if battle_result.battle_score >= threshold.score then
+        if score >= threshold.score then
             reward.money = reward.money + (threshold.money or 0)
             reward.life = reward.life + (threshold.life or 0)
             reward.bomb = reward.bomb + (threshold.bomb or 0)
         end
-    end
-    if battle_result.encounter_type == "ENEMY" and #self.equipment_pool > 0 then
-        local key, hash = tostring(battle_result.encounter_id or ""), 0
-        for index = 1, #key do hash = (hash * 31 + key:byte(index)) % 2147483647 end
-        reward.equipment_definition_id = self.equipment_pool[(hash % #self.equipment_pool) + 1]
     end
     return reward
 end

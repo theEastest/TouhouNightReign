@@ -13,6 +13,12 @@ function BattleResult.new(values)
         reward_eligible = values.reward_eligible == true,
         debug_clear = values.debug_clear == true,
         per_player_result = values.per_player_result or {},
+        -- Reference-project stage score and money for this stage.
+        stage_score = values.stage_score or 0,
+        stage_money = values.stage_money or 0,
+        -- Perfect-clear result: player_id -> number of perfectly cleared cards.
+        perfect_counts = values.perfect_counts or {},
+        perfect_total_cards = values.perfect_total_cards or 0,
     }
 end
 

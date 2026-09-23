@@ -10,9 +10,20 @@ return function(assert_equal, assert_true)
         if node.type == Constants.node_types.SHOP and not shop then shop = node end
     end
     assert_true(enemy ~= nil and shop ~= nil, "lifecycle needs enemy and shop nodes")
-    session:debug_goto(enemy.id)
-    session:complete_battle({ clear_state = true, reward_eligible = true, battle_score = 150, player_id = 1 })
-    assert_equal(session.run_state, Constants.run_states.REWARD, "enemy clear opens reward choice")
+    -- An ordinary enemy room only offers a reward card one third of the time;
+    -- keep clearing enemy rooms until one does so the reward path is covered.
+    local reward_opened = false
+    for _, candidate in ipairs(session.map.nodes) do
+        if candidate.type == Constants.node_types.ENEMY then
+            session:debug_goto(candidate.id)
+            session:complete_battle({ clear_state = true, reward_eligible = true, battle_score = 150, player_id = 1 })
+            if session.run_state == Constants.run_states.REWARD then
+                reward_opened = true
+                break
+            end
+        end
+    end
+    assert_true(reward_opened, "enemy clear opens reward choice")
     local reward_claim = session:claim_reward(1, 1)
     assert_true(reward_claim ~= nil, "enemy reward can be claimed")
     assert_equal(session.run_state, Constants.run_states.MAP, "enemy reward returns to map")

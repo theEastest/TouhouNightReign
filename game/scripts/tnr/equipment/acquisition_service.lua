@@ -9,8 +9,11 @@ end
 function AcquisitionService:acquire(player_id, instance)
     local player = self.session:get_player(player_id)
     if not player then return nil, "UNKNOWN_PLAYER" end
-    if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION
-            and self.session.run_state ~= Constants.run_states.SHOP and self.session.run_state ~= Constants.run_states.REWARD then
+    local run_state = self.session.run_state
+    if run_state ~= Constants.run_states.MAP
+            and run_state ~= Constants.run_states.MAP_PREPARATION
+            and run_state ~= Constants.run_states.SHOP
+            and run_state ~= Constants.run_states.REWARD then
         return nil, "NOT_MAP"
     end
     if self.session.preparation and self.session.preparation:is_locked(player_id) then

@@ -170,6 +170,11 @@ local native_damage_owner_context
 local native_bomb_effects = {}
 local COOP_RESPAWN_FRAMES = 600
 local native_respawn_frames = { [1] = 0, [2] = 0 }
+-- Cumulative per-player counters for the whole encounter, used by the perfect
+-- clear tracker. `native_miss_counts` counts respawns, `native_bomb_counts`
+-- counts used bombs.
+local native_miss_counts = { [1] = 0, [2] = 0 }
+local native_bomb_counts = { [1] = 0, [2] = 0 }
 local native_team_lives = 3
 local native_party_state = nil
 local native_player_state = nil
@@ -1001,6 +1006,13 @@ local function native_record_bomb(owner_id, focus, input_tick, charged)
     native_last_bomb_owner = owner_id
     native_last_bomb_focus = focus == true
     native_last_bomb_charged = charged == true
+    -- Count used bombs per owner for the perfect clear tracker. A relayed
+    -- remote bomb is the same logical bomb, so dedupe by owner/sequence via
+    -- the local_event flag below.
+    local bomb_owner = tonumber(owner_id)
+    if bomb_owner then
+        native_bomb_counts[bomb_owner] = (native_bomb_counts[bomb_owner] or 0) + 1
+    end
     native_bomb_events[#native_bomb_events + 1] = {
         sequence = native_bomb_generation,
         owner = owner_id,
@@ -1175,6 +1187,9 @@ local function native_start_respawn(player_id)
     if not native_coop_enabled or native_team_defeated then return end
     if (native_respawn_frames[player_id] or 0) <= 0 then
         native_respawn_frames[player_id] = COOP_RESPAWN_FRAMES
+        -- Count the miss once per respawn, not once per frame.
+        local id = tonumber(player_id) or 1
+        native_miss_counts[id] = (native_miss_counts[id] or 0) + 1
     end
     if player_id == native_local_player_id then
         native_set_player_dead()
@@ -1268,6 +1283,16 @@ local function native_render_coop_hud()
     local bomb_alert = (native_bomb_hit_charge_window or 0) > 0
     RenderTTF("Sans", string.format("BOMBS  %d", math.max(0, bombs or 0)), right, right, y, y,
         bomb_alert and Color(255, 80, 80, 255) or Color(255, 255, 220, 255), "right", "vcenter", "noclip")
+    y = y - 26
+    -- Current stage score and money collected this stage. Both reset at the
+    -- room boundary, so this always reflects the stage being played.
+    local stage_score = tonumber(lstg and lstg.var and lstg.var.score) or 0
+    local stage_money = tonumber(lstg and lstg.var and lstg.var.tnr_stage_money) or 0
+    RenderTTF("Sans", string.format("SCORE  %d", stage_score), right, right, y, y,
+        Color(220, 235, 255, 255), "right", "vcenter", "noclip")
+    y = y - 26
+    RenderTTF("Sans", string.format("MONEY  %d", stage_money), right, right, y, y,
+        Color(255, 225, 140, 255), "right", "vcenter", "noclip")
     -- The charge is local to this machine/player. Draw it beneath the Bomb
     -- counter so both peers can charge independently without synchronizing a
     -- continuous stream of frames.
@@ -2215,6 +2240,94 @@ local function setup_native_stage()
     lstg.RegisterAllGameObjectClass()
     item.PlayerInit()
     InitScoreData()
+    -- Drop substitution: half of the original power drops become money drops
+    -- instead. The reference `item.DropItem` is wrapped rather than edited so
+    -- the imported THlib source stays pristine and the change is reviewable.
+    -- Money keeps the power drop's 1-unit value and counts toward the stage
+    -- score exactly like the power it replaces.
+    if item and type(item.DropItem) == "function" and not _G.__tnr_money_drop_installed then
+        _G.__tnr_money_drop_installed = true
+        local native_original_drop_item = item.DropItem
+        -- Money substitution uses the shared legacy RNG so both LAN peers
+        -- produce the same drop layout for the same room seed.
+        local function native_random_money_drop()
+            if ran and type(ran.Float) == "function" then
+                return ran:Float(0, 1) < 0.5
+            end
+            return math.random() < 0.5
+        end
+        local function native_random_range(minimum, maximum)
+            if ran and type(ran.Float) == "function" then
+                return ran:Float(minimum, maximum)
+            end
+            return minimum + math.random() * (maximum - minimum)
+        end
+        -- Money pickup: subclasses the point item so it reuses the exact
+        -- attraction, collection and render logic. Only `collect` changes, so
+        -- it credits money (and the stage score) instead of points.
+        local native_money_class = nil
+        local function native_money_item_class()
+            if native_money_class then return native_money_class end
+            native_money_class = Class(item_point)
+            function native_money_class:collect()
+                local var = lstg.var
+                var.tnr_stage_money = (tonumber(var.tnr_stage_money) or 0) + 1
+                -- Money is worth the power unit it replaced and also counts
+                -- toward the stage score.
+                var.score = (tonumber(var.score) or 0) + 100
+                New(float_text, 'item', 100, self.x, self.y + 6, 0.75, 90, 60, 0.5, 0.5,
+                    Color(0x80FFE080), Color(0x00FFE080))
+                var.itembar[3] = (var.itembar[3] or 0) + 1
+            end
+            if lstg.RegisterGameObjectClass then
+                pcall(lstg.RegisterGameObjectClass, native_money_class)
+            end
+            return native_money_class
+        end
+        local function native_spawn_money(x, y)
+            return New(native_money_item_class(), x, y)
+        end
+        item.DropItem = function(x, y, drop)
+            -- Keep a pristine copy of the drop table: the reference mutates
+            -- drop[1] and drop[4] in place.
+            local power = tonumber(drop and drop[1]) or 0
+            if power <= 0 then
+                return native_original_drop_item(x, y, drop)
+            end
+            -- Split the power budget into "money or power" per unit so the
+            -- total count is preserved while half become money.
+            local money_units = 0
+            local power_units = 0
+            if power >= 400 then
+                -- The full-power drop is a single large item; flip it whole.
+                if native_random_money_drop() then money_units = 1 else power_units = power end
+            else
+                local large = math.floor(power / 100)
+                local small = power % 100
+                for _ = 1, large do
+                    if native_random_money_drop() then money_units = money_units + 1 else power_units = power_units + 100 end
+                end
+                for _ = 1, small do
+                    if native_random_money_drop() then money_units = money_units + 1 else power_units = power_units + 1 end
+                end
+            end
+            -- Rebuild a drop table for the remaining power so the original
+            -- spawn spread math is reused unchanged.
+            if power_units > 0 then
+                native_original_drop_item(x, y, { power_units, drop[2], drop[3] })
+            end
+            for _ = 1, money_units do
+                local r2 = math.sqrt(native_random_range(1, 4)) * 5
+                local angle = native_random_range(0, 360)
+                native_spawn_money(x + r2 * math.cos(math.rad(angle)), y + r2 * math.sin(math.rad(angle)))
+            end
+            -- Faith and point drops still come from the reference path when
+            -- there was no power to convert.
+            if power_units <= 0 and (tonumber(drop[2]) or 0) + (tonumber(drop[3]) or 0) > 0 then
+                native_original_drop_item(x, y, { 0, drop[2], drop[3] })
+            end
+        end
+    end
     local boss_names = {
         reimu = "Reimu:Normal",
         marisa = "Marisa:Normal",
@@ -2265,6 +2378,15 @@ local function setup_native_stage()
         native_team_wipe_generation = 0
         native_respawn_frames[1], native_respawn_frames[2] = 0, 0
         self.frame_count = 0
+        -- Each stage scores independently: reset the reference score and the
+        -- money counter at the room boundary so the HUD and the clear payout
+        -- only reflect the current stage.
+        if lstg.var then
+            lstg.var.score = 0
+            lstg.var.tnr_stage_money = 0
+        end
+        native_miss_counts[1], native_miss_counts[2] = 0, 0
+        native_bomb_counts[1], native_bomb_counts[2] = 0, 0
         -- Imported activities use the legacy 640x480 world.  A card or room
         -- can leave a camera offset behind when it is restarted, so restore
         -- the canonical world transform before constructing any objects.
@@ -3277,6 +3399,14 @@ do
                 runtime_shot_calls = native_runtime_shot_calls,
                 legacy_shot_calls = native_legacy_shot_calls,
                 runtime_last_projectile = native_runtime_last_projectile,
+                -- Reference-project stage score and the money collected this
+                -- stage. The score follows the original THlib scoring (hits,
+                -- faith, point items, spell-card bonus and money pickups).
+                stage_score = tonumber(lstg.var and lstg.var.score) or 0,
+                stage_money = tonumber(lstg.var and lstg.var.tnr_stage_money) or 0,
+                -- Cumulative per-player counters for perfect clear detection.
+                player_miss_counts = { [1] = native_miss_counts[1] or 0, [2] = native_miss_counts[2] or 0 },
+                player_bomb_counts = { [1] = native_bomb_counts[1] or 0, [2] = native_bomb_counts[2] or 0 },
             }
         end,
         snapshot = function()

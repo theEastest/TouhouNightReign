@@ -644,6 +644,80 @@ function GameSession:return_to_map()
     return self.map:get_current_node()
 end
 
+--- Grant the perfect-clear bonus equipment to every qualifying player.
+--- A player who perfectly cleared at least one card earns one random piece of
+--- equipment; a player who perfectly cleared every card earns a second piece.
+--- Only non-resource equipment is eligible, and the choice is deterministic
+--- from the run seed and encounter so both LAN peers agree.
+function GameSession:_grant_perfect_bonus(result, encounter)
+    local counts = result.perfect_counts or {}
+    local total_cards = tonumber(result.perfect_total_cards) or 0
+    if total_cards <= 0 then return end
+    local pool = self.perfect_bonus_pool or self:_default_perfect_bonus_pool()
+    if #pool == 0 then return end
+    for index, player_id in ipairs(self.party.player_ids or {}) do
+        local perfect = tonumber(counts[player_id]) or 0
+        if perfect >= 1 then
+            local grants = 1
+            -- Full perfect (every card) adds a second piece.
+            if perfect >= total_cards then grants = 2 end
+            for grant_index = 1, grants do
+                local key = string.format("%s:%s:%s:%s", tostring(self.run_seed),
+                    tostring(encounter and encounter.id), tostring(player_id), tostring(grant_index))
+                local hash = 17
+                for char_index = 1, #key do hash = (hash * 31 + key:byte(char_index)) % 2147483647 end
+                local definition_id = pool[(hash % #pool) + 1]
+                local definition = self.equipment_registry:get(definition_id)
+                if definition then
+                    local instance = EquipmentInstance.new(definition, player_id)
+                    -- The bonus is granted by the system while the run is still
+                    -- inside the encounter, so it uses the inventory directly
+                    -- rather than the player-driven acquisition guard. A full
+                    -- inventory is still reported as pending for the player to
+                    -- resolve later.
+                    local player = self:get_player(player_id)
+                    local inventory = player and player.loadout and player.loadout.inventory
+                    local stored, store_err
+                    if inventory then stored, store_err = inventory:add(instance) end
+                    local acquired = stored ~= nil
+                    if not acquired and player then
+                        self.preparation.pending_acquisition[player_id] = instance
+                    end
+                    self:emit(Event.REWARD_GRANTED, {
+                        result = result,
+                        reward = {
+                            kind = "PERFECT_BONUS",
+                            player_id = player_id,
+                            definition_id = definition_id,
+                            full_perfect = perfect >= total_cards,
+                            equipment = acquired and instance:to_table() or nil,
+                            equipment_acquired = acquired,
+                            equipment_pending = not acquired,
+                            acquisition_error = store_err,
+                        },
+                    })
+                end
+            end
+        end
+    end
+end
+
+--- Eligible equipment for the perfect-clear bonus: every non-resource,
+--- non-test definition. Bombs and life fragments are resources, not
+--- equipment, so they are never part of this pool.
+function GameSession:_default_perfect_bonus_pool()
+    local pool = {}
+    for definition_id, definition in pairs(self.equipment_registry:all()) do
+        if definition.test_only ~= true
+                and definition.equipment_type ~= "RELIC" then
+            pool[#pool + 1] = definition_id
+        end
+    end
+    table.sort(pool)
+    self.perfect_bonus_pool = pool
+    return pool
+end
+
 function GameSession:complete_battle(values)
     values = values or {}
     local result = BattleResult.new(values)
@@ -669,6 +743,14 @@ function GameSession:complete_battle(values)
             if reward.bomb > 0 then
                 self:add_bomb(player_id, reward.bomb, "battle_reward")
             end
+        end
+        -- Perfect-clear bonus equipment. A player who perfectly cleared at
+        -- least one spell card earns one random equipment; a player who
+        -- perfectly cleared every card earns a second one (boss rooms only).
+        if result.reward_eligible and encounter
+                and (encounter.type == Constants.node_types.BOSS
+                    or encounter.type == Constants.node_types.ELITE) then
+            self:_grant_perfect_bonus(result, encounter)
         end
         if self.relic_runtime then
             for _, encounter_player_id in ipairs(self.party.player_ids or {}) do
@@ -699,13 +781,31 @@ function GameSession:complete_battle(values)
             end
         elseif encounter and (encounter.type == Constants.node_types.ENEMY
                 or encounter.type == Constants.node_types.ELITE) then
+            -- Elite rooms always offer a 3-choice reward; ordinary enemy rooms
+            -- offer it only one third of the time (deterministic from the run
+            -- seed and encounter so both LAN peers agree).
+            local offer_choice = true
+            if encounter.type == Constants.node_types.ENEMY then
+                local key = tostring(self.run_seed) .. ":" .. tostring(encounter.id) .. ":reward"
+                local hash = 23
+                for char_index = 1, #key do hash = (hash * 31 + key:byte(char_index)) % 2147483647 end
+                offer_choice = (hash % 3) == 0
+            end
+            if not offer_choice then
+                self.current_encounter = nil
+                self.room_generation = nil
+                self.reward_result = nil
+                self:return_to_map()
+                return result
+            end
             self.run_state = Constants.run_states.REWARD
             self.current_encounter = nil
             self.room_generation = nil
             self.reward_result = reward
             local choices, guaranteed_id = self.reward_service:generate_choices(result, self.run_seed)
             self.reward_choices = choices
-            self.reward_required = (encounter.type == Constants.node_types.ELITE) and 2 or 1
+            -- Both elite and ordinary rooms pick a single reward card.
+            self.reward_required = 1
             self.reward_guaranteed_definition_id = guaranteed_id
             self.reward_claims = {}
             if guaranteed_id then

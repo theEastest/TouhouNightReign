@@ -1,5 +1,6 @@
 local ProjectileRuntime = require("tnr.character.runtime.projectile_runtime")
 local BattleManager = require("tnr.battle.battle_manager")
+local PerfectTracker = require("tnr.battle.perfect_tracker")
 local StageDefinitions = require("tnr.stages.definitions")
 local Content = require("tnr.stages.content_catalog")
 local PlayerProfiles = require("tnr.player.player_profile")
@@ -70,6 +71,10 @@ function StageAdapter.new(session, stage_api, lstg, audio)
         projectile_stats = { by_source = {}, total = 0 },
         legacy_shot_calls = 0,
         runtime_shot_calls = 0,
+        -- Tracks per-card perfect clears for the bonus equipment payout.
+        perfect_tracker = PerfectTracker.new(),
+        last_native_card_num = nil,
+        last_snapshot_card = nil,
     }, StageAdapter)
 end
 
@@ -110,6 +115,12 @@ function StageAdapter:start(encounter)
     self.projectile_stats = { by_source = {}, total = 0 }
     self.legacy_shot_calls = 0
     self.runtime_shot_calls = 0
+    -- A new encounter resets perfect-clear tracking and the per-stage score
+    -- baseline used by the HUD and the clear payout.
+    if self.perfect_tracker then self.perfect_tracker:reset() end
+    self.last_native_card_num = nil
+    self.stage_score = 0
+    self.stage_money = 0
     self:_build_character_runtimes()
     self.native_preflight = NativeResourcePreflight.run(".", { encounter and encounter.id })
     self.battle:begin(encounter)
@@ -274,6 +285,49 @@ function StageAdapter:get_combat_runtime_debug()
         }
     end
     return result
+end
+
+--- Snapshot per-player bomb/miss totals in the shape the tracker expects.
+function StageAdapter:_native_perfect_totals(state)
+    local totals = {}
+    local ids = self.session.party and self.session.party.player_ids or { 1 }
+    for _, player_id in ipairs(ids) do
+        totals[player_id] = {
+            bombs = (state.player_bomb_counts and state.player_bomb_counts[player_id]) or 0,
+            deaths = (state.player_miss_counts and state.player_miss_counts[player_id]) or 0,
+        }
+    end
+    return totals, ids
+end
+
+--- Advance the perfect tracker on a spell-card boundary. `state.boss_card_num`
+--- increments when the boss advances to its next card; a value change of 1 or
+--- more means the previous card finished and a new one started.
+function StageAdapter:_track_native_perfect_cards(state)
+    if not self.perfect_tracker then return end
+    local card_num = tonumber(state.boss_card_num)
+    local boss_alive = state.boss_alive == true or state.boss ~= nil
+    local totals, ids = self:_native_perfect_totals(state)
+
+    if not boss_alive then
+        -- Leaving the boss (room cleared) ends any tracked card.
+        if self.perfect_tracker.active_card ~= nil then
+            self.perfect_tracker:end_card(totals, ids)
+        end
+        self.last_native_card_num = nil
+        return
+    end
+
+    if card_num == nil then return end
+    if self.last_native_card_num == nil then
+        -- First observation of this boss: begin tracking the current card.
+        self.perfect_tracker:begin_card(card_num, totals, ids)
+    elseif card_num ~= self.last_native_card_num then
+        -- A card just finished: evaluate it, then start the next one.
+        self.perfect_tracker:end_card(totals, ids)
+        self.perfect_tracker:begin_card(card_num, totals, ids)
+    end
+    self.last_native_card_num = card_num
 end
 
 function StageAdapter:start_empty_room(encounter_id)
@@ -1024,6 +1078,14 @@ function StageAdapter:update(input)
             self.native_bridge.update(values)
         end
         local state = self.native_bridge.state and self.native_bridge.state() or {}
+        -- Perfect-clear tracking: observe spell-card transitions via the boss
+        -- card counter. Snapshot each player's cumulative bomb/miss counters at
+        -- card start and compare at card end.
+        self:_track_native_perfect_cards(state)
+        -- Mirror the reference stage score and money so the HUD and the clear
+        -- payout use the same numbers as the native simulation.
+        self.stage_score = tonumber(state.stage_score) or self.stage_score or 0
+        self.stage_money = tonumber(state.stage_money) or self.stage_money or 0
         -- Pull only the native lifecycle fields into the formal model. Score,
         -- graze and bombs are updated as owner-local deltas elsewhere.
         local adapter = self.session.legacy_state_adapter
@@ -1859,6 +1921,15 @@ function StageAdapter:get_battle_manager()
 end
 
 function StageAdapter:complete(clear_state, options)
+    options = options or {}
+    -- Attach the reference stage score, the stage money and the perfect-clear
+    -- result so the reward service can compute the payout and bonus.
+    options.stage_score = math.max(tonumber(options.stage_score) or 0, tonumber(self.stage_score) or 0)
+    options.stage_money = math.max(tonumber(options.stage_money) or 0, tonumber(self.stage_money) or 0)
+    if self.perfect_tracker then
+        options.perfect_counts = self.perfect_tracker:get_counts()
+        options.perfect_total_cards = self.perfect_tracker.total_cards
+    end
     return self.battle:complete(clear_state, options)
 end
 

@@ -92,6 +92,11 @@ function BattleManager:complete(clear_state, options)
         debug_clear = options.debug_clear == true,
         player_id = options.player_id or 1,
         per_player_result = battle.per_player,
+        -- Reference stage score/money and perfect-clear result.
+        stage_score = options.stage_score,
+        stage_money = options.stage_money,
+        perfect_counts = options.perfect_counts,
+        perfect_total_cards = options.perfect_total_cards,
     })
     self.active = nil
     return self.session:dispatch({ type = Command.COMPLETE_BATTLE, result = result })
