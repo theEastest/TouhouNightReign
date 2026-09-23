@@ -24,7 +24,7 @@ SOURCE = os.path.join(ROOT, "resource", "金币动画.png")
 OUTPUT = os.path.join(ROOT, "game", "assets", "items", "coin_sheet.png")
 
 CELL = 32
-VISIBLE = 30  # coin occupies this many pixels inside each 32x32 cell
+VISIBLE = 10  # coin occupies this many pixels inside each 32x32 cell
 
 # Tight bounding boxes of each keyframe in the source sheet, measured from the
 # non-background pixels. Order is the sampled spin: face, narrow, edge, narrow,

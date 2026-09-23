@@ -966,37 +966,93 @@ end
 -- damage/effects to the wrong player.  Spawn the same native Kekkai object at
 -- the remote coordinates instead; it remains a real GROUP_PLAYER_BULLET and
 -- therefore damages the local Boss through the original collision system.
+--- Character id of the player whose bomb is being played.
+local function native_owner_character(owner_id, owner_object)
+    if owner_object and owner_object.character_id then return tostring(owner_object.character_id) end
+    if tonumber(owner_id) == native_local_player_id then return native_active_character() end
+    if native_remote_player and native_remote_player.character_id then
+        return tostring(native_remote_player.character_id)
+    end
+    return "reimu"
+end
+
 native_play_remote_bomb = function(owner_id, focus, charged)
     local owner = tonumber(owner_id) or 0
     local owner_object = owner == native_local_player_id and native_player or native_remote_player
-    if not owner_object or type(New) ~= "function" or not reimu_kekkai then
+    if not owner_object or type(New) ~= "function" then
         return
     end
+    local character_id = native_owner_character(owner, owner_object)
     local x = tonumber(owner_object.x) or 0
     local y = tonumber(owner_object.y) or 0
-    -- Focused Reimu Bomb uses the original small Kekkai damage.  The unfocused
-    -- variant uses the same native object with the larger reference damage;
-    -- both modes have a finite lifetime and are locally collidable.
-    local damage = charged and (focus and 2.0 or 90) or (focus and 1.25 or 50)
-    if type(PlaySound) == "function" then
-        if focus then
-            pcall(PlaySound, "power1", 0.8)
-            pcall(PlaySound, "cat00", 0.8)
-        else
-            pcall(PlaySound, "nep00", 0.8)
-            pcall(PlaySound, "slash", 0.8)
-        end
-    end
     local previous_owner = native_damage_owner_context
     native_damage_owner_context = tonumber(owner_id)
-    local layers = charged and (focus and 30 or 12) or (focus and 20 or 6)
-    local spacing = charged and 8 or 12
-    local ok, effect = pcall(New, reimu_kekkai, x, y, damage, layers, 20, spacing)
-    if ok and effect then
-        effect._tnr_bomb_effect = true
-        effect._tnr_bomb_created_frame = stage and stage.current_stage
-            and tonumber(stage.current_stage.frame_count) or 0
-        native_bomb_effects[#native_bomb_effects + 1] = effect
+    local function track(effect)
+        if effect then
+            effect._tnr_bomb_effect = true
+            effect._tnr_bomb_created_frame = stage and stage.current_stage
+                and tonumber(stage.current_stage.frame_count) or 0
+            native_bomb_effects[#native_bomb_effects + 1] = effect
+        end
+    end
+    -- The charged bomb is each character's strongest reference effect, so it
+    -- matches that character's identity instead of always using Reimu's
+    -- Kekkai. Uncharged bombs keep using the character's own spell().
+    if character_id == "marisa" then
+        -- Master Spark: the focused reference bomb, with its expanding waves.
+        if type(PlaySound) == "function" then
+            pcall(PlaySound, "slash", 1.0)
+            pcall(PlaySound, "nep00", 1.0)
+        end
+        pcall(function() track(New(player_spell_mask, 255, 255, 0, 30, 240, 30)) end)
+        pcall(function() track(New(marisa_spark, x, y, 90, 30, 240, 30)) end)
+        pcall(function()
+            New(tasker, function()
+                for _ = 1, 27 do
+                    New(marisa_spark_wave, x, y - 16, 90, 12, 1.8)
+                    task.Wait(10)
+                end
+                New(bullet_killer, x, y)
+                pcall(PlaySound, "slash", 1.0)
+            end)
+        end)
+    elseif character_id == "sanae" then
+        -- Divine wind barrier: the focused reference bomb, nine orbiting rings.
+        if type(PlaySound) == "function" then pcall(PlaySound, "nep00", 1.0) end
+        pcall(function() track(New(player_spell_mask, 200, 200, 200, 16, 224, 16)) end)
+        pcall(function() track(New(sanae_dmg, 1.5)) end)
+        for index = 0, 8 do
+            local offset = -1024 * index
+            pcall(function() track(New(sanae_bs, offset)) end)
+        end
+        pcall(function()
+            New(tasker, function()
+                for _ = 1, 240 do
+                    task.Wait(1)
+                    New(bullet_killer, x, y)
+                end
+            end)
+        end)
+    else
+        -- Reimu: the original focused Kekkai, unchanged.
+        if not reimu_kekkai then
+            native_damage_owner_context = previous_owner
+            return
+        end
+        local damage = charged and (focus and 2.0 or 90) or (focus and 1.25 or 50)
+        if type(PlaySound) == "function" then
+            if focus then
+                pcall(PlaySound, "power1", 0.8)
+                pcall(PlaySound, "cat00", 0.8)
+            else
+                pcall(PlaySound, "nep00", 0.8)
+                pcall(PlaySound, "slash", 0.8)
+            end
+        end
+        local layers = charged and (focus and 30 or 12) or (focus and 20 or 6)
+        local spacing = charged and 8 or 12
+        local ok, effect = pcall(New, reimu_kekkai, x, y, damage, layers, 20, spacing)
+        if ok then track(effect) end
     end
     native_damage_owner_context = previous_owner
 end
@@ -1657,7 +1713,42 @@ local function build_native_card_sequence(class, slot)
     if not class or type(class.cards) ~= "table" or not slot then
         return nil
     end
-    local selected = class.cards[slot]
+    -- The catalog's slot numbering counts every entry, including movement and
+    -- dialogue setup cards. A selected slot may therefore point at a
+    -- non-combat card; if the built sequence contained no combat card the boss
+    -- would finish immediately and vanish without ever attacking. Resolve the
+    -- slot onto the nearest real combat card first.
+    if slot < 1 or slot > #class.cards then
+        return nil
+    end
+    local combat_slot = slot
+    if not (class.cards[combat_slot] and class.cards[combat_slot].is_combat == true) then
+        local resolved
+        -- Prefer the next combat card at or after the slot.
+        for index = slot, #class.cards do
+            local candidate = class.cards[index]
+            if type(candidate) == "table" and candidate.is_combat == true then
+                resolved = index
+                break
+            end
+        end
+        -- Otherwise fall back to the closest preceding combat card.
+        if not resolved then
+            for index = math.min(slot, #class.cards), 1, -1 do
+                local candidate = class.cards[index]
+                if type(candidate) == "table" and candidate.is_combat == true then
+                    resolved = index
+                    break
+                end
+            end
+        end
+        if not resolved then
+            -- No combat card anywhere in this class; nothing playable to build.
+            return nil
+        end
+        combat_slot = resolved
+    end
+    local selected = class.cards[combat_slot]
     if type(selected) ~= "table" then
         return nil
     end
@@ -1669,7 +1760,7 @@ local function build_native_card_sequence(class, slot)
     -- the entrance move. Without it the Boss stays off screen and the room
     -- shows no Boss at all (for example the Cirno non-spell).
     local pending_moves = {}
-    for previous_index = slot - 1, 1, -1 do
+    for previous_index = combat_slot - 1, 1, -1 do
         local previous = class.cards[previous_index]
         if not previous then
             break
