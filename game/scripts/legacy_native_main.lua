@@ -2268,7 +2268,54 @@ local function setup_native_stage()
         local native_money_class = nil
         local function native_money_item_class()
             if native_money_class then return native_money_class end
+            -- Load the coin sheet into the persistent global pool. Sprites
+            -- loaded during GameInit live in the stage pool and are evicted on
+            -- the first stage.Change(), which is what made the earlier
+            -- money constructor fail with "can't find resource 'tnr-coin-1'".
+            local function ensure_coin_sprites()
+                if rawget(_G, "__tnr_coin_loaded") then return end
+                if not (lstg and lstg.LoadTexture and lstg.LoadImage) then return end
+                local set_status = lstg.SetResourceStatus
+                local get_status = lstg.GetResourceStatus
+                local previous
+                if type(get_status) == "function" then previous = get_status() end
+                if type(set_status) == "function" then pcall(set_status, "global") end
+                pcall(lstg.LoadTexture, "tnr-coin-texture", "assets/items/coin_sheet.png", false)
+                for frame = 1, 5 do
+                    pcall(lstg.LoadImage, "tnr-coin-" .. frame, "tnr-coin-texture",
+                        (frame - 1) * 32, 0, 32, 32, 16, 16)
+                end
+                if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
+                _G.__tnr_coin_loaded = true
+            end
+            ensure_coin_sprites()
             native_money_class = Class(item_point)
+            -- Spin animation: five 32x32 frames, one shown per few frames. The
+            -- pickup keeps the point item's attraction/collection behaviour and
+            -- only replaces the sprite and the collect effect.
+            local COIN_FRAMES = 5
+            local COIN_FRAME_TICKS = 4
+            function native_money_class:init(x, y)
+                ensure_coin_sprites()
+                item.init(self, x, y, 2)
+                self.tnr_coin_frame = 1
+                self.img = "tnr-coin-1"
+                self.imgup = "tnr-coin-1"
+            end
+            function native_money_class:frame()
+                item.frame(self)
+                local index = math.floor((self.timer or 0) / COIN_FRAME_TICKS) % COIN_FRAMES + 1
+                if index ~= self.tnr_coin_frame then
+                    self.tnr_coin_frame = index
+                    self.img = "tnr-coin-" .. index
+                    self.imgup = "tnr-coin-" .. index
+                end
+                -- Suppress the reference spin-in rotation; the sheet already
+                -- animates the coin and a rotated sprite would look wrong.
+                self.rot = 0
+                self.hscale = 1
+                self.vscale = 1
+            end
             function native_money_class:collect()
                 local var = lstg.var
                 var.tnr_stage_money = (tonumber(var.tnr_stage_money) or 0) + 1

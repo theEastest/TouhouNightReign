@@ -45,6 +45,23 @@ game.audio:attach_native()
 function GameInit()
     lstg.LoadTexture("tnr-white-texture", "assets/texture/white.png", false)
     lstg.LoadImage("tnr-white", "tnr-white-texture", 0, 0, 16, 16)
+    -- Money pickup animation: a five-frame coin spin, one 32x32 frame per
+    -- column. Loaded into the global pool so it survives the per-stage resource
+    -- reset that would otherwise evict it before the first room starts.
+    pcall(function()
+        local set_status = lstg.SetResourceStatus
+        local get_status = lstg.GetResourceStatus
+        local previous
+        if type(get_status) == "function" then previous = get_status() end
+        if type(set_status) == "function" then pcall(set_status, "global") end
+        lstg.LoadTexture("tnr-coin-texture", "assets/items/coin_sheet.png", false)
+        for frame = 1, 5 do
+            lstg.LoadImage("tnr-coin-" .. frame, "tnr-coin-texture",
+                (frame - 1) * 32, 0, 32, 32, 16, 16)
+        end
+        if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
+        _G.__tnr_coin_loaded = true
+    end)
     -- Playable character sprite sheets. Each is loaded independently and a
     -- missing sheet is skipped so one absent character cannot break the boot.
     local character_sheets = {
