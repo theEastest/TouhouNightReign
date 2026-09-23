@@ -39,8 +39,9 @@ return {
     marisa = {
         id = "marisa",
         display_name = "雾雨魔理沙",
-        normal_speed = 5.0,
-        focused_speed = 2.0,
+        -- 10% faster than Reimu (4.5 * 1.10).
+        normal_speed = 4.95,
+        focused_speed = 2.2,
         hitbox_radius = 3,
         shot_interval = 5,
         normal_shot = {
@@ -71,8 +72,9 @@ return {
     sanae = {
         id = "sanae",
         display_name = "东风谷早苗",
-        normal_speed = 4.5,
-        focused_speed = 2.0,
+        -- 10% slower than Reimu (4.5 * 0.90).
+        normal_speed = 4.05,
+        focused_speed = 1.8,
         hitbox_radius = 3,
         shot_interval = 5,
         normal_shot = {

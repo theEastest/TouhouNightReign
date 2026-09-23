@@ -131,12 +131,27 @@ function Native.pulse(pulse)
     return New(pulse_class, pulse)
 end
 
+-- Which character sprite a support equipment belongs to. Initial supports
+-- (reimu/marisa/sanae) and the guide supports are all mapped here so the
+-- renderer never falls back to a resource that was never loaded.
+local function support_sprite_for(support_id)
+    support_id = tostring(support_id or "")
+    if support_id:find("marisa", 1, true) then
+        return image("marisa-support", "Thlib/player/marisa/marisa.png", 128, 144, 16, 16)
+    elseif support_id:find("sanae", 1, true) then
+        return image("sanae-support", "Thlib/player/sanae/sanae.png", 64, 144, 16, 16)
+    end
+    -- Reimu and any unknown support use the Reimu option sprite.
+    return image("reimu-support", "Thlib/player/reimu/reimu.png", 64, 144, 16, 16)
+end
+
 function Native.render_supports(entities, alpha)
     for _, entity in ipairs(entities or {}) do
-        local id = entity.support_id or ""
-        local name = "reimu_support"
-        if id == "support_marisa_orreries_sun" then name = image("marisa-support", "Thlib/player/marisa/marisa.png", 128,144,16,16)
-        elseif id == "support_sanae_snakeskin_amulet" then name = image("sanae-support", "Thlib/player/sanae/sanae.png", 64,144,16,16) end
+        -- Resolve the sprite from the equipment definition. Loading through
+        -- image() keeps the resource alive even if the legacy character script
+        -- that also loads it has not run yet (the previous hardcoded
+        -- "reimu_support" lookup raised "image not found" at room start).
+        local name = support_sprite_for(entity.support_id)
         lstg.SetImageState(name, "", Color(alpha or 255,255,255,255))
         lstg.Render(name, entity.x, entity.y)
     end

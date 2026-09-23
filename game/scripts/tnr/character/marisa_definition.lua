@@ -6,13 +6,14 @@ local CharacterDefinition = require("tnr.character.character_definition")
 return CharacterDefinition.new({
     character_id = "marisa",
     name = "Marisa",
-    base_high_speed = 5.0,
-    base_low_speed = 2.0,
-    base_capacity = 110,
-    high_weapon_slots = 3,
-    low_weapon_slots = 3,
+    -- 10% faster and 10% lighter than Reimu.
+    base_high_speed = 4.95,
+    base_low_speed = 2.2,
+    base_capacity = 90,
+    high_weapon_slots = 4,
+    low_weapon_slots = 2,
     support_slots = 1,
-    self_modifier_slots = 2,
-    support_modifier_slots = 2,
+    self_modifier_slots = 3,
+    support_modifier_slots = 1,
     inventory_slots = 6,
 })

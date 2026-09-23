@@ -801,6 +801,14 @@ function Bootstrap:_open_preparation(edit_only)
     return result
 end
 
+--- The local player's loadout, used to make the preparation slot grid match
+--- the character's actual slot counts.
+function Bootstrap:_local_loadout()
+    local player = self.session:get_player(self.session.local_player_id or 1)
+        or self.session:get_player(1)
+    return player and player.loadout or nil
+end
+
 function Bootstrap:_preparation_rows()
     local player = self.session:get_player(self.session.local_player_id or 1) or self.session:get_player(1)
     local rows = { { kind = "action" } }
@@ -925,7 +933,7 @@ function Bootstrap:_update_preparation(player_input, overlay)
         local mouse_x, mouse_y = self.input:get_mouse_position()
         local visible = math.max(1, math.floor((self.renderer.height - 245) / 38))
         local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 92, self.renderer.width * 0.65, 88, self.renderer.height - 188, row_count, visible)
-        local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor)
+        local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor, self:_local_loadout())
         if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
             if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
                 self.preparation_cursor = hit

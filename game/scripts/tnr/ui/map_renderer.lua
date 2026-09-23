@@ -311,21 +311,23 @@ function MapRenderer:render_map(view, session, mouse_x, mouse_y)
     lstg.EndScene()
 end
 
-function MapRenderer:preparation_hit_test(x, y, row_count, cursor)
+function MapRenderer:preparation_hit_test(x, y, row_count, cursor, loadout)
     if not x or not y then return nil end
-    local groups = {
-        { key = "high_weapons", x = 100, y = 525, count = 3 },
-        { key = "low_weapons", x = 100, y = 375, count = 3 },
-        { key = "supports", x = 100, y = 225, count = 1 },
-        { key = "self_modifiers", x = 300, y = 225, count = 2 },
-        { key = "support_modifiers", x = 300, y = 75, count = 2 },
-    }
-    local row_base = { high_weapons = 4, low_weapons = 8, supports = 12, self_modifiers = 14, support_modifiers = 17 }
-    local slot_w, slot_h, gap = 145, 105, 18
+    local groups = preparation_groups(loadout)
+    -- Row base is the first row index of each group as built by
+    -- _preparation_rows: action(1), relic(2), then a header and the slots of
+    -- each group in order.
+    local row_base = {}
+    local next_row = 3
+    for _, group in ipairs(groups) do
+        next_row = next_row + 1 -- header
+        row_base[group.key] = next_row
+        next_row = next_row + group.count
+    end
     for _, group in ipairs(groups) do
         for index = 1, group.count do
-            local left = group.x + (index - 1) * (slot_w + gap)
-            if x >= left and x <= left + slot_w and y >= group.y and y <= group.y + slot_h then
+            local left = group.x + (index - 1) * (SLOT_W + SLOT_GAP)
+            if x >= left and x <= left + SLOT_W and y >= group.y and y <= group.y + SLOT_H then
                 local row = row_base[group.key] + index - 1
                 if row <= (row_count or row) then return row end
             end
@@ -334,7 +336,9 @@ function MapRenderer:preparation_hit_test(x, y, row_count, cursor)
     if x >= 850 and x <= self.width - 80 and y >= 90 and y <= 360 then
         local col = x < 1035 and 0 or 1
         local line = math.floor((360 - y) / 78)
-        local row = 20 + line * 2 + col
+        -- The inventory header follows the last group, then its items.
+        local inventory_start = next_row + 1
+        local row = inventory_start + line * 2 + col
         if row <= (row_count or row) then return row end
     end
     if x >= 70 and x <= 300 and y >= 38 and y <= 86 then return 1 end
@@ -443,6 +447,30 @@ function MapRenderer:render_preparation_legacy(session, cursor, message, mouse_x
     return #rows
 end
 
+-- Slot grid layout shared by the preparation renderer and its hit test so
+-- mouse and keyboard stay in sync. Slot counts come from the character's
+-- loadout, which differs per character.
+local SLOT_W, SLOT_H, SLOT_GAP = 145, 105, 18
+local function preparation_groups(loadout)
+    local function group_count(key, fallback)
+        local list = loadout and loadout[key]
+        local count = type(list) == "table" and #list or 0
+        return math.max(1, count > 0 and count or fallback)
+    end
+    return {
+        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", x = 100, y = 525,
+          count = group_count("high_weapons", 3) },
+        { key = "low_weapons", label = "LOW-SPEED WEAPONS", x = 100, y = 375,
+          count = group_count("low_weapons", 3) },
+        { key = "supports", label = "SUPPORT", x = 100, y = 225,
+          count = group_count("supports", 1) },
+        { key = "self_modifiers", label = "SELF BUFFS", x = 320, y = 225,
+          count = group_count("self_modifiers", 2) },
+        { key = "support_modifiers", label = "SUPPORT BUFFS", x = 100, y = 75,
+          count = group_count("support_modifiers", 2) },
+    }
+end
+
 function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse_y, mouse_down, edit_only, overlay)
     local lstg = self.lstg
     local player = session:get_player(session.local_player_id or 1) or session:get_player(1)
@@ -451,13 +479,7 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
     local rows = { { kind = "action" } }
     if edit_only then rows[1].label = "Save" end
     local row_refs = {}
-    local groups = {
-        { key = "high_weapons", label = "HIGH-SPEED WEAPONS", x = 100, y = 525, count = 3 },
-        { key = "low_weapons", label = "LOW-SPEED WEAPONS", x = 100, y = 375, count = 3 },
-        { key = "supports", label = "SUPPORT", x = 100, y = 225, count = 1 },
-        { key = "self_modifiers", label = "SELF BUFFS", x = 300, y = 225, count = 2 },
-        { key = "support_modifiers", label = "SUPPORT BUFFS", x = 300, y = 75, count = 2 },
-    }
+    local groups = preparation_groups(loadout)
     if loadout then
         rows[#rows + 1] = { kind = "relic" }
         for _, group in ipairs(groups) do
@@ -492,9 +514,32 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
     self:draw_panel(62, 810, 48, self.height - 82)
     self:draw_panel(828, self.width - 62, 48, self.height - 82)
     self:draw_text("EQUIPMENT LOADOUT", 88, self.height - 116, 1.18, COLORS.accent, 0)
-    self:draw_text(string.format("Capacity %d   Weight %.1f", player and player.current_capacity or 0,
-        loadout and loadout:get_total_weight(registry) or 0), 88, self.height - 148, 0.68, COLORS.muted, 0)
-    local slot_w, slot_h, gap = 145, 105, 18
+    -- Weight bar: current weight against the character's capacity. The bar
+    -- turns gold below half capacity (ultralight, which doubles high speed),
+    -- and red when overloaded.
+    local capacity = player and tonumber(player.current_capacity) or 0
+    local weight = loadout and loadout:get_total_weight(registry) or 0
+    local WeightPolicy = require("tnr.character.runtime.weight_speed_policy")
+    local weight_class = WeightPolicy.classify(weight, capacity)
+    local bar_left, bar_right = 88, 470
+    local bar_bottom, bar_top = self.height - 168, self.height - 154
+    local fill_color = COLORS.accent
+    local class_label = ""
+    if weight_class == "ULTRALIGHT" then
+        fill_color = { 255, 245, 140, 120 }
+        class_label = "   超轻机体"
+    elseif weight_class == "OVERLOAD" then
+        fill_color = { 255, 235, 105, 110 }
+        class_label = "   超载"
+    end
+    draw_rect(lstg, self.white, { 200, 40, 48, 60 }, bar_left, bar_right, bar_bottom, bar_top)
+    local ratio = capacity > 0 and math.min(1, weight / capacity) or (weight > 0 and 1 or 0)
+    if ratio > 0 then
+        draw_rect(lstg, self.white, fill_color, bar_left, bar_left + (bar_right - bar_left) * ratio, bar_bottom, bar_top)
+    end
+    self:draw_text(string.format("负重 %.1f / %d%s", weight, capacity, class_label),
+        88, self.height - 196, 0.72, COLORS.muted, 0)
+    local slot_w, slot_h, gap = SLOT_W, SLOT_H, SLOT_GAP
     for _, group in ipairs(groups) do
         self:draw_text(group.label, group.x, group.y + slot_h + 13, 0.64, COLORS.muted, 0)
         for index = 1, group.count do
