@@ -469,7 +469,21 @@ function item:PlayerMiss()
     lstg.var.lifeleft = lstg.var.lifeleft - 1
     lstg.var.power = math.max(lstg.var.power - 50, 100)
     lstg.var.bomb = max(lstg.var.bomb, 3)
-    if lstg.var.lifeleft > 0 then
+    -- The death drop used to scatter pink power items (and an F card on the
+    -- last life). Regular drops are limited to coins and points, so the
+    -- recovered power is returned as coins through the shared spawner.
+    local spawn_money = rawget(_G, "tnr_spawn_money")
+    if type(spawn_money) == "function" then
+        if lstg.var.lifeleft > 0 then
+            for i = 1, 7 do
+                local a = 90 + (i - 4) * 18 + self.x * 0.26
+                local radius = 24
+                spawn_money(self.x + radius * cos(a), self.y + 10 + radius * sin(a))
+            end
+        else
+            spawn_money(self.x, self.y + 10)
+        end
+    elseif lstg.var.lifeleft > 0 then
         for i = 1, 7 do
             local a = 90 + (i - 4) * 18 + self.x * 0.26
             New(item_power, self.x, self.y + 10, 3, a)

@@ -2343,14 +2343,8 @@ local function setup_native_stage()
     if item and type(item.DropItem) == "function" and not _G.__tnr_money_drop_installed then
         _G.__tnr_money_drop_installed = true
         local native_original_drop_item = item.DropItem
-        -- Money substitution uses the shared legacy RNG so both LAN peers
-        -- produce the same drop layout for the same room seed.
-        local function native_random_money_drop()
-            if ran and type(ran.Float) == "function" then
-                return ran:Float(0, 1) < 0.5
-            end
-            return math.random() < 0.5
-        end
+        -- Drop spread uses the shared legacy RNG so both LAN peers produce the
+        -- same layout for the same room seed.
         local function native_random_range(minimum, maximum)
             if ran and type(ran.Float) == "function" then
                 return ran:Float(minimum, maximum)
@@ -2429,44 +2423,44 @@ local function setup_native_stage()
         local function native_spawn_money(x, y)
             return New(native_money_item_class(), x, y)
         end
+        -- The item module's death drop and any other native code spawn the
+        -- regular pickup set through this hook so pink power items and green
+        -- faith items never reach the field.
+        _G.tnr_spawn_money = native_spawn_money
         item.DropItem = function(x, y, drop)
             -- Keep a pristine copy of the drop table: the reference mutates
             -- drop[1] and drop[4] in place.
             local power = tonumber(drop and drop[1]) or 0
-            if power <= 0 then
+            local faith = tonumber(drop and drop[2]) or 0
+            local points = tonumber(drop and drop[3]) or 0
+            -- Regular drops are limited to two pickups: the animated coin and
+            -- the original blue point item. Every power unit (including the
+            -- large P card and the full-power F card) becomes one coin, and
+            -- faith is folded into the point count so nothing green (or pink)
+            -- is left behind. Extend, bomb and bomb-chip drops never travel
+            -- through this table and are therefore untouched.
+            local money_units = 0
+            if power >= 400 then
+                -- The full-power drop is exported as a single F card in the
+                -- reference. It is a regular power drop here, so convert it
+                -- into a matching stack of coins instead of the card.
+                money_units = 1
+            elseif power > 0 then
+                money_units = math.floor(power / 100) + (power % 100)
+            end
+            local point_units = points + faith
+            if money_units <= 0 and point_units <= 0 then
                 return native_original_drop_item(x, y, drop)
             end
-            -- Split the power budget into "money or power" per unit so the
-            -- total count is preserved while half become money.
-            local money_units = 0
-            local power_units = 0
-            if power >= 400 then
-                -- The full-power drop is a single large item; flip it whole.
-                if native_random_money_drop() then money_units = 1 else power_units = power end
-            else
-                local large = math.floor(power / 100)
-                local small = power % 100
-                for _ = 1, large do
-                    if native_random_money_drop() then money_units = money_units + 1 else power_units = power_units + 100 end
-                end
-                for _ = 1, small do
-                    if native_random_money_drop() then money_units = money_units + 1 else power_units = power_units + 1 end
-                end
-            end
-            -- Rebuild a drop table for the remaining power so the original
-            -- spawn spread math is reused unchanged.
-            if power_units > 0 then
-                native_original_drop_item(x, y, { power_units, drop[2], drop[3] })
+            -- Reuse the reference spread math by handing it a drop table with
+            -- no power and no faith, only the surviving point count.
+            if point_units > 0 then
+                native_original_drop_item(x, y, { 0, 0, point_units })
             end
             for _ = 1, money_units do
                 local r2 = math.sqrt(native_random_range(1, 4)) * 5
                 local angle = native_random_range(0, 360)
                 native_spawn_money(x + r2 * math.cos(math.rad(angle)), y + r2 * math.sin(math.rad(angle)))
-            end
-            -- Faith and point drops still come from the reference path when
-            -- there was no power to convert.
-            if power_units <= 0 and (tonumber(drop[2]) or 0) + (tonumber(drop[3]) or 0) > 0 then
-                native_original_drop_item(x, y, { 0, drop[2], drop[3] })
             end
         end
     end

@@ -126,7 +126,7 @@ function laser_bent:kill()
     --by ETC
     for i = 0, self._l do
         if self.listx[i] and self.listy[i] then
-            New(item_faith_minor, self.listx[i], self.listy[i])
+            New(item_point, self.listx[i], self.listy[i])
             if self.index and i % 2 == 0 then
                 New(BulletBreak, self.listx[i], self.listy[i], self.index)
             end

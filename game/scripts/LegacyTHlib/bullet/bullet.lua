@@ -66,7 +66,10 @@ end
 
 function bullet:kill()
     local w = lstg.world
-    New(item_faith_minor, self.x, self.y)
+    -- Bullets that leave the field leave a blue point item behind. The
+    -- reference spawned the small green faith gem here, which clashed with
+    -- the regular drop set (coins and points only).
+    New(item_point, self.x, self.y)
     if self._index and BoxCheck(self, w.boundl, w.boundr, w.boundb, w.boundt) then
         New(BulletBreak, self.x, self.y, self._index)
     end
@@ -140,7 +143,8 @@ end
 function img_class:kill()
     img_class.del(self)
     New(BulletBreak, self.x, self.y, self._index)
-    New(item_faith_minor, self.x, self.y)
+    -- See bullet:kill(); dissolve into a blue point instead of a green gem.
+    New(item_point, self.x, self.y)
 end
 
 ---@diagnostic disable-next-line: duplicate-set-field
