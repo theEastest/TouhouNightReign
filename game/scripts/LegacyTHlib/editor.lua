@@ -791,7 +791,10 @@ smear.func = function(img)
     if not lstg.tmpvar.smearcache[img] then
         smear.cache[img] = img .. "_smear_psi"
         lstg.tmpvar.smearcache[img] = img .. "_smear_psi"
-        LoadPS(img .. "_smear_psi", "THlib/bullet/smear.psi", img)
+        -- The reference editor points at THlib/smear.psi; the exported path
+        -- here used a bullet/ subdirectory that does not exist, so every
+        -- smeared bullet failed to load its particle.
+        LoadPS(img .. "_smear_psi", "Thlib/smear.psi", img)
     end
     return lstg.tmpvar.smearcache[img]
 end

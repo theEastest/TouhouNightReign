@@ -10,6 +10,10 @@ local native_dialog_block_index = setmetatable({}, { __mode = "k" })
 local native_boss_key_for_class = setmetatable({}, { __mode = "k" })
 local native_current_dialog_card = nil
 local native_active_character
+-- Declared ahead of native_index_dialog_blocks, which wraps dialogue card init
+-- functions and needs the override helper; otherwise the closure resolves a
+-- non-existent global and crashes as soon as a boss card runs its dialogue.
+local DialogOverride
 
 --- Which player character is active, used to pick the dialogue variant and
 --- the native player class.
@@ -64,7 +68,7 @@ local native_room_seed = 0
 local native_room_floor = 1
 local native_room_band = 1
 local FloorBonus = require("tnr.battle.floor_bonus")
-local DialogOverride = require("tnr.stages.dialog_override")
+DialogOverride = require("tnr.stages.dialog_override")
 local native_room_music_hint
 local native_room_generation = 0
 -- Shared TNR encounter identity used on the wire. The native counter remains
