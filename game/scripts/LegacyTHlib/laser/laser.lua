@@ -149,7 +149,7 @@ function laser:kill()
         for l = 0, length, 12 do
             x, y = self.x + l * cx, self.y + l * cy
             if (x <= w.r and x >= w.l) and (y <= w.t and y >= w.b) then
-                New(item_point, x, y)
+                New(item_faith_minor, x, y)
                 if self.index and l % 2 == 0 then
                     New(BulletBreak, x, y, self.index)
                 end
@@ -264,7 +264,7 @@ function laser:newkill()
             end
             local cx, cy = cos(rot), sin(rot)
             for l = 0, len, 12 do
-                New(item_point, x + l * cx, y + l * cy)
+                New(item_faith_minor, x + l * cx, y + l * cy)
                 if l % 2 == 0 and self.index then
                     New(BulletBreak, x + l * cx, y + l * cy, self.index)
                 end
