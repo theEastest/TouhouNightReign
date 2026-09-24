@@ -48,6 +48,7 @@ local DifficultyFloorSpec = require("difficulty_floor_spec")
 local ShopRewardSpec = require("shop_reward_spec")
 local DropRewardSpec = require("drop_reward_spec")
 local DropItemsSpec = require("drop_items_spec")
+local WaveConcatSpec = require("wave_concat_spec")
 local BossSequenceSpec = require("boss_sequence_spec")
 local DialogOverrideSpec = require("dialog_override_spec")
 local CharacterSelectSpec = require("character_select_spec")
@@ -84,6 +85,7 @@ DifficultyFloorSpec(assert_equal, assert_true)
 ShopRewardSpec(assert_equal, assert_true)
 DropRewardSpec(assert_equal, assert_true)
 DropItemsSpec(assert_equal, assert_true)
+WaveConcatSpec(assert_equal, assert_true)
 BossSequenceSpec(assert_equal, assert_true)
 DialogOverrideSpec(assert_equal, assert_true)
 CharacterSelectSpec(assert_equal, assert_true)
@@ -213,7 +215,11 @@ assert_true(ContentCatalog.cards.mushroom_growth.legacy_expected_combat, "mushro
 local enemy_wave_count = 0
 local LegacyEnemyWaves = require("tnr.stages.legacy_enemy_waves")
 for _, stage in ipairs(LegacyEnemyWaves) do
-    assert_true(#(stage.waves or {}) <= 2, stage.source_stage .. " must expose at most two grouped waves")
+    -- Each stage contributes many short atoms now; the room selector
+    -- concatenates them into a formal 30 second wave. Keep a generous upper
+    -- bound so a runaway generator is still caught.
+    assert_true(#(stage.waves or {}) > 0, stage.source_stage .. " must expose at least one atom")
+    assert_true(#(stage.waves or {}) <= 64, stage.source_stage .. " must not explode into too many atoms")
 end
 for wave_id, wave in pairs(ContentCatalog.enemy_waves or {}) do
     enemy_wave_count = enemy_wave_count + 1
@@ -222,8 +228,8 @@ for wave_id, wave in pairs(ContentCatalog.enemy_waves or {}) do
     assert_true(#(wave.members or {}) > 0 and #(wave.members or {}) <= 200,
         wave_id .. " must keep a bounded stage wave")
     assert_true(wave.duration_frames and wave.duration_frames > 0, wave_id .. " must retain duration")
-    assert_true(wave.duration_seconds and wave.duration_seconds > 10,
-        wave_id .. " must not expose a ten-second-or-shorter practice wave")
+    assert_true(wave.duration_seconds and wave.duration_seconds > 0,
+        wave_id .. " must retain a positive duration")
     local previous_spawn_frame = -1
     for _, member in ipairs(wave.members or {}) do
         assert_true(type(member.spawn_frame) == "number" and member.spawn_frame >= 0,

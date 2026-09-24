@@ -4,11 +4,67 @@
 -- Normal waves are difficulty 1-3; Lunatic waves are difficulty 4-6.
 return {
     { id = "legacy_lico_normal", source_stage = "lico@Normal", waves = {
-        { id = "legacy_lico_normal_wave_01", name = "lico@Normal After Mid-Boss", difficulty = 3, duration_frames = 2230, duration_seconds = 37.2, classes = {
+        { id = "legacy_lico_normal_wave_01", name = "lico@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "lizi_米弹毛玉红:Normal",
+            "lizi_米弹毛玉绿:Normal",
+            "lizi_小玉毛玉:Normal",
+        }, members = {
+            { class_name = "lizi_小玉毛玉:Normal", args = {
+                "-160",
+                "230",
+                "1",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "lizi_小玉毛玉:Normal", args = {
+                "160",
+                "230",
+                "-1",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "lizi_米弹毛玉红:Normal", args = {
+                "-160",
+                "-230",
+                "1",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "lizi_米弹毛玉红:Normal", args = {
+                "160",
+                "-230",
+                "-1",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "lizi_米弹毛玉绿:Normal", args = {
+                "-160",
+                "-230",
+                "1",
+            }, spawn_frame = 480, env = {
+            } },
+            { class_name = "lizi_米弹毛玉绿:Normal", args = {
+                "160",
+                "-230",
+                "-1",
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_lico_normal_wave_02", name = "lico@Normal Before Mid-Boss", difficulty = 1, duration_frames = 240, duration_seconds = 4, classes = {
+            "lizi_小玉毛玉:Normal",
+        }, members = {
+            { class_name = "lizi_小玉毛玉:Normal", args = {
+                "-160",
+                "230",
+                "1",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "lizi_小玉毛玉:Normal", args = {
+                "160",
+                "230",
+                "-1",
+            }, spawn_frame = 120, env = {
+            } },
+        } },
+        { id = "legacy_lico_normal_wave_03", name = "lico@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
             "lizi_爆菊冲锋兵:Normal",
             "lizi_封位狙蝴蝶:Normal",
-            "lizi_横向冲锋兵:Normal",
-            "lizi_聚合阴阳玉:Normal",
             "lizi_米弹毛玉红:Normal",
             "lizi_尸体弹鬼火:Normal",
             "lizi_中玉大蝴蝶:Normal",
@@ -34,7 +90,7 @@ return {
                 "-140",
                 "-230",
                 "1",
-            }, spawn_frame = 426, env = {
+            }, spawn_frame = 240, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -42,7 +98,7 @@ return {
                 "140",
                 "-230",
                 "-1",
-            }, spawn_frame = 495, env = {
+            }, spawn_frame = 360, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -50,7 +106,7 @@ return {
                 "210*i",
                 "110",
                 "_",
-            }, spawn_frame = 954, env = {
+            }, spawn_frame = 480, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -58,15 +114,20 @@ return {
                 "ran:Float(-200,200)",
                 "240",
                 "_",
-            }, spawn_frame = 1274, env = {
+            }, spawn_frame = 600, env = {
                 i = "1",
                 x = "60*i",
             } },
+        } },
+        { id = "legacy_lico_normal_wave_04", name = "lico@Normal After Mid-Boss", difficulty = 3, duration_frames = 360, duration_seconds = 6, classes = {
+            "lizi_横向冲锋兵:Normal",
+            "lizi_聚合阴阳玉:Normal",
+        }, members = {
             { class_name = "lizi_横向冲锋兵:Normal", args = {
                 "-200*i",
                 "180",
                 "90-90*i",
-            }, spawn_frame = 1764, env = {
+            }, spawn_frame = 0, env = {
                 i = "1",
                 x = "60*i",
                 y = "180",
@@ -78,7 +139,7 @@ return {
                 "50",
                 "22",
                 "1",
-            }, spawn_frame = 1929, env = {
+            }, spawn_frame = 120, env = {
                 a = "22",
                 i = "1",
                 x = "60*i",
@@ -91,7 +152,7 @@ return {
                 "50",
                 "192",
                 "-1",
-            }, spawn_frame = 2229, env = {
+            }, spawn_frame = 240, env = {
                 a = "192",
                 i = "1",
                 x = "60*i",
@@ -100,10 +161,9 @@ return {
         } },
     } },
     { id = "legacy_xy_normal", source_stage = "xy@Normal", waves = {
-        { id = "legacy_xy_normal_wave_01", name = "xy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 2115, duration_seconds = 35.2, classes = {
+        { id = "legacy_xy_normal_wave_01", name = "xy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "道中-固定弹幽灵:Normal",
             "道中-森林萤火虫:Normal",
-            "道中-中玉蝴蝶:Normal",
             "道中-自机狙妖精:Normal",
         }, members = {
             { class_name = "道中-固定弹幽灵:Normal", args = {
@@ -123,7 +183,7 @@ return {
                 "4",
                 "0",
                 "0",
-            }, spawn_frame = 410, env = {
+            }, spawn_frame = 120, env = {
                 yy = "220",
             } },
             { class_name = "道中-森林萤火虫:Normal", args = {
@@ -135,7 +195,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 920, env = {
+            }, spawn_frame = 240, env = {
                 aa = "-45",
                 xx = "150",
                 yy = "220",
@@ -149,7 +209,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 1030, env = {
+            }, spawn_frame = 360, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -161,7 +221,7 @@ return {
                 "0",
                 "10",
                 "0",
-            }, spawn_frame = 1140, env = {
+            }, spawn_frame = 480, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -173,11 +233,15 @@ return {
                 "0",
                 "10",
                 "0",
-            }, spawn_frame = 1210, env = {
+            }, spawn_frame = 600, env = {
                 aa = "-45",
                 xx = "150",
                 yy = "220",
             } },
+        } },
+        { id = "legacy_xy_normal_wave_02", name = "xy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 240, duration_seconds = 4, classes = {
+            "道中-中玉蝴蝶:Normal",
+        }, members = {
             { class_name = "道中-中玉蝴蝶:Normal", args = {
                 "-200",
                 "250",
@@ -188,7 +252,7 @@ return {
                 "25",
                 "2",
                 "400",
-            }, spawn_frame = 1490, env = {
+            }, spawn_frame = 0, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -203,13 +267,13 @@ return {
                 "25",
                 "2",
                 "325",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 120, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
             } },
         } },
-        { id = "legacy_xy_normal_wave_02", name = "xy@Normal After Mid-Boss", difficulty = 3, duration_frames = 1351, duration_seconds = 22.5, classes = {
+        { id = "legacy_xy_normal_wave_03", name = "xy@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
             "道中-固定弹幽灵:Normal",
             "道中-中玉蝴蝶:Normal",
             "道中-自机狙妖精:Normal",
@@ -251,7 +315,7 @@ return {
                 "10",
                 "10",
                 "20",
-            }, spawn_frame = 200, env = {
+            }, spawn_frame = 120, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "220",
@@ -263,7 +327,7 @@ return {
                 "10",
                 "10",
                 "20",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 240, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "220",
@@ -278,7 +342,7 @@ return {
                 "0",
                 "2",
                 "300",
-            }, spawn_frame = 840, env = {
+            }, spawn_frame = 360, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "220",
@@ -290,7 +354,7 @@ return {
                 "1",
                 "1",
                 "1",
-            }, spawn_frame = 990, env = {
+            }, spawn_frame = 480, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "90",
@@ -305,11 +369,15 @@ return {
                 "0",
                 "2",
                 "225",
-            }, spawn_frame = 1200, env = {
+            }, spawn_frame = 600, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "90",
             } },
+        } },
+        { id = "legacy_xy_normal_wave_04", name = "xy@Normal After Mid-Boss", difficulty = 3, duration_frames = 120, duration_seconds = 2, classes = {
+            "道中-固定弹幽灵:Normal",
+        }, members = {
             { class_name = "道中-固定弹幽灵:Normal", args = {
                 "-210",
                 "90",
@@ -317,7 +385,7 @@ return {
                 "1",
                 "1",
                 "1",
-            }, spawn_frame = 1350, env = {
+            }, spawn_frame = 0, env = {
                 aa = "-135",
                 xx = "150",
                 yy = "90",
@@ -325,7 +393,7 @@ return {
         } },
     } },
     { id = "legacy_qxs_normal", source_stage = "qxs@Normal", waves = {
-        { id = "legacy_qxs_normal_wave_01", name = "qxs@Normal Complete Enemy Run", difficulty = 2, duration_frames = 2675, duration_seconds = 44.6, classes = {
+        { id = "legacy_qxs_normal_wave_01", name = "qxs@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "qxs_enm01",
             "qxs_enm03",
         }, members = {
@@ -345,7 +413,7 @@ return {
                 "64",
                 "23",
                 "3",
-            }, spawn_frame = 158, env = {
+            }, spawn_frame = 120, env = {
                 s = "1",
                 vx = "128",
                 xx = "vx*(s%4-2)",
@@ -357,7 +425,7 @@ return {
                 "144",
                 "23",
                 "3",
-            }, spawn_frame = 316, env = {
+            }, spawn_frame = 240, env = {
                 s = "1",
                 vx = "128",
                 xx = "80",
@@ -369,7 +437,7 @@ return {
                 "144",
                 "23",
                 "3",
-            }, spawn_frame = 406, env = {
+            }, spawn_frame = 360, env = {
                 s = "-1",
                 vx = "128",
                 xx = "20",
@@ -382,7 +450,7 @@ return {
                 "1.2",
                 "80-90*s",
                 "5",
-            }, spawn_frame = 1252, env = {
+            }, spawn_frame = 480, env = {
                 s = "-1",
                 vx = "128",
                 xx = "-128",
@@ -395,19 +463,23 @@ return {
                 "1.2",
                 "-90+10*s",
                 "5",
-            }, spawn_frame = 1651, env = {
+            }, spawn_frame = 600, env = {
                 s = "-1",
                 vx = "128",
                 xx = "30*s",
                 y0 = "180",
                 yy = "60-60*s",
             } },
+        } },
+        { id = "legacy_qxs_normal_wave_02", name = "qxs@Normal Before Mid-Boss", difficulty = 1, duration_frames = 257, duration_seconds = 4.3, classes = {
+            "qxs_enm01",
+        }, members = {
             { class_name = "qxs_enm01", args = {
                 "dis*cos(a)",
                 "dis*sin(a)+72",
                 "26",
                 "3",
-            }, spawn_frame = 2499, env = {
+            }, spawn_frame = 0, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -421,7 +493,7 @@ return {
                 "170",
                 "23",
                 "3",
-            }, spawn_frame = 2657, env = {
+            }, spawn_frame = 120, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -435,7 +507,7 @@ return {
                 "170",
                 "23",
                 "3",
-            }, spawn_frame = 2674, env = {
+            }, spawn_frame = 137, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -447,7 +519,211 @@ return {
         } },
     } },
     { id = "legacy_karl_normal", source_stage = "karl@Normal", waves = {
-        { id = "legacy_karl_normal_wave_01", name = "karl@Normal After Mid-Boss", difficulty = 3, duration_frames = 1225, duration_seconds = 20.4, classes = {
+        { id = "legacy_karl_normal_wave_01", name = "karl@Normal Before Mid-Boss", difficulty = 1, duration_frames = 510, duration_seconds = 8.5, classes = {
+            "karl_hBallEnemy",
+            "karl_hFastFairy",
+            "karl_hFlowerButterfly",
+            "karl_hShadowButterfly",
+        }, members = {
+            { class_name = "karl_hFastFairy", args = {
+                "220",
+                "ran:Float(100,140)",
+                "Angle(x,y,-220,ran:Float(100,140))",
+                "3",
+                "0.1",
+                "18",
+                "10",
+                "3",
+                "COLOR_BLUE",
+                "grain_a",
+                "6",
+                "3",
+            }, spawn_frame = 0, env = {
+                x = "220",
+                y = "ran:Float(100,140)",
+            } },
+            { class_name = "karl_hFastFairy", args = {
+                "-220",
+                "ran:Float(100,140)",
+                "Angle(x,y,220,ran:Float(100,140))",
+                "3",
+                "0.1",
+                "18",
+                "10",
+                "3",
+                "COLOR_BLUE",
+                "grain_a",
+                "6",
+                "3",
+            }, spawn_frame = 10, env = {
+                x = "-220",
+                y = "ran:Float(100,140)",
+            } },
+            { class_name = "karl_hShadowButterfly", args = {
+                "0",
+                "254",
+                "14",
+                "2",
+                "180",
+                "25",
+                "7.8",
+                "3",
+                "3.6",
+                "6",
+                "karl_bullet_initializer.new()",
+                "karl_bullet_initializer.new()",
+                "360",
+                "false",
+                "{bi=bi3, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+            }, spawn_frame = 130, env = {
+                bi = "karl_bullet_initializer.new()",
+                bi2 = "bi:copy()",
+                bi3 = "karl_bullet_initializer.new()",
+                bi4 = "bi3:copy()",
+                enemy_list = "{}",
+                last_time = "1400",
+                list = "{bi=bi3, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                list2 = "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                start_time = "self.timer",
+                t3 = "360",
+                x = "-220",
+                y = "ran:Float(100,140)",
+            } },
+            { class_name = "karl_hShadowButterfly", args = {
+                "0",
+                "254",
+                "9",
+                "2",
+                "0",
+                "25",
+                "3.9",
+                "3",
+                "7.2",
+                "6",
+                "bi:copy()",
+                "bi:copy()",
+                "360",
+                "false",
+                "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+            }, spawn_frame = 130, env = {
+                bi = "karl_bullet_initializer.new()",
+                bi2 = "bi:copy()",
+                bi3 = "karl_bullet_initializer.new()",
+                bi4 = "bi3:copy()",
+                enemy_list = "{}",
+                last_time = "1400",
+                list = "{bi=bi3, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                list2 = "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                start_time = "self.timer",
+                t3 = "360",
+                x = "-220",
+                y = "ran:Float(100,140)",
+            } },
+            { class_name = "karl_hBallEnemy", args = {
+                "temp*60",
+                "280",
+                "270+temp*20",
+                "190",
+                "2.5",
+                "0.15",
+                "-244",
+                "{a=1.25, l=20, bi=bi, ac=ac, n1=3, w_t=60, n2=20}",
+                "{t=20, v1=7, v2=2.4, bi1=bi1, bi2=bi2, w_t=9, da=1, dv=0.07, da2=2, last_time=100, start_time=90, w_t2=60}",
+                "60",
+                "240",
+                "120",
+            }, spawn_frame = 250, env = {
+                ac = "karl_acc_controller.new(7)",
+                bi = "karl_bullet_initializer.new()",
+                bi1 = "karl_bullet_initializer.new()",
+                bi2 = "karl_bullet_initializer.new()",
+                bi3 = "karl_bullet_initializer.new()",
+                bi4 = "bi3:copy()",
+                count = "ran:Float(0,360)",
+                enemy_list = "{}",
+                last_time = "1400",
+                list = "{bi=bi3, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                list2 = "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                lista = "{a=1.25, l=20, bi=bi, ac=ac, n1=3, w_t=60, n2=20}",
+                listb = "{t=20, v1=7, v2=2.4, bi1=bi1, bi2=bi2, w_t=9, da=1, dv=0.07, da2=2, last_time=100, start_time=90, w_t2=60}",
+                n = "2",
+                start_time = "self.timer",
+                t3 = "360",
+                temp = "sin(count)",
+                x = "-220",
+                y = "ran:Float(100,140)",
+            } },
+            { class_name = "karl_hFastFairy", args = {
+                "220*side",
+                "ran:Float(40,100)",
+                "Angle(x,y,-220*side,ran:Float(40,100))",
+                "6",
+                "0.2",
+                "6",
+                "0",
+                "3.5",
+                "COLOR_CYAN",
+                "grain_a",
+                "2",
+                "3",
+            }, spawn_frame = 370, env = {
+                ac = "karl_acc_controller.new(7)",
+                bi = "karl_bullet_initializer.new()",
+                bi1 = "karl_bullet_initializer.new()",
+                bi2 = "karl_bullet_initializer.new()",
+                bi3 = "karl_bullet_initializer.new()",
+                bi4 = "bi3:copy()",
+                count = "ran:Float(0,360)",
+                enemy_list = "{}",
+                last_time = "1400",
+                list = "{bi=bi3, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                list2 = "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                lista = "{a=1.25, l=20, bi=bi, ac=ac, n1=3, w_t=60, n2=20}",
+                listb = "{t=20, v1=7, v2=2.4, bi1=bi1, bi2=bi2, w_t=9, da=1, dv=0.07, da2=2, last_time=100, start_time=90, w_t2=60}",
+                n = "2",
+                side = "1",
+                start_time = "self.timer",
+                t3 = "360",
+                temp = "sin(count)",
+                x = "220*side",
+                y = "ran:Float(40,100)",
+            } },
+            { class_name = "karl_hFlowerButterfly", args = {
+                "70*side",
+                "264",
+                "70*side",
+                "100",
+                "60",
+                "270",
+                "60",
+                "-0.03",
+                "listb",
+                "75",
+            }, spawn_frame = 390, env = {
+                ac = "karl_acc_controller.new(7)",
+                bi = "karl_bullet_initializer.new()",
+                bi1 = "karl_bullet_initializer.new()",
+                bi2 = "karl_bullet_initializer.new()",
+                bi3 = "karl_bullet_initializer.new()",
+                bi4 = "bi3:copy()",
+                count = "1",
+                enemy_list = "{}",
+                hp = "75",
+                last_time = "1400",
+                list = "listb",
+                list2 = "{bi=bi4, w_t=27, v=2, dv=0.13, n1=7, n2=2, da=2.2, s_v=8, s_t=20}",
+                lista = "{a=306, n1=5, dv=0.16, n2=5, n3=3, t=36, v1=3.78, v2=2.32, l=15, color=COLOR_PURPLE, style=grain_a}",
+                listb = "{a=342, n1=5, dv=0.12, n2=5, n3=3, t=36, v1=2.88, v2=1.55, l=15, color=COLOR_PURPLE, style=grain_a}",
+                n = "2",
+                side = "1",
+                start_time = "self.timer",
+                t3 = "360",
+                temp = "sin(count)",
+                x = "220*side",
+                y = "ran:Float(40,100)",
+            } },
+        } },
+        { id = "legacy_karl_normal_wave_02", name = "karl@Normal After Mid-Boss", difficulty = 3, duration_frames = 621, duration_seconds = 10.4, classes = {
             "karl_hBallEnemy",
             "karl_hBlueFountainEnemy",
             "karl_hShadowButterfly",
@@ -558,7 +834,7 @@ return {
                 "3",
                 "12",
                 "4",
-            }, spawn_frame = 222, env = {
+            }, spawn_frame = 141, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -605,7 +881,7 @@ return {
                 "3",
                 "12",
                 "4",
-            }, spawn_frame = 222, env = {
+            }, spawn_frame = 141, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -652,7 +928,7 @@ return {
                 "6",
                 "72",
                 "15",
-            }, spawn_frame = 413, env = {
+            }, spawn_frame = 261, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -701,7 +977,7 @@ return {
                 "6",
                 "72",
                 "15",
-            }, spawn_frame = 413, env = {
+            }, spawn_frame = 261, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -748,7 +1024,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=3, dv=0.16, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -798,7 +1074,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=3, dv=0.16, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -848,7 +1124,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=3, dv=0.16, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -898,7 +1174,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=3, dv=0.16, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -945,7 +1221,7 @@ return {
                 "60",
                 "180",
                 "120",
-            }, spawn_frame = 1224, env = {
+            }, spawn_frame = 501, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(8)",
                 bi = "karl_bullet_initializer.new()",
@@ -982,13 +1258,10 @@ return {
         } },
     } },
     { id = "legacy_kbz_normal", source_stage = "kbz@Normal", waves = {
-        { id = "legacy_kbz_normal_wave_01", name = "kbz@Normal Complete Enemy Run", difficulty = 2, duration_frames = 4321, duration_seconds = 72, classes = {
+        { id = "legacy_kbz_normal_wave_01", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "卡比-标题小怪赤",
             "卡比-标题小怪青",
-            "卡比-小怪2赤",
-            "卡比-小怪2青",
             "卡比-陨石玉-1",
-            "卡比-陨石玉-2",
         }, members = {
             { class_name = "卡比-标题小怪青", args = {
                 "200",
@@ -1006,193 +1279,203 @@ return {
                 "0",
                 "240",
                 "0",
-            }, spawn_frame = 970, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "0",
-            }, spawn_frame = 1010, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "0",
-            }, spawn_frame = 1010, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "0",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "0",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "0",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "0",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "0",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "0",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "0",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "0",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "0",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "0",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_kbz_normal_wave_02", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-陨石玉-1",
+        }, members = {
+            { class_name = "卡比-陨石玉-1", args = {
+                "-50",
+                "240",
+                "0",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "50",
+                "240",
+                "0",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "0",
+                "240",
+                "0",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "-150",
+                "240",
+                "0",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "150",
+                "240",
+                "0",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "100",
+                "240",
+                "0",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "0",
+                "240",
+                "0",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "-100",
+                "240",
+                "0",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "0",
+                "240",
+                "0",
+            }, spawn_frame = 480, env = {
+            } },
+            { class_name = "卡比-陨石玉-1", args = {
+                "-150",
+                "240",
+                "0",
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "0",
-            }, spawn_frame = 1170, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "0",
-            }, spawn_frame = 1170, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "0",
-                "240",
-                "0",
-            }, spawn_frame = 1210, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "-150",
-                "240",
-                "0",
-            }, spawn_frame = 1610, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "0",
-            }, spawn_frame = 1610, env = {
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_kbz_normal_wave_03", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-小怪2赤",
+            "卡比-小怪2青",
+            "卡比-陨石玉-1",
+        }, members = {
+            { class_name = "卡比-陨石玉-1", args = {
+                "0",
+                "240",
+                "0",
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "0",
-            }, spawn_frame = 1650, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "0",
-            }, spawn_frame = 1650, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "-100",
-                "240",
-                "0",
-            }, spawn_frame = 1650, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "0",
-                "240",
-                "0",
-            }, spawn_frame = 1690, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "-150",
-                "240",
-                "0",
-            }, spawn_frame = 1730, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "-50",
-                "240",
-                "0",
-            }, spawn_frame = 1730, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "50",
-                "240",
-                "0",
-            }, spawn_frame = 1730, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "150",
-                "240",
-                "0",
-            }, spawn_frame = 1730, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "0",
-                "240",
-                "0",
-            }, spawn_frame = 1770, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "100",
-                "240",
-                "0",
-            }, spawn_frame = 1810, env = {
-            } },
-            { class_name = "卡比-陨石玉-1", args = {
-                "0",
-                "240",
-                "0",
-            }, spawn_frame = 1810, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "0",
-            }, spawn_frame = 1810, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "0",
-            }, spawn_frame = 1850, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "0",
-            }, spawn_frame = 1850, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -1201,7 +1484,7 @@ return {
                 "1",
                 "0",
                 "4",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -1210,7 +1493,7 @@ return {
                 "0",
                 "1",
                 "4",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -1219,7 +1502,7 @@ return {
                 "0",
                 "1",
                 "4",
-            }, spawn_frame = 2310, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -1228,7 +1511,7 @@ return {
                 "1",
                 "0",
                 "4",
-            }, spawn_frame = 2310, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -1237,7 +1520,7 @@ return {
                 "11",
                 "11",
                 "4",
-            }, spawn_frame = 2440, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -1246,8 +1529,14 @@ return {
                 "11",
                 "11",
                 "4",
-            }, spawn_frame = 2440, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_kbz_normal_wave_04", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-小怪2赤",
+            "卡比-小怪2青",
+            "卡比-陨石玉-2",
+        }, members = {
             { class_name = "卡比-小怪2青", args = {
                 "200",
                 "150+ran:Float(-50,50)",
@@ -1255,7 +1544,7 @@ return {
                 "ran:Int(0,1)",
                 "ran:Int(0,1)",
                 "4",
-            }, spawn_frame = 2570, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -1264,350 +1553,366 @@ return {
                 "ran:Int(0,1)",
                 "ran:Int(0,1)",
                 "4",
-            }, spawn_frame = 2570, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 3440, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "2",
-            }, spawn_frame = 3440, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 3480, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "2",
-            }, spawn_frame = 3480, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "2",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "2",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 3600, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 3600, env = {
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_kbz_normal_wave_05", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-陨石玉-2",
+        }, members = {
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "100",
+                "-1",
+                "2",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "150",
+                "1",
+                "2",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "200",
+                "-1",
+                "2",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "150",
+                "-1",
+                "2",
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 3640, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 3640, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "200",
-                "-1",
-                "2",
-            }, spawn_frame = 4080, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "150",
-                "-1",
-                "2",
-            }, spawn_frame = 4080, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "100",
-                "-1",
-                "2",
-            }, spawn_frame = 4080, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "150",
-                "1",
-                "2",
-            }, spawn_frame = 4080, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "2",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "2",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 4160, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4160, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 4160, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4160, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "2",
-            }, spawn_frame = 4200, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4200, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "2",
-            }, spawn_frame = 4200, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4200, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_kbz_normal_wave_06", name = "kbz@Normal Before Mid-Boss", difficulty = 1, duration_frames = 240, duration_seconds = 4, classes = {
+            "卡比-陨石玉-2",
+        }, members = {
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "2",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "2",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "2",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 120, env = {
+            } },
+        } },
+        { id = "legacy_kbz_normal_wave_07", name = "kbz@Normal After Mid-Boss", difficulty = 3, duration_frames = 130, duration_seconds = 2.2, classes = {
+            "卡比-玉-3",
+        }, members = {
+            { class_name = "卡比-玉-3", args = {
+                "500*cos(ANGLE)",
+                "500*sin(ANGLE)",
+                "0",
+            }, spawn_frame = 0, env = {
+                ANGLE = "0",
+            } },
+            { class_name = "卡比-玉-3", args = {
+                "500*cos(ANGLE)",
+                "500*sin(ANGLE)",
+                "0",
+            }, spawn_frame = 10, env = {
+                ANGLE = "180",
             } },
         } },
     } },
     { id = "legacy_xiv_normal", source_stage = "xiv@Normal", waves = {
-        { id = "legacy_xiv_normal_wave_01", name = "xiv@Normal Before Mid-Boss", difficulty = 1, duration_frames = 2957, duration_seconds = 49.3, classes = {
-            "bigGuy1_L",
+        { id = "legacy_xiv_normal_wave_01", name = "xiv@Normal Before Mid-Boss", difficulty = 1, duration_frames = 777, duration_seconds = 13, classes = {
             "bigGuy2_L",
             "bomber",
             "heavySniper_N",
             "kamikaze_N",
-            "laserShooter1",
             "sniper1_N",
             "sniper2_route1A_N",
-            "sniper2_route2A_N",
-            "sniper2_route2B_N",
-            "sniper2_route3_N",
-            "sniper3_N",
-            "sniper4_N",
-            "youseiDestroyer_N",
-            "youseiEraser_L",
-            "youseiMortar_N",
         }, members = {
             { class_name = "bomber", args = {
                 "ran:Int(-112,112)",
@@ -1620,14 +1925,14 @@ return {
                 "120",
                 "144",
                 "_",
-            }, spawn_frame = 110, env = {
+            }, spawn_frame = 120, env = {
                 x = "120",
             } },
             { class_name = "heavySniper_N", args = {
                 "-100",
                 "180",
                 "_",
-            }, spawn_frame = 152, env = {
+            }, spawn_frame = 240, env = {
                 x = "-100",
             } },
             { class_name = "sniper2_route1A_N", args = {
@@ -1635,21 +1940,21 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 344, env = {
+            }, spawn_frame = 360, env = {
                 x = "-100",
             } },
             { class_name = "heavySniper_N", args = {
                 "-100",
                 "200",
                 "_",
-            }, spawn_frame = 371, env = {
+            }, spawn_frame = 387, env = {
                 x = "-100",
             } },
             { class_name = "kamikaze_N", args = {
                 "-120",
                 "246",
                 "_",
-            }, spawn_frame = 611, env = {
+            }, spawn_frame = 507, env = {
                 x = "-120",
             } },
             { class_name = "bigGuy2_L", args = {
@@ -1657,7 +1962,7 @@ return {
                 "246",
                 "0.8",
                 "270",
-            }, spawn_frame = 819, env = {
+            }, spawn_frame = 627, env = {
                 x = "-120",
             } },
             { class_name = "sniper1_N", args = {
@@ -1665,22 +1970,33 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 819, env = {
+            }, spawn_frame = 627, env = {
                 x = "-100",
             } },
             { class_name = "heavySniper_N", args = {
                 "-150",
                 "220",
                 "_",
-            }, spawn_frame = 849, env = {
+            }, spawn_frame = 657, env = {
                 x = "-150",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_02", name = "xiv@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "bomber",
+            "laserShooter1",
+            "sniper2_route2A_N",
+            "sniper2_route2B_N",
+            "sniper3_N",
+            "youseiDestroyer_N",
+            "youseiEraser_L",
+            "youseiMortar_N",
+        }, members = {
             { class_name = "youseiMortar_N", args = {
                 "-200",
                 "180",
                 "0.7",
                 "0",
-            }, spawn_frame = 1041, env = {
+            }, spawn_frame = 0, env = {
                 x = "-150",
             } },
             { class_name = "youseiMortar_N", args = {
@@ -1688,7 +2004,7 @@ return {
                 "180",
                 "0.7",
                 "180",
-            }, spawn_frame = 1041, env = {
+            }, spawn_frame = 0, env = {
                 x = "-150",
             } },
             { class_name = "sniper3_N", args = {
@@ -1696,7 +2012,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1116, env = {
+            }, spawn_frame = 120, env = {
                 x = "-135",
             } },
             { class_name = "youseiDestroyer_N", args = {
@@ -1704,7 +2020,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1236, env = {
+            }, spawn_frame = 240, env = {
                 x = "-135",
             } },
             { class_name = "youseiMortar_N", args = {
@@ -1712,14 +2028,14 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1316, env = {
+            }, spawn_frame = 360, env = {
                 x = "-60",
             } },
             { class_name = "laserShooter1", args = {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 2036, env = {
+            }, spawn_frame = 480, env = {
                 x = "-60",
             } },
             { class_name = "bomber", args = {
@@ -1727,7 +2043,7 @@ return {
                 "246",
                 "3",
                 "270",
-            }, spawn_frame = 2036, env = {
+            }, spawn_frame = 480, env = {
                 x = "-100",
             } },
             { class_name = "youseiEraser_L", args = {
@@ -1735,7 +2051,7 @@ return {
                 "246",
                 "0.5",
                 "270",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "youseiMortar_N", args = {
@@ -1743,7 +2059,7 @@ return {
                 "246",
                 "0.5",
                 "270",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route2A_N", args = {
@@ -1751,7 +2067,7 @@ return {
                 "210",
                 "5",
                 "170",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route2B_N", args = {
@@ -1759,15 +2075,23 @@ return {
                 "210.596",
                 "5",
                 "170",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_03", name = "xiv@Normal Before Mid-Boss", difficulty = 1, duration_frames = 529, duration_seconds = 8.8, classes = {
+            "bigGuy1_L",
+            "sniper1_N",
+            "sniper2_route3_N",
+            "sniper4_N",
+            "youseiDestroyer_N",
+        }, members = {
             { class_name = "sniper2_route3_N", args = {
                 "-200",
                 "120",
                 "5",
                 "-20",
-            }, spawn_frame = 2505, env = {
+            }, spawn_frame = 0, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_N", args = {
@@ -1775,7 +2099,7 @@ return {
                 "120",
                 "5",
                 "-160",
-            }, spawn_frame = 2544, env = {
+            }, spawn_frame = 120, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_N", args = {
@@ -1783,21 +2107,21 @@ return {
                 "246",
                 "5",
                 "-45",
-            }, spawn_frame = 2583, env = {
+            }, spawn_frame = 240, env = {
                 x = "-120",
             } },
             { class_name = "sniper4_N", args = {
                 "-125",
                 "246",
                 "1.2",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "sniper4_N", args = {
                 "125",
                 "246",
                 "1.2",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_N", args = {
@@ -1805,7 +2129,7 @@ return {
                 "246",
                 "5",
                 "-135",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "youseiDestroyer_N", args = {
@@ -1813,7 +2137,7 @@ return {
                 "144",
                 "1",
                 "0",
-            }, spawn_frame = 2856, env = {
+            }, spawn_frame = 384, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -1822,7 +2146,7 @@ return {
                 "246",
                 "0.4",
                 "-90",
-            }, spawn_frame = 2881, env = {
+            }, spawn_frame = 409, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -1831,29 +2155,15 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 2881, env = {
+            }, spawn_frame = 409, env = {
                 a = "0",
                 x = "-200",
             } },
         } },
-        { id = "legacy_xiv_normal_wave_02", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 6873, duration_seconds = 114.6, classes = {
-            "bigFortress",
+        { id = "legacy_xiv_normal_wave_04", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
             "bigGuy1_L",
-            "bigGuy2_L",
-            "bomber",
-            "heavySniper_N",
             "kamikaze_N",
-            "laserShooter1",
-            "sniper1_N",
-            "sniper2_route1A_L",
-            "sniper2_route1A_N",
-            "sniper2_route1B_L",
-            "sniper2_route1B_N",
-            "sniper2_route2A_N",
-            "sniper2_route2B_N",
-            "sniper2_route3_N",
             "sniper3_N",
-            "sniper4_N",
             "youseiEraser_L",
         }, members = {
             { class_name = "kamikaze_N", args = {
@@ -1869,7 +2179,7 @@ return {
                 "240",
                 "1.3",
                 "-140",
-            }, spawn_frame = 126, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -1878,7 +2188,7 @@ return {
                 "240",
                 "1.3",
                 "-50",
-            }, spawn_frame = 216, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -1887,7 +2197,7 @@ return {
                 "246",
                 "1",
                 "-45",
-            }, spawn_frame = 366, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1897,7 +2207,7 @@ return {
                 "150",
                 "1",
                 "0",
-            }, spawn_frame = 456, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1907,17 +2217,27 @@ return {
                 "150",
                 "1",
                 "180",
-            }, spawn_frame = 532, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_05", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 762, duration_seconds = 12.7, classes = {
+            "bigGuy1_L",
+            "sniper2_route1A_N",
+            "sniper2_route1B_N",
+            "sniper2_route2A_N",
+            "sniper2_route2B_N",
+            "sniper2_route3_N",
+            "sniper4_N",
+        }, members = {
             { class_name = "sniper2_route1A_N", args = {
                 "-200",
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 1298, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1927,7 +2247,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 1367, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1937,7 +2257,7 @@ return {
                 "210",
                 "5",
                 "170",
-            }, spawn_frame = 1436, env = {
+            }, spawn_frame = 240, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1947,7 +2267,7 @@ return {
                 "210.596",
                 "5",
                 "170",
-            }, spawn_frame = 1505, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1957,7 +2277,7 @@ return {
                 "222",
                 "5",
                 "0",
-            }, spawn_frame = 1554, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1967,7 +2287,7 @@ return {
                 "202",
                 "5",
                 "0",
-            }, spawn_frame = 1575, env = {
+            }, spawn_frame = 501, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1977,7 +2297,7 @@ return {
                 "182",
                 "5",
                 "0",
-            }, spawn_frame = 1596, env = {
+            }, spawn_frame = 522, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1987,7 +2307,7 @@ return {
                 "246",
                 "1",
                 "-90",
-            }, spawn_frame = 1725, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -1996,17 +2316,25 @@ return {
                 "-192",
                 "246",
                 "2",
-            }, spawn_frame = 1725, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_06", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 762, duration_seconds = 12.7, classes = {
+            "bigGuy1_L",
+            "bigGuy2_L",
+            "heavySniper_N",
+            "sniper2_route3_N",
+            "sniper4_N",
+        }, members = {
             { class_name = "sniper2_route3_N", args = {
                 "200",
                 "222",
                 "5",
                 "180",
-            }, spawn_frame = 1917, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2016,7 +2344,7 @@ return {
                 "202",
                 "5",
                 "180",
-            }, spawn_frame = 1938, env = {
+            }, spawn_frame = 21, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2026,7 +2354,7 @@ return {
                 "182",
                 "5",
                 "180",
-            }, spawn_frame = 1959, env = {
+            }, spawn_frame = 42, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2036,7 +2364,7 @@ return {
                 "246",
                 "1",
                 "-90",
-            }, spawn_frame = 2088, env = {
+            }, spawn_frame = 162, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2045,7 +2373,7 @@ return {
                 "192",
                 "246",
                 "2",
-            }, spawn_frame = 2088, env = {
+            }, spawn_frame = 162, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2055,7 +2383,7 @@ return {
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 2370, env = {
+            }, spawn_frame = 282, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -2064,7 +2392,7 @@ return {
                 "100",
                 "200",
                 "_",
-            }, spawn_frame = 2400, env = {
+            }, spawn_frame = 402, env = {
                 a = "-45",
                 x = "100",
                 y = "246",
@@ -2074,7 +2402,7 @@ return {
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 2735, env = {
+            }, spawn_frame = 522, env = {
                 a = "-45",
                 x = "100",
                 y = "246",
@@ -2083,17 +2411,24 @@ return {
                 "-100",
                 "200",
                 "_",
-            }, spawn_frame = 2765, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-100",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_07", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "bigGuy2_L",
+            "laserShooter1",
+            "sniper1_N",
+            "sniper4_N",
+        }, members = {
             { class_name = "bigGuy2_L", args = {
                 "0",
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 3085, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-100",
                 y = "246",
@@ -2102,7 +2437,7 @@ return {
                 "-180",
                 "246",
                 "1.2",
-            }, spawn_frame = 3115, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 x = "-180",
                 y = "246",
@@ -2111,7 +2446,7 @@ return {
                 "-180",
                 "246",
                 "3",
-            }, spawn_frame = 4330, env = {
+            }, spawn_frame = 240, env = {
                 a = "-45",
                 x = "-180",
                 y = "246",
@@ -2121,7 +2456,7 @@ return {
                 "180",
                 "4",
                 "0",
-            }, spawn_frame = 4369, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -2132,7 +2467,7 @@ return {
                 "180",
                 "4",
                 "180",
-            }, spawn_frame = 4369, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -2142,7 +2477,7 @@ return {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 4419, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -2152,7 +2487,7 @@ return {
                 "-40",
                 "246",
                 "1.3",
-            }, spawn_frame = 4419, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
@@ -2162,7 +2497,7 @@ return {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 4499, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
@@ -2172,18 +2507,28 @@ return {
                 "-40",
                 "246",
                 "1.3",
-            }, spawn_frame = 4499, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
                 y = "180",
             } },
+        } },
+        { id = "legacy_xiv_normal_wave_08", name = "xiv@Normal After Mid-Boss", difficulty = 3, duration_frames = 606, duration_seconds = 10.1, classes = {
+            "bigFortress",
+            "bigGuy1_L",
+            "bomber",
+            "sniper2_route1A_L",
+            "sniper2_route1B_L",
+            "sniper3_N",
+            "sniper4_N",
+        }, members = {
             { class_name = "bomber", args = {
                 "-150",
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 4579, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -2194,7 +2539,7 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 4630, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -2205,7 +2550,7 @@ return {
                 "246",
                 "4",
                 "90",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -2216,7 +2561,7 @@ return {
                 "120",
                 "1.5",
                 "10",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -2227,7 +2572,7 @@ return {
                 "120",
                 "1.5",
                 "170",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -2237,7 +2582,7 @@ return {
                 "-150",
                 "246",
                 "0.8",
-            }, spawn_frame = 6166, env = {
+            }, spawn_frame = 246, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -2248,7 +2593,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 6803, env = {
+            }, spawn_frame = 366, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -2259,7 +2604,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 6803, env = {
+            }, spawn_frame = 366, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -2270,7 +2615,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 6872, env = {
+            }, spawn_frame = 486, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -2279,7 +2624,7 @@ return {
         } },
     } },
     { id = "legacy_sf_normal", source_stage = "sf@Normal", waves = {
-        { id = "legacy_sf_normal_wave_01", name = "sf@Normal Before Mid-Boss", difficulty = 1, duration_frames = 766, duration_seconds = 12.8, classes = {
+        { id = "legacy_sf_normal_wave_01", name = "sf@Normal Before Mid-Boss", difficulty = 1, duration_frames = 530, duration_seconds = 8.8, classes = {
             "sf_wave1N",
             "sf_wave3_ghost",
             "sf_wave3_毛玉N",
@@ -2332,7 +2677,7 @@ return {
                 "140",
                 "230",
                 "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 165, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2344,7 +2689,7 @@ return {
                 "-140",
                 "230",
                 "{0,0,0,-101.30993247403,0.15297058540779,-101.30993247402,0.25495097567966,-101.30993247402,0.35693136595149,-101.30993247402,0.45891175622337,-101.30993247402,0.56089214649519,-101.30993247402,0.66287253676706,-101.30993247402,0.76485292703892,-101.30993247402,0.8668333173108,-101.30993247402,0.96881370758262,-97.839263331806,1.3930183056945,-97.230242639252,1.3507405376311,-96.581944655177,1.3086252328303,-95.890626416205,1.2666885963014,-95.152081702205,1.2249489785293,-94.361572645021,1.1834272263219,-93.513750260605,1.1421471008587,-92.6025622025,1.1011357772773,-91.621145913653,1.0604244433245,-90.561705332567,1.02004901843,-90,1.79,-90,1.77,-90,1.75,-90,1.73,-90,1.71,-90,1.69,-90,1.67,-90,1.65,-90,1.63,-90.000000000001,1.61,-83.271487906231,1.7923448328935,-82.470073222312,1.7551353224182,-81.634113875968,1.718284027744,-80.761707068707,1.6818144963105,-79.850848201032,1.6457521077003,-78.899429978494,1.6101242188104,-77.905242922989,1.5749603169604,-76.865977693603,1.5402921800749,-75.779229699812,1.5061540425866,-74.642506576502,1.4725827650764,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-74.192915911312,2.2760711763915,-73.082994139021,2.2681490250863,-71.96571443287,2.2610838109191,-70.841860951417,2.2548835890129,-69.71224731252,2.2495555116511,-68.577713380806,2.2451057881534,-67.439121763631,2.2415396494374,-66.297354049034,2.2388613177238,-65.153306824577,2.2370739817896,-64.007887520605,2.2361797781037,-61.436059224636,2.9489320100674,-60.907551930526,2.941054232754,-60.376251248826,2.9334280287745,-59.842227057911,2.9260553651632,-59.305551846622,2.9189381630997,-58.766300685466,2.9120782956507,-58.224551192214,2.905477585527,-57.68038349182,2.8991378028648,-57.133880170634,2.8930606630349,-56.585126224855,2.8872478244861,-42.360980166152,3.5322089405923,-41.660572021289,3.5202982828164,-40.955514425819,3.5089172119046,-40.245976536397,3.4980708969373,-39.532135160199,3.4877643269005,-38.814174596834,3.4780023001718,-38.092286450574,3.4687894141905,-37.366669412769,3.4601300553592,-36.637529014517,3.4520283892228,-35.905077349883,3.4444883509746,-27.696179757911,3.8512595342303,-27.295317047619,3.8597668323359,-26.896236965493,3.8684622267769,-26.498966108905,3.8773444520703,-26.103530138874,3.8864122272348,-25.709953780811,3.8956642565806,-25.318260826244,3.9050992304934,-24.928474135461,3.9147158262127,-24.540615641076,3.9245127086047,-24.15470635246,3.9344885309275,-15.747948820798,4.3845752359835,-15.357493423498,4.4177482952291,-14.972875766787,4.4511234536912,-14.593999797585,4.4846961992982,-14.220770300188,4.5184621277598,-13.853092958514,4.5524169404834,-13.490874412124,4.586556442474,-13.134022306396,4.6208765402248,-12.782445337212,4.6553732396017,-12.436053290506,4.6900426437294,-11.882394152093,4.71094470356,-11.119423518526,4.7185802949616,-10.359052488084,4.7270498199194,-9.6015341717031,4.7363488047229,-8.8471157981033,4.7464723743007,-8.096038279981,4.7574152646159,-7.3485358112624,4.7691718358642,-6.6048354967539,4.7817360864021,-5.8651570152433,4.7951016673268,-5.1297123168309,4.8092618976305,11.473985796674,5.479507277119,13.450833840343,5.4597618995703,15.439645535319,5.4465585464585,17.435705152665,5.4399448526616,19.434192493179,5.4399448526616,21.430252110525,5.4465585464585,23.419063805501,5.4597618995704,25.395911849171,5.479507277119,27.356250477364,5.50572429386,29.295763444559,5.5383210452266,54.068935440588,5.2487046020899,56.860542342159,5.1950072184743,59.703551823762,5.1538820320221,62.58507376621,5.1256316683898,65.491094566176,5.1104696457371,68.406862149981,5.108512503655,71.317325446741,5.1197753856981,74.207596471142,5.1441714590398,77.063400034283,5.1815152224036,79.871477821791,5.2315294130875,116.00121992045,5.9079776573714,120.06858282186,5.927714568027,124.08887161572,5.9770394009074,128.02436396606,6.0552291451274,131.84205520356,6.1611849509652,135.51500437269,6.2935045880654,139.0229691235,6.4505658666507,142.35237935989,6.6306108315901,145.4957963323,6.8318225972284,148.45104428002,7.0523896659218,170.31355462296,5.8838847711355,174.38723121599,5.8279413174808,178.51854282911,5.8019393309479,-177.33470685258,5.8062810817252,-173.21566382098,5.8408989034223,-169.1657771154,5.9052603668255,-165.22240488441,5.9984081221604,-161.41700039673,6.119027700542,-157.77405931187,6.2655326988214,-154.31084107785,6.436155684879,-124.67328073996,6.6268695475314,-123.76147893002,6.6758220467595,-122.86317554471,6.7264403661967,-121.97850481466,6.7786871885344,-121.10757093766,6.8325251554605,-120.25044951808,6.8879169565261,-119.40718906073,6.9448254117724,-118.57781250168,7.0032135480792,-117.76231875994,7.0630446692627,-116.96068429553,7.1242824200055,-121.70964323495,6.9822990483078,-123.21032938735,6.9561842988811,-124.72128019587,6.9348756297428,-126.24048104031,6.9184174490992,-127.76584896496,6.9068444314318,-129.2952491975,6.9001811570422,-130.82651274413,6.8984418530564,-132.35745470594,6.9016302421964,-133.88589293316,6.9097395030493,-135.40966662097,6.9227523428186,-169.23879905924,6.9624421002979,-170.96785857395,7.0068823309658,-172.67359333983,7.0576199954375,-174.35351400164,7.1145203633133,-176.00538299185,7.1774368684092,-177.62722287263,7.2462128039411,-179.21731945941,7.3206830282426,179.22577983507,7.4006756448314,177.70327188162,7.4860136254217,176.21610731192}",
-            }, spawn_frame = 475, env = {
+            }, spawn_frame = 285, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2356,7 +2701,7 @@ return {
                 "list1[i]",
                 "list1[i+1]+50",
                 "27",
-            }, spawn_frame = 760, env = {
+            }, spawn_frame = 405, env = {
                 i = "#list2-1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2368,7 +2713,7 @@ return {
                 "list1[i]",
                 "list1[i+1]+50",
                 "27",
-            }, spawn_frame = 765, env = {
+            }, spawn_frame = 410, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2377,7 +2722,7 @@ return {
                 list2 = "{-149.99669187146,3.999881852552,-149.98676748582,3.9995274102079,-149.9702268431,3.9989366729679,-149.94706994329,3.9981096408318,-149.91729678639,3.9970463137996,-149.8809073724,3.9957466918715,-149.83790170132,3.9942107750473,-149.78827977316,3.992438563327,-149.7320415879,3.9904300567108,-149.66918714556,3.9881852551985,-149.59971644612,3.9857041587902,-149.5236294896,3.9829867674858,-149.44092627599,3.9800330812854,-149.35160680529,3.976843100189,-149.2556710775,3.9734168241966,-149.15311909263,3.9697542533081,-149.04395085066,3.9658553875236,-148.92816635161,3.9617202268431,-148.80576559546,3.9573487712665,-148.67674858223,3.952741020794,-148.54111531191,3.9478969754253,-148.3988657845,3.9428166351607,-148.25,3.9375,-148.09451795841,3.9319470699433,-147.93241965974,3.9261578449905,-147.76370510397,3.9201323251418,-147.58837429112,3.913870510397,-147.40642722117,3.9073724007561,-147.21786389414,3.9006379962193,-147.02268431002,3.8936672967864,-146.82088846881,3.8864603024575,-146.61247637051,3.8790170132325,-146.39744801512,3.8713374291115,-146.17580340265,3.8634215500945,-145.94754253308,3.8552693761815,-145.71266540643,3.8468809073724,-145.47117202268,3.8382561436673,-145.22306238185,3.8293950850662,-144.96833648393,3.820297731569,-144.70699432892,3.8109640831758,-144.43903591682,3.8013941398866,-144.16446124764,3.7915879017013,-143.88327032136,3.78154536862,-143.595463138,3.7712665406427,-143.30103969754,3.7607514177694,-143,3.75,-142.69234404537,3.7390122873346,-142.37807183365,3.7277882797732,-142.05718336484,3.7163279773157,-141.72967863894,3.7046313799622,-141.39555765595,3.6926984877127,-141.05482041588,3.6805293005671,-140.70746691871,3.6681238185255,-140.35349716446,3.6554820415879,-139.99291115312,3.6426039697543,-139.62570888469,3.6294896030246,-139.25189035917,3.6161389413989,-138.87145557656,3.6025519848771,-138.48440453686,3.5887287334594,-138.09073724008,3.5746691871456,-137.6904536862,3.5603733459357,-137.28355387524,3.5458412098299,-136.87003780718,3.531072778828,-136.44990548204,3.5160680529301,-136.02315689981,3.5008270321361,-135.58979206049,3.4853497164461,-135.14981096408,3.4696361058601,-134.70321361059,3.4536862003781,-134.25,3.4375,-133.79017013233,3.4210775047259,-133.32372400756,3.4044187145558,-132.85066162571,3.3875236294896,-132.37098298677,3.3703922495274,-131.88468809074,3.3530245746692,-131.39177693762,3.3354206049149,-130.89224952741,3.3175803402646,-130.38610586011,3.2995037807183,-129.87334593573,3.281190926276,-129.35396975425,3.2626417769376,-128.82797731569,3.2438563327032,-128.29536862004,3.2248345935728,-127.7561436673,3.2055765595463,-127.21030245747,3.1860822306238,-126.65784499055,3.1663516068053,-126.09877126654,3.1463846880907,-125.53308128544,3.1261814744801,-124.96077504726,3.1057419659735,-124.38185255198,3.0850661625709,-123.79631379962,3.0641540642722,-123.20415879017,3.0430056710775,-122.60538752363,3.0216209829868,-122,3,-121.36968336484,3.0008270321361,-120.73960302457,3.0033081285444,-120.10975897921,3.0074432892249,-119.48015122873,3.0132325141777,-118.85077977316,3.0206758034026,-118.22164461248,3.0297731568998,-117.59274574669,3.0405245746692,-116.9640831758,3.0529300567108,-116.33565689981,3.0669896030246,-115.70746691871,3.0827032136106,-115.07951323251,3.1000708884688,-114.45179584121,3.1190926275992,-113.8243147448,3.1397684310019,-113.19706994329,3.1620982986767,-112.57006143667,3.1860822306238,-111.94328922495,3.2117202268431,-111.31675330813,3.2390122873346,-110.6904536862,3.2679584120983,-110.06439035917,3.2985586011342,-109.43856332703,3.3308128544423,-108.81297258979,3.3647211720227,-108.18761814745,3.4002835538752,-107.5625,3.4375,-106.93761814745,3.476370510397,-106.31297258979,3.5168950850662,-105.68856332703,3.5590737240076,-105.06439035917,3.6029064272212,-104.4404536862,3.648393194707,-103.81675330813,3.695534026465,-103.19328922495,3.7443289224953,-102.57006143667,3.7947778827977,-101.94706994329,3.8468809073724,-101.3243147448,3.9006379962193,-100.70179584121,3.9560491493384,-100.07951323251,4.0131143667297,-99.457466918715,4.0718336483932,-98.835656899811,4.1322069943289,-98.214083175803,4.1942344045369,-97.592745746692,4.257915879017,-96.971644612476,4.3232514177694,-96.350779773157,4.3902410207939,-95.730151228733,4.4588846880907,-95.109758979206,4.5291824196597,-94.489603024575,4.6011342155009,-93.869683364839,4.6747400756144,-93.25,4.75,-92.630552930057,4.8269139886578,-92.011342155009,4.9054820415879,-91.392367674858,4.9857041587902,-90.773629489603,5.0675803402646,-90.155127599244,5.1511105860113,-89.536862003781,5.2362948960302,-88.918832703214,5.3231332703214,-88.301039697543,5.4116257088847,-87.683482986767,5.5017722117202,-87.066162570888,5.593572778828,-86.449078449905,5.6870274102079,-85.832230623818,5.7821361058601,-85.215619092628,5.8788988657845,-84.599243856333,5.9773156899811,-83.983104914934,6.0773865784499,-83.367202268431,6.1791115311909,-82.751535916824,6.2824905482042,-82.136105860113,6.3875236294896,-81.520912098299,6.4942107750473,-80.90595463138,6.6025519848771,-80.291233459357,6.7125472589792,-79.676748582231,6.8241965973535,-79.0625,6.9375,-78.448487712665,7.0524574669187,-77.834711720227,7.1690689981096,-77.221172022684,7.2873345935728,-76.607868620038,7.4072542533081,-75.994801512287,7.5288279773157,-75.381970699433,7.6520557655955,-74.769376181474,7.7769376181475,-74.157017958412,7.9034735349717,-73.544896030246,8.0316635160681,-72.933010396975,8.1615075614367,-72.321361058601,8.2930056710775,-71.709948015123,8.4261578449906,-71.098771266541,8.5609640831758,-70.487830812854,8.6974243856333,-69.877126654064,8.835538752363,-69.26665879017,8.9753071833649,-68.656427221172,9.116729678639,-68.04643194707,9.2598062381853,-67.436672967864,9.4045368620038,-66.827150283554,9.5509215500945,-66.21786389414,9.6989603024575,-65.608813799622,9.8486531190927,-65,10,-64.412807183365,10.195534026465,-63.825141776938,10.390831758034,-63.237003780718,10.585893194707,-62.648393194707,10.780718336484,-62.059310018904,10.975307183365,-61.469754253308,11.16965973535,-60.879725897921,11.363775992439,-60.289224952741,11.557655954631,-59.698251417769,11.751299621928,-59.106805293006,11.944706994329,-58.51488657845,12.137878071834,-57.922495274102,12.330812854442,-57.329631379962,12.523511342155,-56.73629489603,12.715973534972,-56.142485822306,12.908199432892,-55.54820415879,13.100189035917,-54.953449905482,13.291942344045,-54.358223062382,13.483459357278,-53.76252362949,13.674740075614,-53.166351606805,13.865784499055,-52.569706994329,14.056592627599,-51.97258979206,14.247164461248,-51.375,14.4375,-50.776937618147,14.627599243856,-50.178402646503,14.817462192817,-49.579395085066,15.007088846881,-48.979914933837,15.196479206049,-48.379962192817,15.385633270321,-47.779536862004,15.574551039698,-47.178638941399,15.763232514178,-46.577268431002,15.951677693762,-45.975425330813,16.13988657845,-45.373109640832,16.327859168242,-44.770321361059,16.515595463138,-44.167060491493,16.703095463138,-43.563327032136,16.890359168242,-42.959120982987,17.07738657845,-42.354442344045,17.264177693762,-41.749291115312,17.450732514178,-41.143667296786,17.637051039698,-40.537570888469,17.823133270321,-39.931001890359,18.008979206049,-39.323960302457,18.194588846881,-38.716446124764,18.379962192817,-38.108459357278,18.565099243856,-37.5,18.75,-36.89106805293,18.934664461248,-36.281663516068,19.119092627599,-35.671786389414,19.303284499055,-35.061436672968,19.487240075614,-34.45061436673,19.670959357278,-33.839319470699,19.854442344045,-33.227551984877,20.037689035917,-32.615311909263,20.220699432892,-32.002599243856,20.403473534972,-31.389413988658,20.586011342155,-30.775756143667,20.768312854442,-30.161625708885,20.950378071834,-29.54702268431,21.132206994329,-28.931947069943,21.313799621928,-28.316398865784,21.495155954631,-27.700378071834,21.676275992439,-27.083884688091,21.85715973535,-26.466918714556,22.037807183365,-25.849480151229,22.218218336484,-25.23156899811,22.398393194707,-24.613185255198,22.578331758034,-23.994328922495,22.758034026465,-23.375,22.9375,-22.755198487713,23.116729678639,-22.134924385633,23.295723062382,-21.514177693762,23.474480151229,-20.892958412098,23.65300094518,-20.271266540643,23.831285444234,-19.649102079395,24.009333648393,-19.026465028355,24.187145557656,-18.403355387524,24.364721172023,-17.7797731569,24.542060491493,-17.155718336484,24.719163516068,-16.531190926276,24.896030245747,-15.906190926276,25.072660680529,-15.280718336484,25.249054820416,-14.6547731569,25.425212665406,-14.028355387524,25.601134215501,-13.401465028355,25.776819470699,-12.774102079395,25.952268431002,-12.146266540643,26.127481096408,-11.517958412098,26.302457466919,-10.889177693762,26.477197542533,-10.259924385633,26.651701323251,-9.6301984877126,26.825968809074,-8.9999999999999,27,-8.391186200378,27.086602079395,-7.78213610586,27.172495274102,-7.172849716446,27.257679584121,-6.563327032136,27.342155009452,-5.95356805293,27.425921550095,-5.3435727788279,27.508979206049,-4.7333412098298,27.591327977316,-4.1228733459356,27.672967863894,-3.5121691871455,27.753898865785,-2.9012287334593,27.834120982987,-2.290051984877,27.913634215501,-1.6786389413988,27.992438563327,-1.0669896030245,28.070534026465,-0.45510396975418,28.147920604915,0.15701795841217,28.224598298677,0.76937618147455,28.30056710775,1.381970699433,28.375827032136,1.9948015122874,28.450378071834,2.6078686200379,28.524220226843,3.2211720226844,28.597353497164,3.8347117202269,28.669777882798,4.4484877126655,28.741493383743,5.0625000000001,28.8125,5.6767485822307,28.882797731569,6.2912334593573,28.95238657845,6.90595463138,29.021266540643,7.5209120982987,29.089437618147,8.1361058601135,29.156899810964,8.7515359168242,29.223653119093,9.367202268431,29.289697542533,9.9831049149339,29.355033081285,10.599243856333,29.41965973535,11.215619092628,29.483577504726,11.832230623819,29.546786389414,12.449078449906,29.609286389414,13.066162570888,29.671077504726,13.683482986768,29.73215973535,14.301039697543,29.792533081285,14.918832703214,29.852197542533,15.536862003781,29.911153119093,16.155127599244,29.969399810964,16.773629489603,30.026937618147,17.392367674858,30.083766540643,18.011342155009,30.13988657845,18.630552930057,30.195297731569,19.25,30.25,19.869683364839,30.303993383743,20.489603024575,30.357277882798,21.109758979206,30.409853497164,21.730151228733,30.461720226843,22.350779773157,30.512878071834,22.971644612476,30.563327032136,23.592745746692,30.61306710775,24.214083175803,30.662098298677,24.835656899811,30.710420604915,25.457466918715,30.758034026465,26.079513232514,30.804938563327,26.70179584121,30.851134215501,27.324314744802,30.896620982987,27.947069943289,30.941398865785,28.570061436673,30.985467863894,29.193289224953,31.028827977316,29.816753308129,31.071479206049,30.4404536862,31.113421550095,31.064390359168,31.154655009452,31.688563327032,31.195179584121,32.312972589792,31.234995274102,32.937618147448,31.274102079395,33.5625,31.3125,34.187618147448,31.350189035917,34.812972589792,31.387169187146,35.438563327032,31.423440453686,36.064390359168,31.459002835539,36.6904536862,31.493856332703,37.316753308129,31.52800094518,37.943289224953,31.561436672968,38.570061436673,31.594163516068,39.197069943289,31.62618147448,39.824314744802,31.657490548204,40.45179584121,31.68809073724,41.079513232514,31.717982041588,41.707466918715,31.747164461248,42.335656899811,31.775637996219,42.964083175803,31.803402646503,43.592745746692,31.830458412098,44.221644612476,31.856805293006,44.850779773157,31.882443289225,45.480151228734,31.907372400756,46.109758979206,31.931592627599,46.739603024575,31.955103969754,47.369683364839,31.977906427221,48,32,48.608577504726,31.82561436673,49.216918714556,31.650283553875,49.82502362949,31.474007561437,50.432892249528,31.296786389414,51.040524574669,31.118620037807,51.647920604915,30.939508506616,52.255080340265,30.759451795841,52.862003780718,30.578449905482,53.468690926276,30.396502835539,54.075141776938,30.213610586011,54.681356332703,30.0297731569,55.287334593573,29.844990548204,55.893076559546,29.659262759924,56.498582230624,29.47258979206,57.103851606805,29.284971644612,57.708884688091,29.09640831758,58.31368147448,28.906899810964,58.918241965974,28.716446124764,59.522566162571,28.525047258979,60.126654064272,28.332703213611,60.730505671078,28.139413988658,61.334120982987,27.945179584121,61.9375,27.75,62.540642722117,27.553875236295,63.143549149338,27.356805293006,63.746219281664,27.158790170132,64.348653119093,26.959829867675,64.950850661626,26.759924385633,65.552811909263,26.559073724008,66.154536862004,26.357277882798,66.756025519849,26.154536862004,67.357277882798,25.950850661626,67.958293950851,25.746219281664,68.559073724008,25.540642722117,69.159617202268,25.334120982987,69.759924385633,25.126654064272,70.359995274102,24.918241965974,70.959829867675,24.708884688091,71.559428166352,24.498582230624,72.158790170132,24.287334593573,72.757915879017,24.075141776938,73.356805293006,23.862003780718,73.955458412098,23.647920604915,74.553875236295,23.432892249527,75.152055765595,23.216918714556,75.75,23,76.347707939509,22.78213610586,76.945179584121,22.563327032136,77.542414933837,22.343572778828,78.139413988658,22.122873345936,78.736176748582,21.901228733459,79.332703213611,21.678638941399,79.928993383743,21.455103969754,80.525047258979,21.230623818526,81.120864839319,21.005198487713,81.716446124764,20.778827977316,82.311791115312,20.551512287335,82.906899810964,20.323251417769,83.50177221172,20.09404536862,84.09640831758,19.863894139887,84.690808128544,19.632797731569,85.284971644613,19.400756143667,85.878898865785,19.167769376181,86.472589792061,18.933837429112,87.066044423441,18.698960302457,87.659262759924,18.463137996219,88.252244801512,18.226370510397,88.844990548204,17.988657844991,89.4375,17.75,90.0297731569,17.510396975425,90.621810018904,17.269848771267,91.213610586011,17.028355387524,91.805174858223,16.785916824197,92.396502835539,16.542533081285,92.987594517958,16.29820415879,93.578449905482,16.052930056711,94.16906899811,15.806710775047,94.759451795841,15.5595463138,95.349598298677,15.311436672968,95.939508506616,15.062381852552,96.52918241966,14.812381852552,97.118620037807,14.561436672968,97.707821361059,14.3095463138,98.296786389414,14.056710775047,98.885515122873,13.802930056711,99.474007561437,13.54820415879,100.0622637051,13.292533081285,100.65028355388,13.035916824197,101.23806710775,12.778355387524,101.82561436673,12.519848771266,102.41292533081,12.260396975425,103,12,103,12}",
             } },
         } },
-        { id = "legacy_sf_normal_wave_02", name = "sf@Normal After Mid-Boss", difficulty = 3, duration_frames = 1040, duration_seconds = 17.3, classes = {
+        { id = "legacy_sf_normal_wave_02", name = "sf@Normal After Mid-Boss", difficulty = 3, duration_frames = 381, duration_seconds = 6.4, classes = {
             "sf_wave3_毛玉N",
             "sf_wave7_毛玉N",
         }, members = {
@@ -2409,7 +2754,7 @@ return {
                 "210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 840, env = {
+            }, spawn_frame = 135, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2422,7 +2767,7 @@ return {
                 "-210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 843, env = {
+            }, spawn_frame = 138, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2435,7 +2780,7 @@ return {
                 "210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 1036, env = {
+            }, spawn_frame = 258, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2448,7 +2793,7 @@ return {
                 "-210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 1039, env = {
+            }, spawn_frame = 261, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -2460,7 +2805,7 @@ return {
         } },
     } },
     { id = "legacy_ae_normal", source_stage = "ae@Normal", waves = {
-        { id = "legacy_ae_normal_wave_01", name = "ae@Normal Complete Enemy Run", difficulty = 2, duration_frames = 1311, duration_seconds = 21.8, classes = {
+        { id = "legacy_ae_normal_wave_01", name = "ae@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "AE_N_w1e1",
             "AE_N_w2e1",
             "AE_N_w2e2",
@@ -2490,7 +2835,7 @@ return {
                 "180",
                 "-6",
                 "170",
-            }, spawn_frame = 90, env = {
+            }, spawn_frame = 120, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e1", args = {
@@ -2498,7 +2843,7 @@ return {
                 "124",
                 "190",
                 "1",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e2", args = {
@@ -2506,7 +2851,7 @@ return {
                 "ran:Float(94,124)",
                 "180",
                 "1.5",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e2", args = {
@@ -2514,7 +2859,7 @@ return {
                 "ran:Float(94,124)",
                 "0",
                 "1.5",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e1", args = {
@@ -2522,7 +2867,7 @@ return {
                 "124",
                 "-10",
                 "1",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e2", args = {
@@ -2530,7 +2875,7 @@ return {
                 "ran:Float(94,124)",
                 "180",
                 "2",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w2e2", args = {
@@ -2538,7 +2883,7 @@ return {
                 "ran:Float(94,124)",
                 "0",
                 "2",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w3e2", args = {
@@ -2546,7 +2891,7 @@ return {
                 "164",
                 "185",
                 "1.5",
-            }, spawn_frame = 990, env = {
+            }, spawn_frame = 480, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w3e1", args = {
@@ -2557,15 +2902,20 @@ return {
                 "0",
                 "27",
                 "-13",
-            }, spawn_frame = 1120, env = {
+            }, spawn_frame = 600, env = {
                 r = "170",
             } },
+        } },
+        { id = "legacy_ae_normal_wave_02", name = "ae@Normal Before Mid-Boss", difficulty = 1, duration_frames = 240, duration_seconds = 4, classes = {
+            "AE_N_w3e1",
+            "AE_N_w3e2",
+        }, members = {
             { class_name = "AE_N_w3e2", args = {
                 "-202",
                 "164",
                 "-5",
                 "1.5",
-            }, spawn_frame = 1180, env = {
+            }, spawn_frame = 0, env = {
                 r = "170",
             } },
             { class_name = "AE_N_w3e1", args = {
@@ -2576,19 +2926,18 @@ return {
                 "180",
                 "-27",
                 "13",
-            }, spawn_frame = 1310, env = {
+            }, spawn_frame = 120, env = {
                 r = "170",
             } },
         } },
     } },
     { id = "legacy_void_normal", source_stage = "void@Normal", waves = {
-        { id = "legacy_void_normal_wave_01", name = "void@Normal Before Mid-Boss", difficulty = 1, duration_frames = 2042, duration_seconds = 34, classes = {
+        { id = "legacy_void_normal_wave_01", name = "void@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "void_part1_1_aim:Normal",
             "void_part1_2_aim:Normal",
             "void_part1_2_spread:Normal",
             "void_part1_3_aim:Normal",
             "void_part1_3_spread:Normal",
-            "void_part1_4_aim:Normal",
         }, members = {
             { class_name = "void_part1_1_aim:Normal", args = {
                 "-120",
@@ -2612,7 +2961,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 138, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "void_part1_1_aim:Normal", args = {
                 "90",
@@ -2620,7 +2969,7 @@ return {
                 "0",
                 "0",
                 "1",
-            }, spawn_frame = 138, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "void_part1_2_spread:Normal", args = {
                 "0",
@@ -2629,7 +2978,7 @@ return {
                 "16",
                 "10",
                 "1",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_aim:Normal", args = {
                 "-120",
@@ -2637,7 +2986,7 @@ return {
                 "0",
                 "1",
                 "0",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_aim:Normal", args = {
                 "120",
@@ -2645,7 +2994,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_spread:Normal", args = {
                 "150",
@@ -2654,7 +3003,7 @@ return {
                 "16",
                 "10",
                 "1",
-            }, spawn_frame = 535, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "void_part1_2_spread:Normal", args = {
                 "-150",
@@ -2663,7 +3012,7 @@ return {
                 "16",
                 "10",
                 "-1",
-            }, spawn_frame = 535, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "void_part1_3_spread:Normal", args = {
                 "256",
@@ -2674,7 +3023,7 @@ return {
                 "1",
                 "75",
                 "96",
-            }, spawn_frame = 844, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "void_part1_3_aim:Normal", args = {
                 "-150+ran:Int(0,100)",
@@ -2682,16 +3031,22 @@ return {
                 "1-i%2",
                 "1-(i+1)%2",
                 "0",
-            }, spawn_frame = 998, env = {
+            }, spawn_frame = 600, env = {
                 i = "0",
             } },
+        } },
+        { id = "legacy_void_normal_wave_02", name = "void@Normal Before Mid-Boss", difficulty = 1, duration_frames = 480, duration_seconds = 8, classes = {
+            "void_part1_3_aim:Normal",
+            "void_part1_3_spread:Normal",
+            "void_part1_4_aim:Normal",
+        }, members = {
             { class_name = "void_part1_3_aim:Normal", args = {
                 "150+ran:Int(-100,0)",
                 "260",
                 "1-i%2",
                 "1-(i+1)%2",
                 "0",
-            }, spawn_frame = 1163, env = {
+            }, spawn_frame = 0, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Normal", args = {
@@ -2703,7 +3058,7 @@ return {
                 "-1",
                 "-75",
                 "96",
-            }, spawn_frame = 1327, env = {
+            }, spawn_frame = 120, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Normal", args = {
@@ -2715,7 +3070,7 @@ return {
                 "-1",
                 "30",
                 "96",
-            }, spawn_frame = 1481, env = {
+            }, spawn_frame = 240, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Normal", args = {
@@ -2727,7 +3082,7 @@ return {
                 "-1",
                 "-30",
                 "96",
-            }, spawn_frame = 1481, env = {
+            }, spawn_frame = 240, env = {
                 i = "0",
             } },
             { class_name = "void_part1_4_aim:Normal", args = {
@@ -2736,16 +3091,15 @@ return {
                 "0",
                 "0",
                 "1",
-            }, spawn_frame = 1790, env = {
+            }, spawn_frame = 360, env = {
                 i = "0",
             } },
         } },
-        { id = "legacy_void_normal_wave_02", name = "void@Normal After Mid-Boss", difficulty = 3, duration_frames = 4032, duration_seconds = 67.2, classes = {
+        { id = "legacy_void_normal_wave_03", name = "void@Normal After Mid-Boss", difficulty = 3, duration_frames = 735, duration_seconds = 12.2, classes = {
             "void_part2_1_aim:Normal",
             "void_part2_1_aim_2:Normal",
             "void_part2_1_spread:Normal",
             "void_part2_4_spread:Normal",
-            "void_part2_5_last:Normal",
             "void_partm_1_aim:Normal",
         }, members = {
             { class_name = "void_partm_1_aim:Normal", args = {
@@ -2807,7 +3161,7 @@ return {
                 "1",
                 "50",
                 "140",
-            }, spawn_frame = 758, env = {
+            }, spawn_frame = 255, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -2821,7 +3175,7 @@ return {
                 "1",
                 "-50",
                 "140",
-            }, spawn_frame = 758, env = {
+            }, spawn_frame = 255, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -2832,7 +3186,7 @@ return {
                 "1-math.ceil(((i+2)%3)/3)",
                 "1-math.ceil(((i+1)%3)/3)",
                 "1-math.ceil((i%3)/3)",
-            }, spawn_frame = 878, env = {
+            }, spawn_frame = 375, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -2846,7 +3200,7 @@ return {
                 "-1",
                 "120",
                 "96",
-            }, spawn_frame = 2785, env = {
+            }, spawn_frame = 495, env = {
                 a = "-200",
                 ag = "30",
                 cr = "0",
@@ -2861,12 +3215,16 @@ return {
                 "-1",
                 "-120",
                 "96",
-            }, spawn_frame = 3414, env = {
+            }, spawn_frame = 615, env = {
                 a = "200",
                 ag = "30",
                 cr = "0",
                 i = "-1",
             } },
+        } },
+        { id = "legacy_void_normal_wave_04", name = "void@Normal After Mid-Boss", difficulty = 3, duration_frames = 120, duration_seconds = 2, classes = {
+            "void_part2_5_last:Normal",
+        }, members = {
             { class_name = "void_part2_5_last:Normal", args = {
                 "0",
                 "288",
@@ -2876,7 +3234,7 @@ return {
                 "1",
                 "0",
                 "96",
-            }, spawn_frame = 4031, env = {
+            }, spawn_frame = 0, env = {
                 a = "200",
                 ag = "30",
                 cr = "0",
@@ -2885,7 +3243,44 @@ return {
         } },
     } },
     { id = "legacy_wyj_normal", source_stage = "wyj@Normal", waves = {
-        { id = "legacy_wyj_normal_wave_01", name = "wyj@Normal After Mid-Boss", difficulty = 3, duration_frames = 1470, duration_seconds = 24.5, classes = {
+        { id = "legacy_wyj_normal_wave_01", name = "wyj@Normal Before Mid-Boss", difficulty = 1, duration_frames = 480, duration_seconds = 8, classes = {
+            "wyj-w1:Normal",
+            "wyj-w1-b:Normal",
+            "wyj-w2:Normal",
+            "wyj-w3:Normal",
+        }, members = {
+            { class_name = "wyj-w1:Normal", args = {
+                "-192",
+                "140",
+                "_",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "wyj-w1-b:Normal", args = {
+                "192",
+                "140",
+                "_",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "wyj-w2:Normal", args = {
+                "0",
+                "225",
+                "_",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "wyj-w3:Normal", args = {
+                "-150",
+                "225",
+                "1",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "wyj-w3:Normal", args = {
+                "150",
+                "225",
+                "-1",
+            }, spawn_frame = 360, env = {
+            } },
+        } },
+        { id = "legacy_wyj_normal_wave_02", name = "wyj@Normal After Mid-Boss", difficulty = 3, duration_frames = 480, duration_seconds = 8, classes = {
             "wyj-w1:Normal",
             "wyj-w1-b:Normal",
             "wyj-w9:Normal",
@@ -2906,45 +3301,40 @@ return {
                 "0",
                 "225",
                 "_",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "wyj-w9:Normal", args = {
                 "-150",
                 "225",
                 "_",
-            }, spawn_frame = 690, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "wyj-w9:Normal", args = {
                 "150",
                 "225",
                 "_",
-            }, spawn_frame = 690, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "wyj-w9:Normal", args = {
                 "-70",
                 "225",
                 "_",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "wyj-w9:Normal", args = {
                 "70",
                 "225",
                 "_",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
         } },
     } },
     { id = "legacy_yyzy_normal", source_stage = "yyzy@Normal", waves = {
-        { id = "legacy_yyzy_normal_wave_01", name = "yyzy@Normal Complete Enemy Run", difficulty = 2, duration_frames = 2748, duration_seconds = 45.8, classes = {
-            "yyzy_last_enemy:Normal",
-            "yyzy_midboss:Normal",
+        { id = "legacy_yyzy_normal_wave_01", name = "yyzy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 770, duration_seconds = 12.8, classes = {
             "yyzy_s1e1:Normal",
-            "yyzy_s1e10:Normal",
             "yyzy_s1e2:Normal",
             "yyzy_s1e3",
             "yyzy_s1e4:Normal",
-            "yyzy_s1e6:Normal",
-            "yyzy_s1e7",
             "yyzy_s1e9:Normal",
         }, members = {
             { class_name = "yyzy_s1e1:Normal", args = {
@@ -2972,7 +3362,7 @@ return {
                 "3",
                 "-90",
                 "0",
-            }, spawn_frame = 110, env = {
+            }, spawn_frame = 140, env = {
                 i = "120",
             } },
             { class_name = "yyzy_s1e9:Normal", args = {
@@ -2980,7 +3370,7 @@ return {
                 "144",
                 "1.4",
                 "0",
-            }, spawn_frame = 130, env = {
+            }, spawn_frame = 160, env = {
                 i = "120",
             } },
             { class_name = "yyzy_s1e2:Normal", args = {
@@ -3001,7 +3391,7 @@ return {
                 "8",
                 "0",
                 "2",
-            }, spawn_frame = 370, env = {
+            }, spawn_frame = 400, env = {
                 i = "120",
                 w3_v1 = "1",
             } },
@@ -3012,7 +3402,7 @@ return {
                 "0",
                 "8",
                 "2",
-            }, spawn_frame = 370, env = {
+            }, spawn_frame = 400, env = {
                 i = "120",
                 w3_v1 = "1",
             } },
@@ -3022,7 +3412,7 @@ return {
                 "3",
                 "2",
                 "3",
-            }, spawn_frame = 580, env = {
+            }, spawn_frame = 520, env = {
                 ax = "-180",
                 i = "120",
                 w3_v1 = "1",
@@ -3033,7 +3423,7 @@ return {
                 "3",
                 "2",
                 "3",
-            }, spawn_frame = 590, env = {
+            }, spawn_frame = 530, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3047,11 +3437,16 @@ return {
                 "5",
                 "5",
                 "10",
-            }, spawn_frame = 750, env = {
+            }, spawn_frame = 650, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
             } },
+        } },
+        { id = "legacy_yyzy_normal_wave_02", name = "yyzy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "yyzy_s1e1:Normal",
+            "yyzy_s1e4:Normal",
+        }, members = {
             { class_name = "yyzy_s1e4:Normal", args = {
                 "150",
                 "230",
@@ -3061,7 +3456,7 @@ return {
                 "15",
                 "0",
                 "5",
-            }, spawn_frame = 900, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3073,7 +3468,7 @@ return {
                 "1",
                 "0",
                 "0.03",
-            }, spawn_frame = 930, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3087,7 +3482,7 @@ return {
                 "0",
                 "15",
                 "5",
-            }, spawn_frame = 1100, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3099,7 +3494,7 @@ return {
                 "1",
                 "180",
                 "0.03",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3113,7 +3508,7 @@ return {
                 "0",
                 "15",
                 "5",
-            }, spawn_frame = 1360, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3127,7 +3522,7 @@ return {
                 "15",
                 "0",
                 "5",
-            }, spawn_frame = 1360, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3141,11 +3536,19 @@ return {
                 "5",
                 "5",
                 "10",
-            }, spawn_frame = 1510, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
             } },
+        } },
+        { id = "legacy_yyzy_normal_wave_03", name = "yyzy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "yyzy_midboss:Normal",
+            "yyzy_s1e10:Normal",
+            "yyzy_s1e2:Normal",
+            "yyzy_s1e3",
+            "yyzy_s1e7",
+        }, members = {
             { class_name = "yyzy_s1e10:Normal", args = {
                 "210*yflag01",
                 "144",
@@ -3153,7 +3556,7 @@ return {
                 "90+yflag01*90",
                 "0.04",
                 "-90-yflag01*60",
-            }, spawn_frame = 1660, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3163,7 +3566,7 @@ return {
                 "0",
                 "230",
                 "_",
-            }, spawn_frame = 1740, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -3175,7 +3578,7 @@ return {
                 "3",
                 "2",
                 "3",
-            }, spawn_frame = 1740, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3189,7 +3592,7 @@ return {
                 "180",
                 "0.04",
                 "-150",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3203,7 +3606,7 @@ return {
                 "0",
                 "0.04",
                 "-30",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3216,7 +3619,7 @@ return {
                 "3",
                 "2",
                 "3",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3230,7 +3633,7 @@ return {
                 "8",
                 "0",
                 "2",
-            }, spawn_frame = 2022, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3244,7 +3647,7 @@ return {
                 "0",
                 "8",
                 "2",
-            }, spawn_frame = 2022, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3258,7 +3661,7 @@ return {
                 "3",
                 "10",
                 "1",
-            }, spawn_frame = 2207, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3273,7 +3676,7 @@ return {
                 "3",
                 "10",
                 "-1",
-            }, spawn_frame = 2297, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3288,7 +3691,7 @@ return {
                 "3",
                 "10",
                 "1",
-            }, spawn_frame = 2297, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3296,6 +3699,13 @@ return {
                 yyzy2 = "1",
                 yyzyflag = "last",
             } },
+        } },
+        { id = "legacy_yyzy_normal_wave_04", name = "yyzy@Normal Before Mid-Boss", difficulty = 1, duration_frames = 240, duration_seconds = 4, classes = {
+            "yyzy_last_enemy:Normal",
+            "yyzy_s1e3",
+            "yyzy_s1e6:Normal",
+            "yyzy_s1e7",
+        }, members = {
             { class_name = "yyzy_s1e7", args = {
                 "120",
                 "230",
@@ -3303,7 +3713,7 @@ return {
                 "3",
                 "10",
                 "-1",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3318,7 +3728,7 @@ return {
                 "3",
                 "10",
                 "1",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3330,7 +3740,7 @@ return {
                 "0",
                 "230",
                 "4",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3342,7 +3752,7 @@ return {
                 "0",
                 "245",
                 "_",
-            }, spawn_frame = 2747, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3356,7 +3766,7 @@ return {
                 "3",
                 "2",
                 "3",
-            }, spawn_frame = 2747, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -3367,19 +3777,7 @@ return {
         } },
     } },
     { id = "legacy_stp_normal", source_stage = "stp@Normal", waves = {
-        { id = "legacy_stp_normal_wave_01", name = "stp@Normal Before Mid-Boss", difficulty = 1, duration_frames = 2720, duration_seconds = 45.3, classes = {
-            "_stupid带字的小妖精（A）",
-            "_stupid带字的小妖精（的）",
-            "_stupid带字的小妖精（精）",
-            "_stupid带字的小妖精（盛）",
-            "_stupid带字的小妖精（下）",
-            "_stupid带字的小妖精（宴）",
-            "_stupid带字的小妖精（妖）",
-            "_stupid带字的小妖精（月）",
-            "stupid_柴刀女非符:Normal",
-            "stupid_封位弹小妖精:Normal",
-            "stupid_画月亮的卖萌小妖精",
-            "stupid_雪花弹幕的小怪:Normal",
+        { id = "legacy_stp_normal_wave_01", name = "stp@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "wave1-1 r:Normal",
             "wave1-2 b:Normal",
         }, members = {
@@ -3394,14 +3792,14 @@ return {
                 "192",
                 "224",
                 "170",
-            }, spawn_frame = 90, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
             } },
             { class_name = "wave1-2 b:Normal", args = {
                 "-170",
                 "224",
                 "-170",
-            }, spawn_frame = 180, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "-170",
             } },
@@ -3409,7 +3807,7 @@ return {
                 "170",
                 "224",
                 "170",
-            }, spawn_frame = 230, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3417,7 +3815,7 @@ return {
                 "-170",
                 "224",
                 "-170",
-            }, spawn_frame = 340, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "-170",
             } },
@@ -3425,10 +3823,19 @@ return {
                 "170",
                 "224",
                 "170",
-            }, spawn_frame = 390, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
+        } },
+        { id = "legacy_stp_normal_wave_02", name = "stp@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "_stupid带字的小妖精（的）",
+            "_stupid带字的小妖精（下）",
+            "_stupid带字的小妖精（月）",
+            "stupid_柴刀女非符:Normal",
+            "stupid_封位弹小妖精:Normal",
+            "stupid_雪花弹幕的小怪:Normal",
+        }, members = {
             { class_name = "stupid_封位弹小妖精:Normal", args = {
                 "-100",
                 "224",
@@ -3437,7 +3844,7 @@ return {
                 "-100",
                 "-192",
                 "10",
-            }, spawn_frame = 560, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3449,7 +3856,7 @@ return {
                 "100",
                 "-192",
                 "10",
-            }, spawn_frame = 560, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3460,7 +3867,7 @@ return {
                 "120",
                 "-100",
                 "-224",
-            }, spawn_frame = 980, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3471,7 +3878,7 @@ return {
                 "120",
                 "100",
                 "-224",
-            }, spawn_frame = 980, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3482,7 +3889,7 @@ return {
                 "160",
                 "0",
                 "-224",
-            }, spawn_frame = 1520, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3490,7 +3897,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2120, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3498,7 +3905,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3506,15 +3913,24 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2180, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
+        } },
+        { id = "legacy_stp_normal_wave_03", name = "stp@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "_stupid带字的小妖精（A）",
+            "_stupid带字的小妖精（精）",
+            "_stupid带字的小妖精（盛）",
+            "_stupid带字的小妖精（宴）",
+            "_stupid带字的小妖精（妖）",
+            "stupid_画月亮的卖萌小妖精",
+        }, members = {
             { class_name = "_stupid带字的小妖精（妖）", args = {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2210, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3522,7 +3938,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2240, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3530,7 +3946,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2270, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3538,7 +3954,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2300, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3546,7 +3962,7 @@ return {
                 "-192",
                 "180",
                 "_",
-            }, spawn_frame = 2330, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3564,19 +3980,13 @@ return {
                 "300",
                 "54",
                 "32",
-            }, spawn_frame = 2360, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
         } },
-        { id = "legacy_stp_normal_wave_02", name = "stp@Normal After Mid-Boss", difficulty = 3, duration_frames = 9828, duration_seconds = 163.8, classes = {
+        { id = "legacy_stp_normal_wave_04", name = "stp@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
             "stupid_飞刀阵",
-            "stupid_飞行阵",
-            "stupid_分裂圆周札大怪",
-            "stupid_分裂圆周札小怪",
-            "stupid_高爆大蝴蝶:Normal",
-            "stupid_蝴蝶轰炸机:Normal",
-            "stupid_圆圈妖精阵",
             "stupid_正弦小妖精:Normal",
             "wave3-1:Normal",
             "wave3-3 big:Normal",
@@ -3601,7 +4011,7 @@ return {
                 "120",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3609,7 +4019,7 @@ return {
                 "0",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3617,7 +4027,7 @@ return {
                 "-120",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3625,7 +4035,7 @@ return {
                 "120",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3633,7 +4043,7 @@ return {
                 "-120",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3641,7 +4051,7 @@ return {
                 "-30",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3649,7 +4059,7 @@ return {
                 "30",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3657,7 +4067,7 @@ return {
                 "0",
                 "224",
                 "_",
-            }, spawn_frame = 1400, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -3667,7 +4077,7 @@ return {
                 "1.5",
                 "10",
                 "1",
-            }, spawn_frame = 3920, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3678,7 +4088,7 @@ return {
                 "-1.5",
                 "-10",
                 "-1",
-            }, spawn_frame = 3920, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3694,7 +4104,7 @@ return {
                 "5",
                 "1",
                 "1",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3711,12 +4121,17 @@ return {
                 "5",
                 "1",
                 "1",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
                 y = "190",
             } },
+        } },
+        { id = "legacy_stp_normal_wave_05", name = "stp@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "stupid_飞行阵",
+            "stupid_分裂圆周札小怪",
+        }, members = {
             { class_name = "stupid_分裂圆周札小怪", args = {
                 "-120",
                 "224",
@@ -3729,7 +4144,7 @@ return {
                 "10",
                 "-224",
                 "140",
-            }, spawn_frame = 4870, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3747,7 +4162,7 @@ return {
                 "10",
                 "-224",
                 "140",
-            }, spawn_frame = 4870, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3765,7 +4180,7 @@ return {
                 "24",
                 "-224",
                 "140",
-            }, spawn_frame = 5350, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3783,7 +4198,7 @@ return {
                 "24",
                 "-224",
                 "140",
-            }, spawn_frame = 5350, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -3797,7 +4212,7 @@ return {
                 "1.5",
                 "90",
                 "0",
-            }, spawn_frame = 6192, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3812,7 +4227,7 @@ return {
                 "1.5",
                 "180",
                 "0",
-            }, spawn_frame = 6292, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3827,7 +4242,7 @@ return {
                 "1.5",
                 "0",
                 "40",
-            }, spawn_frame = 6392, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3842,7 +4257,25 @@ return {
                 "1.5",
                 "-90",
                 "55",
-            }, spawn_frame = 6492, env = {
+            }, spawn_frame = 600, env = {
+                b = "0",
+                stupid_achi = "true",
+                X = "170",
+                X2 = "170",
+                y = "190",
+            } },
+        } },
+        { id = "legacy_stp_normal_wave_06", name = "stp@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "stupid_高爆大蝴蝶:Normal",
+            "stupid_蝴蝶轰炸机:Normal",
+            "stupid_圆圈妖精阵",
+        }, members = {
+            { class_name = "stupid_蝴蝶轰炸机:Normal", args = {
+                "-192",
+                "100",
+                "192",
+                "140",
+            }, spawn_frame = 0, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3850,23 +4283,11 @@ return {
                 y = "190",
             } },
             { class_name = "stupid_蝴蝶轰炸机:Normal", args = {
-                "-192",
-                "100",
-                "192",
-                "140",
-            }, spawn_frame = 7192, env = {
-                b = "0",
-                stupid_achi = "true",
-                X = "170",
-                X2 = "170",
-                y = "190",
-            } },
-            { class_name = "stupid_蝴蝶轰炸机:Normal", args = {
                 "192",
                 "100",
                 "-192",
                 "140",
-            }, spawn_frame = 7312, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3885,7 +4306,7 @@ return {
                 "1",
                 "10",
                 "100",
-            }, spawn_frame = 8072, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3904,7 +4325,7 @@ return {
                 "1",
                 "10",
                 "100",
-            }, spawn_frame = 8072, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3923,7 +4344,7 @@ return {
                 "2",
                 "10",
                 "100",
-            }, spawn_frame = 8472, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3942,7 +4363,7 @@ return {
                 "2",
                 "10",
                 "100",
-            }, spawn_frame = 8472, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3961,7 +4382,7 @@ return {
                 "5",
                 "30",
                 "300",
-            }, spawn_frame = 8872, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -3977,7 +4398,7 @@ return {
                 "1",
                 "1",
                 "-1",
-            }, spawn_frame = 9272, env = {
+            }, spawn_frame = 600, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -3985,6 +4406,11 @@ return {
                 X2 = "170",
                 y = "190",
             } },
+        } },
+        { id = "legacy_stp_normal_wave_07", name = "stp@Normal After Mid-Boss", difficulty = 3, duration_frames = 480, duration_seconds = 8, classes = {
+            "stupid_分裂圆周札大怪",
+            "stupid_圆圈妖精阵",
+        }, members = {
             { class_name = "stupid_圆圈妖精阵", args = {
                 "180*cos(a)",
                 "180*sin(a)",
@@ -3994,7 +4420,7 @@ return {
                 "10",
                 "2",
                 "1",
-            }, spawn_frame = 9412, env = {
+            }, spawn_frame = 0, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -4011,7 +4437,7 @@ return {
                 "5",
                 "3",
                 "-1",
-            }, spawn_frame = 9532, env = {
+            }, spawn_frame = 120, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -4028,7 +4454,7 @@ return {
                 "12",
                 "4",
                 "1",
-            }, spawn_frame = 9637, env = {
+            }, spawn_frame = 240, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -4045,7 +4471,7 @@ return {
                 "10",
                 "15",
                 "600",
-            }, spawn_frame = 9827, env = {
+            }, spawn_frame = 360, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -4056,14 +4482,11 @@ return {
         } },
     } },
     { id = "legacy_smf_normal", source_stage = "smf@Normal", waves = {
-        { id = "legacy_smf_normal_wave_01", name = "smf@Normal Before Mid-Boss", difficulty = 1, duration_frames = 2326, duration_seconds = 38.8, classes = {
+        { id = "legacy_smf_normal_wave_01", name = "smf@Normal Before Mid-Boss", difficulty = 1, duration_frames = 736, duration_seconds = 12.3, classes = {
             "笑脸-5way狙:Normal",
-            "笑脸-大蝴蝶:Normal",
-            "笑脸-关底狙:Normal",
             "笑脸-红火弹:Normal",
             "笑脸-开场狙:Normal",
             "笑脸-开幕狙2:Normal",
-            "笑脸-蓝火弹:Normal",
             "笑脸-毛玉狙:Normal",
             "笑脸-下落玉:Normal",
         }, members = {
@@ -4083,54 +4506,60 @@ return {
                 "-220",
                 "120",
                 "_",
-            }, spawn_frame = 306, env = {
+            }, spawn_frame = 136, env = {
             } },
             { class_name = "笑脸-毛玉狙:Normal", args = {
                 "220",
                 "120",
                 "_",
-            }, spawn_frame = 396, env = {
+            }, spawn_frame = 256, env = {
             } },
             { class_name = "笑脸-5way狙:Normal", args = {
                 "100+b",
                 "250",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-红火弹:Normal", args = {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-5way狙:Normal", args = {
                 "-100-b",
                 "250",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-下落玉:Normal", args = {
                 "220",
                 "100",
                 "_",
-            }, spawn_frame = 856, env = {
+            }, spawn_frame = 496, env = {
                 b = "0",
             } },
             { class_name = "笑脸-下落玉:Normal", args = {
                 "-220",
                 "100",
                 "_",
-            }, spawn_frame = 931, env = {
+            }, spawn_frame = 616, env = {
                 b = "0",
             } },
+        } },
+        { id = "legacy_smf_normal_wave_02", name = "smf@Normal Before Mid-Boss", difficulty = 1, duration_frames = 600, duration_seconds = 10, classes = {
+            "笑脸-大蝴蝶:Normal",
+            "笑脸-关底狙:Normal",
+            "笑脸-蓝火弹:Normal",
+        }, members = {
             { class_name = "笑脸-大蝴蝶:Normal", args = {
                 "cos(r)*ran:Int(-100,-120)",
                 "220",
                 "_",
-            }, spawn_frame = 1196, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4138,7 +4567,7 @@ return {
                 "220",
                 "200-b",
                 "_",
-            }, spawn_frame = 1676, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4146,7 +4575,7 @@ return {
                 "ran:Sign()*ran:Int(-100,-120)",
                 "220",
                 "_",
-            }, spawn_frame = 1965, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4154,7 +4583,7 @@ return {
                 "220",
                 "100",
                 "_",
-            }, spawn_frame = 2175, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4162,7 +4591,7 @@ return {
                 "-130",
                 "220",
                 "_",
-            }, spawn_frame = 2325, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4170,12 +4599,12 @@ return {
                 "130",
                 "220",
                 "_",
-            }, spawn_frame = 2325, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
         } },
-        { id = "legacy_smf_normal_wave_02", name = "smf@Normal After Mid-Boss", difficulty = 3, duration_frames = 1150, duration_seconds = 19.2, classes = {
+        { id = "legacy_smf_normal_wave_03", name = "smf@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
             "笑脸-5way狙:Normal",
             "笑脸-关底狙:Normal",
             "笑脸-红火弹:Normal",
@@ -4203,7 +4632,7 @@ return {
                 "230",
                 "200",
                 "_",
-            }, spawn_frame = 95, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4211,7 +4640,7 @@ return {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 394, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4219,7 +4648,7 @@ return {
                 "-220",
                 "130",
                 "_",
-            }, spawn_frame = 594, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4227,7 +4656,7 @@ return {
                 "220",
                 "130",
                 "_",
-            }, spawn_frame = 594, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4235,7 +4664,7 @@ return {
                 "100+b",
                 "250",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4243,7 +4672,7 @@ return {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4251,7 +4680,7 @@ return {
                 "-100-b",
                 "250",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4259,7 +4688,7 @@ return {
                 "-100",
                 "220",
                 "_",
-            }, spawn_frame = 1149, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 r = "0",
             } },
@@ -4267,23 +4696,17 @@ return {
                 "100",
                 "220",
                 "_",
-            }, spawn_frame = 1149, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 r = "0",
             } },
         } },
     } },
     { id = "legacy_olc_normal", source_stage = "olc@Normal", waves = {
-        { id = "legacy_olc_normal_wave_01", name = "olc@Normal Complete Enemy Run", difficulty = 2, duration_frames = 5204, duration_seconds = 86.7, classes = {
+        { id = "legacy_olc_normal_wave_01", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
             "OLC_BF_Big_01",
-            "OLC_BF_Big_02",
             "OLC_BF_Small_01",
-            "OLC_SCDHD_01:Normal",
-            "OLC_SCDHD_02:Normal",
-            "OLC_SCDHD_03:Normal",
             "OLC_YYY_01",
-            "OLC_YYY_02",
-            "OLC_ZY_01",
         }, members = {
             { class_name = "OLC_BF_Big_01", args = {
                 "0",
@@ -4305,7 +4728,7 @@ return {
                 "15",
                 "400",
                 "-1",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_BF_Big_01", args = {
                 "120",
@@ -4316,7 +4739,7 @@ return {
                 "15",
                 "400",
                 "-1",
-            }, spawn_frame = 900, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_BF_Small_01", args = {
                 "-200",
@@ -4325,7 +4748,7 @@ return {
                 "0",
                 "10",
                 "2",
-            }, spawn_frame = 1625, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_BF_Small_01", args = {
                 "200",
@@ -4334,97 +4757,107 @@ return {
                 "180",
                 "10",
                 "2",
-            }, spawn_frame = 1875, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2290, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_normal_wave_02", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 2335, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 2335, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2380, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 2425, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 2425, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2470, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 2515, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 2515, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2560, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_normal_wave_03", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_BF_Big_02",
+            "OLC_YYY_01",
+            "OLC_ZY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 2605, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 2605, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2635, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 2845, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_BF_Big_02", args = {
                 "0",
                 "220",
                 "2",
-            }, spawn_frame = 3125, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_ZY_01", args = {
                 "0+ran:Float(-200,200)",
@@ -4434,55 +4867,60 @@ return {
                 "270+ran:Float(-30,30)",
                 "ran:Float(-0.8,0.8)",
                 "2",
-            }, spawn_frame = 3565, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 3709, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 3709, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_normal_wave_04", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+            "OLC_ZY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 3754, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 3754, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 3799, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 3799, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_ZY_01", args = {
                 "0+ran:Float(-200,200)",
@@ -4492,55 +4930,60 @@ return {
                 "270+ran:Float(-30,30)",
                 "ran:Float(-0.8,0.8)",
                 "2",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 3928, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 3928, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 3973, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 3973, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "2",
-            }, spawn_frame = 4018, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "2",
-            }, spawn_frame = 4018, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_normal_wave_05", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+            "OLC_YYY_02",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "2",
-            }, spawn_frame = 4063, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "2",
-            }, spawn_frame = 4063, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_02", args = {
                 "0",
@@ -4550,7 +4993,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4108, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4561,7 +5004,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4108, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4572,7 +5015,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4153, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4583,7 +5026,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4153, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4594,7 +5037,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4198, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4605,7 +5048,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4198, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4616,7 +5059,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4243, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4627,7 +5070,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4243, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4638,7 +5081,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4649,7 +5092,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4660,7 +5103,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4671,7 +5114,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4682,7 +5125,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4693,7 +5136,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4704,7 +5147,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4715,7 +5158,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4726,7 +5169,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4737,7 +5180,33 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_normal_wave_06", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4748,7 +5217,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4378, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4759,7 +5228,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4378, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4770,7 +5239,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4423, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4781,7 +5250,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4423, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4792,7 +5261,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4468, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4803,7 +5272,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4468, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4814,7 +5283,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4825,7 +5294,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4836,7 +5305,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4847,7 +5316,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4858,7 +5327,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4869,7 +5338,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4880,7 +5349,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4693, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4891,7 +5360,33 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4693, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_normal_wave_07", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4902,7 +5397,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4738, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4913,7 +5408,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4738, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4924,7 +5419,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4783, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4935,7 +5430,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4783, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4946,7 +5441,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4828, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4957,7 +5452,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4828, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4968,7 +5463,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4979,7 +5474,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -4990,7 +5485,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5001,7 +5496,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5012,7 +5507,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5023,7 +5518,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5034,7 +5529,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5045,7 +5540,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5056,7 +5551,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5067,7 +5562,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5078,7 +5573,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5089,7 +5584,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5100,7 +5595,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5111,7 +5606,36 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_normal_wave_08", name = "olc@Normal Before Mid-Boss", difficulty = 1, duration_frames = 360, duration_seconds = 6, classes = {
+            "OLC_SCDHD_01:Normal",
+            "OLC_SCDHD_02:Normal",
+            "OLC_SCDHD_03:Normal",
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "2",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5122,7 +5646,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 5008, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5133,7 +5657,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 5008, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5144,7 +5668,7 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 5053, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -5155,115 +5679,37 @@ return {
                 "30",
                 "15",
                 "2",
-            }, spawn_frame = 5053, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5098, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5098, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "2",
-            }, spawn_frame = 5143, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_01:Normal", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_02:Normal", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_03:Normal", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
         } },
     } },
     { id = "legacy_er_normal", source_stage = "er@Normal", waves = {
-        { id = "legacy_er_normal_wave_01", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 7191, duration_seconds = 119.8, classes = {
+        { id = "legacy_er_normal_wave_01", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 721, duration_seconds = 12, classes = {
             "wuer_enm_1-1:Normal",
             "wuer_enm_3-1-1:Normal",
-            "wuer_enm_4-2-1:Normal",
-            "wuer_enm_4-2-2:Normal",
-            "wuer_enm_aim1:Normal",
-            "wuer_enm_aim2:Normal",
-            "wuer_enm_baoju:Normal",
-            "wuer_enm_bar_enm:Normal",
             "wuer_enm_bar_enm2:Normal",
-            "wuer_enm_dfhlaser:Normal",
-            "wuer_enm_ghost1:Normal",
-            "wuer_enm_ghost2:Normal",
-            "wuer_enm_tama1:Normal",
-            "wuer_enm1-4:Normal",
-            "wuer_yinyangyu:Normal",
         }, members = {
             { class_name = "wuer_enm_1-1:Normal", args = {
                 "-120",
@@ -5297,7 +5743,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 150, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -5318,7 +5764,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 300, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -5339,7 +5785,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -5353,7 +5799,7 @@ return {
                 "120*sin(c)",
                 "270",
                 "2.5",
-            }, spawn_frame = 1410, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5369,7 +5815,7 @@ return {
                 "120*sin(c)",
                 "270",
                 "2.5",
-            }, spawn_frame = 1411, env = {
+            }, spawn_frame = 481, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5385,7 +5831,7 @@ return {
                 "0",
                 "240",
                 "_",
-            }, spawn_frame = 1532, env = {
+            }, spawn_frame = 601, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5397,11 +5843,16 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_normal_wave_02", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_3-1-1:Normal",
+            "wuer_enm_aim2:Normal",
+        }, members = {
             { class_name = "wuer_enm_3-1-1:Normal", args = {
                 "90",
                 "240",
                 "_",
-            }, spawn_frame = 1682, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5417,7 +5868,7 @@ return {
                 "-90",
                 "240",
                 "_",
-            }, spawn_frame = 1832, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5433,7 +5884,7 @@ return {
                 "-80",
                 "240",
                 "_",
-            }, spawn_frame = 2387, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5449,7 +5900,7 @@ return {
                 "-40",
                 "240",
                 "_",
-            }, spawn_frame = 2432, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5465,7 +5916,7 @@ return {
                 "80",
                 "240",
                 "_",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5481,7 +5932,7 @@ return {
                 "40",
                 "240",
                 "_",
-            }, spawn_frame = 2522, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5493,11 +5944,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_normal_wave_03", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_aim1:Normal",
+            "wuer_enm_aim2:Normal",
+            "wuer_enm_ghost2:Normal",
+        }, members = {
             { class_name = "wuer_enm_aim2:Normal", args = {
                 "-130",
                 "240",
                 "_",
-            }, spawn_frame = 2612, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5513,7 +5970,7 @@ return {
                 "130",
                 "240",
                 "_",
-            }, spawn_frame = 2612, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5529,7 +5986,7 @@ return {
                 "-60",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5545,7 +6002,7 @@ return {
                 "60",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5561,7 +6018,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5577,7 +6034,7 @@ return {
                 "-ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2742, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5593,7 +6050,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2782, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5609,7 +6066,7 @@ return {
                 "-ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2852, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5625,7 +6082,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2852, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5641,7 +6098,7 @@ return {
                 "210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3162, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5654,45 +6111,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_normal_wave_04", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 735, duration_seconds = 12.2, classes = {
+            "wuer_enm_4-2-1:Normal",
+            "wuer_enm_4-2-2:Normal",
+            "wuer_enm_ghost2:Normal",
+        }, members = {
             { class_name = "wuer_enm_ghost2:Normal", args = {
                 "-210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3212, env = {
-                a = "0",
-                bar_v = "2.5",
-                c = "0",
-                co = "6",
-                d1 = "1",
-                enm2 = "nil",
-                first_enm = "nil",
-                i = "0",
-                meet_ufo = "0",
-                n = "1",
-                ufo = "1",
-            } },
-            { class_name = "wuer_enm_ghost2:Normal", args = {
-                "210*d1",
-                "ran:Float(100,150)",
-                "1",
-            }, spawn_frame = 3262, env = {
-                a = "0",
-                bar_v = "2.5",
-                c = "0",
-                co = "6",
-                d1 = "1",
-                enm2 = "nil",
-                first_enm = "nil",
-                i = "0",
-                meet_ufo = "0",
-                n = "1",
-                ufo = "1",
-            } },
-            { class_name = "wuer_enm_ghost2:Normal", args = {
-                "-210*d1",
-                "ran:Float(100,150)",
-                "1",
-            }, spawn_frame = 3297, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5709,7 +6138,7 @@ return {
                 "210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3332, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5726,7 +6155,41 @@ return {
                 "-210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3347, env = {
+            }, spawn_frame = 240, env = {
+                a = "0",
+                bar_v = "2.5",
+                c = "0",
+                co = "6",
+                d1 = "1",
+                enm2 = "nil",
+                first_enm = "nil",
+                i = "0",
+                meet_ufo = "0",
+                n = "1",
+                ufo = "1",
+            } },
+            { class_name = "wuer_enm_ghost2:Normal", args = {
+                "210*d1",
+                "ran:Float(100,150)",
+                "1",
+            }, spawn_frame = 360, env = {
+                a = "0",
+                bar_v = "2.5",
+                c = "0",
+                co = "6",
+                d1 = "1",
+                enm2 = "nil",
+                first_enm = "nil",
+                i = "0",
+                meet_ufo = "0",
+                n = "1",
+                ufo = "1",
+            } },
+            { class_name = "wuer_enm_ghost2:Normal", args = {
+                "-210*d1",
+                "ran:Float(100,150)",
+                "1",
+            }, spawn_frame = 375, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5743,7 +6206,7 @@ return {
                 "0",
                 "240",
                 "_",
-            }, spawn_frame = 3572, env = {
+            }, spawn_frame = 495, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5760,7 +6223,7 @@ return {
                 "120",
                 "240",
                 "_",
-            }, spawn_frame = 3632, env = {
+            }, spawn_frame = 615, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5777,7 +6240,7 @@ return {
                 "-120",
                 "240",
                 "_",
-            }, spawn_frame = 3632, env = {
+            }, spawn_frame = 615, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5790,11 +6253,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_normal_wave_05", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 730, duration_seconds = 12.2, classes = {
+            "wuer_enm_bar_enm:Normal",
+            "wuer_enm_ghost1:Normal",
+            "wuer_enm_tama1:Normal",
+        }, members = {
             { class_name = "wuer_enm_bar_enm:Normal", args = {
                 "listx[i]",
                 "270",
                 "2.5",
-            }, spawn_frame = 3723, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5812,7 +6281,7 @@ return {
                 "listx[i]",
                 "270",
                 "2.5",
-            }, spawn_frame = 3783, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5830,7 +6299,7 @@ return {
                 "ran:Float(-160,160)",
                 "ran:Float(236,260)",
                 "_",
-            }, spawn_frame = 4174, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5848,7 +6317,7 @@ return {
                 "x+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4424, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5868,7 +6337,7 @@ return {
                 "x+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4529, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5888,7 +6357,7 @@ return {
                 "x1+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4624, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5910,7 +6379,7 @@ return {
                 "x2+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4624, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5932,7 +6401,7 @@ return {
                 "x1+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4634, env = {
+            }, spawn_frame = 610, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5954,7 +6423,7 @@ return {
                 "x2+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4634, env = {
+            }, spawn_frame = 610, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5972,11 +6441,17 @@ return {
                 x2 = "160",
                 y = "-140",
             } },
+        } },
+        { id = "legacy_er_normal_wave_06", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 740, duration_seconds = 12.3, classes = {
+            "wuer_enm_baoju:Normal",
+            "wuer_enm1-4:Normal",
+            "wuer_yinyangyu:Normal",
+        }, members = {
             { class_name = "wuer_enm1-4:Normal", args = {
                 "-210",
                 "190",
                 "_",
-            }, spawn_frame = 4944, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -5998,7 +6473,7 @@ return {
                 "210",
                 "190",
                 "_",
-            }, spawn_frame = 5064, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -6021,7 +6496,7 @@ return {
                 "45*sin(a)+30",
                 "0",
                 "7",
-            }, spawn_frame = 5364, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -6044,7 +6519,7 @@ return {
                 "45*sin(a)+30",
                 "120",
                 "7",
-            }, spawn_frame = 5608, env = {
+            }, spawn_frame = 360, env = {
                 a = "120",
                 bar_v = "2.5",
                 c = "0",
@@ -6067,7 +6542,7 @@ return {
                 "45*sin(a)",
                 "-120",
                 "3",
-            }, spawn_frame = 5912, env = {
+            }, spawn_frame = 480, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6089,7 +6564,7 @@ return {
                 "ran:Float(-220,-120)",
                 "-240",
                 "1",
-            }, spawn_frame = 6215, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6112,7 +6587,7 @@ return {
                 "-ran:Float(-220,-120)",
                 "-240",
                 "-enm_s",
-            }, spawn_frame = 6215, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6135,7 +6610,7 @@ return {
                 "ran:Float(-220,-120)",
                 "-240",
                 "1",
-            }, spawn_frame = 6230, env = {
+            }, spawn_frame = 615, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6158,7 +6633,7 @@ return {
                 "-ran:Float(-220,-120)",
                 "-240",
                 "-enm_s",
-            }, spawn_frame = 6235, env = {
+            }, spawn_frame = 620, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6177,13 +6652,17 @@ return {
                 x2 = "160",
                 y = "-140",
             } },
+        } },
+        { id = "legacy_er_normal_wave_07", name = "er@Normal After Mid-Boss", difficulty = 3, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_dfhlaser:Normal",
+        }, members = {
             { class_name = "wuer_enm_dfhlaser:Normal", args = {
                 "-140",
                 "240",
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6540, env = {
+            }, spawn_frame = 0, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6208,7 +6687,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6690, env = {
+            }, spawn_frame = 120, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6233,7 +6712,7 @@ return {
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6840, env = {
+            }, spawn_frame = 240, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6258,7 +6737,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6990, env = {
+            }, spawn_frame = 360, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6283,7 +6762,7 @@ return {
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 7090, env = {
+            }, spawn_frame = 480, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6308,7 +6787,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 7190, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -6330,13 +6809,456 @@ return {
         } },
     } },
     { id = "legacy_yh_normal", source_stage = "yh@Normal", waves = {
+        { id = "legacy_yh_normal_wave_01", name = "yh@Normal Complete Enemy Run", difficulty = 2, duration_frames = 292, duration_seconds = 4.9, classes = {
+            "激光(红):Normal",
+            "激光(蓝):Normal",
+            "落耶弹(紫):Normal",
+            "扭曲弹(红):Normal",
+            "扭曲弹(蓝):Normal",
+            "扭曲弹(绿):Normal",
+            "扭曲弹(紫):Normal",
+            "随机弹(蓝):Normal",
+            "小(红):Normal",
+            "小(绿):Normal",
+            "自机狙(红):Normal",
+            "自机狙(蓝):Normal",
+            "自机狙(绿):Normal",
+            "自机狙(紫):Normal",
+        }, members = {
+            { class_name = "自机狙(红):Normal", args = {
+                "-150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 0, env = {
+                i = "1",
+                x = "-150",
+                y = "240",
+            } },
+            { class_name = "自机狙(蓝):Normal", args = {
+                "150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 24, env = {
+                i = "1",
+                x = "150",
+                y = "240",
+            } },
+            { class_name = "自机狙(绿):Normal", args = {
+                "-150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 48, env = {
+                i = "1",
+                x = "-150",
+                y = "240",
+            } },
+            { class_name = "自机狙(紫):Normal", args = {
+                "150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 72, env = {
+                i = "1",
+                x = "150",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "-50",
+                "240",
+                "20",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "50",
+                "240",
+                "-20",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "-50",
+                "240",
+                "50*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "-50",
+                "240",
+                "20",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "50",
+                "240",
+                "-20",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "-50",
+                "240",
+                "20*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Normal", args = {
+                "-50",
+                "240",
+                "50*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "激光(红):Normal", args = {
+                "-50",
+                "240",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "激光(蓝):Normal", args = {
+                "50",
+                "240",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "激光(红):Normal", args = {
+                "100",
+                "240",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "激光(蓝):Normal", args = {
+                "-100",
+                "240",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(红):Normal", args = {
+                "0",
+                "240",
+                "90",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "小(红):Normal", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Normal", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 117, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(蓝):Normal", args = {
+                "0",
+                "240",
+                "90",
+                "1",
+            }, spawn_frame = 127, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Normal", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 127, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Normal", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 132, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(绿):Normal", args = {
+                "0",
+                "240",
+                "90",
+                "-1",
+            }, spawn_frame = 142, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Normal", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 142, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Normal", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 147, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(紫):Normal", args = {
+                "0",
+                "240",
+                "90",
+                "1",
+            }, spawn_frame = 157, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Normal", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 157, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Normal", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 162, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "随机弹(蓝):Normal", args = {
+                "150",
+                "240",
+                "_",
+            }, spawn_frame = 172, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "随机弹(蓝):Normal", args = {
+                "-150",
+                "240",
+                "_",
+            }, spawn_frame = 172, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+        } },
     } },
     { id = "legacy_lico_lunatic", source_stage = "lico@Lunatic", waves = {
-        { id = "legacy_lico_lunatic_wave_01", name = "lico@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 2230, duration_seconds = 37.2, classes = {
+        { id = "legacy_lico_lunatic_wave_01", name = "lico@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "lizi_米弹毛玉红:Lunatic",
+            "lizi_米弹毛玉绿:Lunatic",
+            "lizi_小玉毛玉:Lunatic",
+        }, members = {
+            { class_name = "lizi_小玉毛玉:Lunatic", args = {
+                "-160",
+                "230",
+                "1",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "lizi_小玉毛玉:Lunatic", args = {
+                "160",
+                "230",
+                "-1",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "lizi_米弹毛玉红:Lunatic", args = {
+                "-160",
+                "-230",
+                "1",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "lizi_米弹毛玉红:Lunatic", args = {
+                "160",
+                "-230",
+                "-1",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "lizi_米弹毛玉绿:Lunatic", args = {
+                "-160",
+                "-230",
+                "1",
+            }, spawn_frame = 480, env = {
+            } },
+            { class_name = "lizi_米弹毛玉绿:Lunatic", args = {
+                "160",
+                "-230",
+                "-1",
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_lico_lunatic_wave_02", name = "lico@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 240, duration_seconds = 4, classes = {
+            "lizi_小玉毛玉:Lunatic",
+        }, members = {
+            { class_name = "lizi_小玉毛玉:Lunatic", args = {
+                "-160",
+                "230",
+                "1",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "lizi_小玉毛玉:Lunatic", args = {
+                "160",
+                "230",
+                "-1",
+            }, spawn_frame = 120, env = {
+            } },
+        } },
+        { id = "legacy_lico_lunatic_wave_03", name = "lico@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
             "lizi_爆菊冲锋兵:Lunatic",
             "lizi_封位狙蝴蝶:Lunatic",
-            "lizi_横向冲锋兵:Lunatic",
-            "lizi_聚合阴阳玉:Lunatic",
             "lizi_米弹毛玉红:Lunatic",
             "lizi_尸体弹鬼火:Lunatic",
             "lizi_中玉大蝴蝶:Lunatic",
@@ -6362,7 +7284,7 @@ return {
                 "-140",
                 "-230",
                 "1",
-            }, spawn_frame = 426, env = {
+            }, spawn_frame = 240, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -6370,7 +7292,7 @@ return {
                 "140",
                 "-230",
                 "-1",
-            }, spawn_frame = 495, env = {
+            }, spawn_frame = 360, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -6378,7 +7300,7 @@ return {
                 "210*i",
                 "110",
                 "_",
-            }, spawn_frame = 954, env = {
+            }, spawn_frame = 480, env = {
                 i = "1",
                 x = "60*i",
             } },
@@ -6386,15 +7308,20 @@ return {
                 "ran:Float(-200,200)",
                 "240",
                 "_",
-            }, spawn_frame = 1274, env = {
+            }, spawn_frame = 600, env = {
                 i = "1",
                 x = "60*i",
             } },
+        } },
+        { id = "legacy_lico_lunatic_wave_04", name = "lico@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 360, duration_seconds = 6, classes = {
+            "lizi_横向冲锋兵:Lunatic",
+            "lizi_聚合阴阳玉:Lunatic",
+        }, members = {
             { class_name = "lizi_横向冲锋兵:Lunatic", args = {
                 "-200*i",
                 "180",
                 "90-90*i",
-            }, spawn_frame = 1764, env = {
+            }, spawn_frame = 0, env = {
                 i = "1",
                 x = "60*i",
                 y = "180",
@@ -6406,7 +7333,7 @@ return {
                 "50",
                 "22",
                 "1",
-            }, spawn_frame = 1929, env = {
+            }, spawn_frame = 120, env = {
                 a = "22",
                 i = "1",
                 x = "60*i",
@@ -6419,7 +7346,7 @@ return {
                 "50",
                 "192",
                 "-1",
-            }, spawn_frame = 2229, env = {
+            }, spawn_frame = 240, env = {
                 a = "192",
                 i = "1",
                 x = "60*i",
@@ -6428,10 +7355,9 @@ return {
         } },
     } },
     { id = "legacy_xy_lunatic", source_stage = "xy@Lunatic", waves = {
-        { id = "legacy_xy_lunatic_wave_01", name = "xy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 2115, duration_seconds = 35.2, classes = {
+        { id = "legacy_xy_lunatic_wave_01", name = "xy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "道中-固定弹幽灵:Lunatic",
             "道中-森林萤火虫:Lunatic",
-            "道中-中玉蝴蝶:Lunatic",
             "道中-自机狙妖精:Lunatic",
         }, members = {
             { class_name = "道中-固定弹幽灵:Lunatic", args = {
@@ -6451,7 +7377,7 @@ return {
                 "4",
                 "0",
                 "0",
-            }, spawn_frame = 410, env = {
+            }, spawn_frame = 120, env = {
                 yy = "220",
             } },
             { class_name = "道中-森林萤火虫:Lunatic", args = {
@@ -6464,7 +7390,7 @@ return {
                 "0",
                 "0",
                 "5",
-            }, spawn_frame = 920, env = {
+            }, spawn_frame = 240, env = {
                 aa = "-45",
                 xx = "150",
                 yy = "220",
@@ -6479,7 +7405,7 @@ return {
                 "0",
                 "0",
                 "5",
-            }, spawn_frame = 1030, env = {
+            }, spawn_frame = 360, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -6491,7 +7417,7 @@ return {
                 "10",
                 "0",
                 "0",
-            }, spawn_frame = 1140, env = {
+            }, spawn_frame = 480, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -6503,11 +7429,15 @@ return {
                 "10",
                 "0",
                 "0",
-            }, spawn_frame = 1210, env = {
+            }, spawn_frame = 600, env = {
                 aa = "-45",
                 xx = "150",
                 yy = "220",
             } },
+        } },
+        { id = "legacy_xy_lunatic_wave_02", name = "xy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 240, duration_seconds = 4, classes = {
+            "道中-中玉蝴蝶:Lunatic",
+        }, members = {
             { class_name = "道中-中玉蝴蝶:Lunatic", args = {
                 "-200",
                 "250",
@@ -6518,7 +7448,7 @@ return {
                 "25",
                 "4",
                 "400",
-            }, spawn_frame = 1490, env = {
+            }, spawn_frame = 0, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
@@ -6533,13 +7463,13 @@ return {
                 "25",
                 "4",
                 "325",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 120, env = {
                 aa = "-135",
                 xx = "-150",
                 yy = "220",
             } },
         } },
-        { id = "legacy_xy_lunatic_wave_02", name = "xy@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 1351, duration_seconds = 22.5, classes = {
+        { id = "legacy_xy_lunatic_wave_03", name = "xy@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
             "道中-固定弹幽灵:Lunatic",
             "道中-中玉蝴蝶:Lunatic",
             "道中-自机狙妖精:Lunatic",
@@ -6581,7 +7511,7 @@ return {
                 "10",
                 "10",
                 "20",
-            }, spawn_frame = 200, env = {
+            }, spawn_frame = 120, env = {
                 aa = "180",
                 xx = "150",
                 yy = "220",
@@ -6593,7 +7523,7 @@ return {
                 "10",
                 "10",
                 "20",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 240, env = {
                 aa = "180",
                 xx = "150",
                 yy = "220",
@@ -6608,7 +7538,7 @@ return {
                 "0",
                 "4",
                 "310",
-            }, spawn_frame = 840, env = {
+            }, spawn_frame = 360, env = {
                 aa = "180",
                 xx = "150",
                 yy = "220",
@@ -6620,7 +7550,7 @@ return {
                 "1",
                 "1",
                 "1",
-            }, spawn_frame = 990, env = {
+            }, spawn_frame = 480, env = {
                 aa = "180",
                 xx = "150",
                 yy = "90",
@@ -6635,11 +7565,15 @@ return {
                 "0",
                 "4",
                 "230",
-            }, spawn_frame = 1200, env = {
+            }, spawn_frame = 600, env = {
                 aa = "180",
                 xx = "150",
                 yy = "90",
             } },
+        } },
+        { id = "legacy_xy_lunatic_wave_04", name = "xy@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 120, duration_seconds = 2, classes = {
+            "道中-固定弹幽灵:Lunatic",
+        }, members = {
             { class_name = "道中-固定弹幽灵:Lunatic", args = {
                 "210",
                 "90",
@@ -6647,7 +7581,7 @@ return {
                 "1",
                 "1",
                 "1",
-            }, spawn_frame = 1350, env = {
+            }, spawn_frame = 0, env = {
                 aa = "180",
                 xx = "150",
                 yy = "90",
@@ -6655,7 +7589,7 @@ return {
         } },
     } },
     { id = "legacy_qxs_lunatic", source_stage = "qxs@Lunatic", waves = {
-        { id = "legacy_qxs_lunatic_wave_01", name = "qxs@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 2675, duration_seconds = 44.6, classes = {
+        { id = "legacy_qxs_lunatic_wave_01", name = "qxs@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "qxs_enm01",
             "qxs_enm03",
         }, members = {
@@ -6675,7 +7609,7 @@ return {
                 "64",
                 "23",
                 "7",
-            }, spawn_frame = 158, env = {
+            }, spawn_frame = 120, env = {
                 s = "1",
                 vx = "128",
                 xx = "vx*(s%4-2)",
@@ -6687,7 +7621,7 @@ return {
                 "144",
                 "23",
                 "7",
-            }, spawn_frame = 316, env = {
+            }, spawn_frame = 240, env = {
                 s = "1",
                 vx = "128",
                 xx = "80",
@@ -6699,7 +7633,7 @@ return {
                 "144",
                 "23",
                 "7",
-            }, spawn_frame = 406, env = {
+            }, spawn_frame = 360, env = {
                 s = "-1",
                 vx = "128",
                 xx = "20",
@@ -6712,7 +7646,7 @@ return {
                 "1.2",
                 "80-90*s",
                 "12",
-            }, spawn_frame = 1252, env = {
+            }, spawn_frame = 480, env = {
                 s = "-1",
                 vx = "128",
                 xx = "-128",
@@ -6725,19 +7659,23 @@ return {
                 "1.2",
                 "-90+10*s",
                 "12",
-            }, spawn_frame = 1651, env = {
+            }, spawn_frame = 600, env = {
                 s = "-1",
                 vx = "128",
                 xx = "30*s",
                 y0 = "180",
                 yy = "60-60*s",
             } },
+        } },
+        { id = "legacy_qxs_lunatic_wave_02", name = "qxs@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 257, duration_seconds = 4.3, classes = {
+            "qxs_enm01",
+        }, members = {
             { class_name = "qxs_enm01", args = {
                 "dis*cos(a)",
                 "dis*sin(a)+72",
                 "26",
                 "7",
-            }, spawn_frame = 2499, env = {
+            }, spawn_frame = 0, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -6751,7 +7689,7 @@ return {
                 "170",
                 "23",
                 "7",
-            }, spawn_frame = 2657, env = {
+            }, spawn_frame = 120, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -6765,7 +7703,7 @@ return {
                 "170",
                 "23",
                 "7",
-            }, spawn_frame = 2674, env = {
+            }, spawn_frame = 137, env = {
                 a = "90-88*(s%4-2)",
                 dis = "108",
                 s = "1",
@@ -6777,7 +7715,7 @@ return {
         } },
     } },
     { id = "legacy_karl_lunatic", source_stage = "karl@Lunatic", waves = {
-        { id = "legacy_karl_lunatic_wave_01", name = "karl@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 647, duration_seconds = 10.8, classes = {
+        { id = "legacy_karl_lunatic_wave_01", name = "karl@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 510, duration_seconds = 8.5, classes = {
             "karl_hBallEnemy",
             "karl_hFastFairy",
             "karl_hFlowerButterfly",
@@ -6833,7 +7771,7 @@ return {
                 "360",
                 "false",
                 "{bi=bi3, w_t=27, v=3, dv=0.2, n1=7, n2=3, da=2.2, s_v=8, s_t=20}",
-            }, spawn_frame = 170, env = {
+            }, spawn_frame = 130, env = {
                 bi = "karl_bullet_initializer.new()",
                 bi2 = "bi:copy()",
                 bi3 = "karl_bullet_initializer.new()",
@@ -6863,7 +7801,7 @@ return {
                 "360",
                 "false",
                 "{bi=bi4, w_t=27, v=3, dv=0.2, n1=7, n2=3, da=2.2, s_v=8, s_t=20}",
-            }, spawn_frame = 170, env = {
+            }, spawn_frame = 130, env = {
                 bi = "karl_bullet_initializer.new()",
                 bi2 = "bi:copy()",
                 bi3 = "karl_bullet_initializer.new()",
@@ -6890,7 +7828,7 @@ return {
                 "60",
                 "240",
                 "120",
-            }, spawn_frame = 291, env = {
+            }, spawn_frame = 250, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -6924,7 +7862,7 @@ return {
                 "grain_a",
                 "2",
                 "5",
-            }, spawn_frame = 626, env = {
+            }, spawn_frame = 370, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -6957,7 +7895,7 @@ return {
                 "-0.03",
                 "listb",
                 "75",
-            }, spawn_frame = 646, env = {
+            }, spawn_frame = 390, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -6981,7 +7919,7 @@ return {
                 y = "ran:Float(40,100)",
             } },
         } },
-        { id = "legacy_karl_lunatic_wave_02", name = "karl@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 1225, duration_seconds = 20.4, classes = {
+        { id = "legacy_karl_lunatic_wave_02", name = "karl@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 621, duration_seconds = 10.4, classes = {
             "karl_hBallEnemy",
             "karl_hBlueFountainEnemy",
             "karl_hShadowButterfly",
@@ -7090,7 +8028,7 @@ return {
                 "3",
                 "12",
                 "4",
-            }, spawn_frame = 222, env = {
+            }, spawn_frame = 141, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -7136,7 +8074,7 @@ return {
                 "3",
                 "12",
                 "4",
-            }, spawn_frame = 222, env = {
+            }, spawn_frame = 141, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -7182,7 +8120,7 @@ return {
                 "6",
                 "72",
                 "15",
-            }, spawn_frame = 413, env = {
+            }, spawn_frame = 261, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -7230,7 +8168,7 @@ return {
                 "6",
                 "72",
                 "15",
-            }, spawn_frame = 413, env = {
+            }, spawn_frame = 261, env = {
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
                 bi1 = "karl_bullet_initializer.new()",
@@ -7276,7 +8214,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=5, dv=0.24, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -7326,7 +8264,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=5, dv=0.24, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -7376,7 +8314,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=5, dv=0.24, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -7426,7 +8364,7 @@ return {
                 "480",
                 "false",
                 "{bi=bi3, w_t=9, v=5, dv=0.24, n1=1, n2=3, da=2.2, s_v=1, s_t=20}",
-            }, spawn_frame = 1073, env = {
+            }, spawn_frame = 381, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(7)",
                 bi = "karl_bullet_initializer.new()",
@@ -7473,7 +8411,7 @@ return {
                 "60",
                 "180",
                 "120",
-            }, spawn_frame = 1224, env = {
+            }, spawn_frame = 501, env = {
                 a2 = "18",
                 ac = "karl_acc_controller.new(8)",
                 bi = "karl_bullet_initializer.new()",
@@ -7510,13 +8448,10 @@ return {
         } },
     } },
     { id = "legacy_kbz_lunatic", source_stage = "kbz@Lunatic", waves = {
-        { id = "legacy_kbz_lunatic_wave_01", name = "kbz@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 4321, duration_seconds = 72, classes = {
+        { id = "legacy_kbz_lunatic_wave_01", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "卡比-标题小怪赤",
             "卡比-标题小怪青",
-            "卡比-小怪2赤",
-            "卡比-小怪2青",
             "卡比-陨石玉-1",
-            "卡比-陨石玉-2",
         }, members = {
             { class_name = "卡比-标题小怪青", args = {
                 "200",
@@ -7534,193 +8469,203 @@ return {
                 "0",
                 "240",
                 "4",
-            }, spawn_frame = 970, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "3",
-            }, spawn_frame = 1010, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "5",
-            }, spawn_frame = 1010, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "3",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "5",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "6",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "3",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "3",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "5",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "6",
-            }, spawn_frame = 1090, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "3",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "3",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "4",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_02", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-陨石玉-1",
+        }, members = {
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "4",
-            }, spawn_frame = 1170, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "5",
-            }, spawn_frame = 1170, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "6",
-            }, spawn_frame = 1210, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "6",
-            }, spawn_frame = 1610, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "6",
-            }, spawn_frame = 1610, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "67",
-            }, spawn_frame = 1650, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "7",
-            }, spawn_frame = 1650, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "765",
-            }, spawn_frame = 1650, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "56",
-            }, spawn_frame = 1690, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "7",
-            }, spawn_frame = 1730, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-50",
                 "240",
                 "5",
-            }, spawn_frame = 1730, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "50",
                 "240",
                 "3",
-            }, spawn_frame = 1730, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "5",
-            }, spawn_frame = 1730, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_03", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-小怪2赤",
+            "卡比-小怪2青",
+            "卡比-陨石玉-1",
+        }, members = {
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "6",
-            }, spawn_frame = 1770, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "100",
                 "240",
                 "5",
-            }, spawn_frame = 1810, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "0",
                 "240",
                 "5",
-            }, spawn_frame = 1810, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-100",
                 "240",
                 "3",
-            }, spawn_frame = 1810, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "-150",
                 "240",
                 "3",
-            }, spawn_frame = 1850, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-1", args = {
                 "150",
                 "240",
                 "5",
-            }, spawn_frame = 1850, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -7729,7 +8674,7 @@ return {
                 "1",
                 "0",
                 "6",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -7738,7 +8683,7 @@ return {
                 "0",
                 "1",
                 "6",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -7747,7 +8692,7 @@ return {
                 "0",
                 "1",
                 "6",
-            }, spawn_frame = 2310, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -7756,7 +8701,7 @@ return {
                 "1",
                 "0",
                 "6",
-            }, spawn_frame = 2310, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-小怪2青", args = {
                 "200",
@@ -7765,7 +8710,7 @@ return {
                 "11",
                 "11",
                 "6",
-            }, spawn_frame = 2440, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -7774,8 +8719,14 @@ return {
                 "11",
                 "11",
                 "6",
-            }, spawn_frame = 2440, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_04", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-小怪2赤",
+            "卡比-小怪2青",
+            "卡比-陨石玉-2",
+        }, members = {
             { class_name = "卡比-小怪2青", args = {
                 "200",
                 "150+ran:Float(-50,50)",
@@ -7783,7 +8734,7 @@ return {
                 "ran:Int(0,1)",
                 "ran:Int(0,1)",
                 "6",
-            }, spawn_frame = 2570, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-小怪2赤", args = {
                 "-200",
@@ -7792,308 +8743,324 @@ return {
                 "ran:Int(0,1)",
                 "ran:Int(0,1)",
                 "6",
-            }, spawn_frame = 2570, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 3440, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "3",
-            }, spawn_frame = 3440, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 3480, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "3",
-            }, spawn_frame = 3480, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "3",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "3",
-            }, spawn_frame = 3520, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "50",
                 "1",
                 "3",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "3",
-            }, spawn_frame = 3560, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 3600, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "3",
-            }, spawn_frame = 3600, env = {
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_05", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "卡比-陨石玉-2",
+        }, members = {
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "100",
+                "-1",
+                "3",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "150",
+                "1",
+                "3",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "200",
+                "-1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "150",
+                "-1",
+                "3",
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 3640, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "150",
-                "1",
-                "3",
-            }, spawn_frame = 3640, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "200",
-                "-1",
-                "3",
-            }, spawn_frame = 4080, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "150",
-                "-1",
-                "3",
-            }, spawn_frame = 4080, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "100",
-                "-1",
-                "3",
-            }, spawn_frame = 4080, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "3",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "3",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "3",
-            }, spawn_frame = 4120, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 4160, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "150",
-                "-1",
-                "3",
-            }, spawn_frame = 4160, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "100",
-                "-1",
-                "3",
-            }, spawn_frame = 4160, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "200",
-                "1",
-                "3",
-            }, spawn_frame = 4200, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "150",
-                "1",
-                "3",
-            }, spawn_frame = 4200, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "100",
-                "1",
-                "3",
-            }, spawn_frame = 4200, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "-200",
-                "200",
-                "-1",
-                "3",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "3",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 4240, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "200",
                 "1",
                 "3",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "150",
                 "1",
                 "3",
-            }, spawn_frame = 4280, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "200",
                 "100",
                 "1",
                 "3",
-            }, spawn_frame = 4280, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "200",
-                "1",
-                "3",
-            }, spawn_frame = 4320, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "150",
-                "1",
-                "3",
-            }, spawn_frame = 4320, env = {
-            } },
-            { class_name = "卡比-陨石玉-2", args = {
-                "200",
-                "100",
-                "1",
-                "3",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "200",
                 "-1",
                 "3",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "150",
                 "-1",
                 "3",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "卡比-陨石玉-2", args = {
                 "-200",
                 "100",
                 "-1",
                 "3",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
+            } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_06", name = "kbz@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 240, duration_seconds = 4, classes = {
+            "卡比-陨石玉-2",
+        }, members = {
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "200",
+                "1",
+                "3",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "150",
+                "1",
+                "3",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "100",
+                "1",
+                "3",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "200",
+                "1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "150",
+                "1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "200",
+                "100",
+                "1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "200",
+                "-1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "150",
+                "-1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "卡比-陨石玉-2", args = {
+                "-200",
+                "100",
+                "-1",
+                "3",
+            }, spawn_frame = 120, env = {
+            } },
+        } },
+        { id = "legacy_kbz_lunatic_wave_07", name = "kbz@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 130, duration_seconds = 2.2, classes = {
+            "卡比-玉-3",
+        }, members = {
+            { class_name = "卡比-玉-3", args = {
+                "500*cos(ANGLE)",
+                "500*sin(ANGLE)",
+                "1",
+            }, spawn_frame = 0, env = {
+                ANGLE = "0",
+            } },
+            { class_name = "卡比-玉-3", args = {
+                "500*cos(ANGLE)",
+                "500*sin(ANGLE)",
+                "1",
+            }, spawn_frame = 10, env = {
+                ANGLE = "180",
             } },
         } },
     } },
     { id = "legacy_xiv_lunatic", source_stage = "xiv@Lunatic", waves = {
-        { id = "legacy_xiv_lunatic_wave_01", name = "xiv@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 2957, duration_seconds = 49.3, classes = {
-            "bigGuy1_L",
+        { id = "legacy_xiv_lunatic_wave_01", name = "xiv@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 777, duration_seconds = 13, classes = {
             "bigGuy2_L",
             "bomber_L",
             "heavySniper_L",
             "kamikaze_L",
-            "laserShooter1",
             "sniper1_L",
             "sniper2_route1A_L",
-            "sniper2_route2A_L",
-            "sniper2_route2B_L",
-            "sniper2_route3_L",
-            "sniper3_L",
-            "sniper4_L",
-            "youseiDestroyer_L",
-            "youseiEraser_L",
-            "youseiMortar_L",
         }, members = {
             { class_name = "bomber_L", args = {
                 "ran:Int(-112,112)",
@@ -8106,14 +9073,14 @@ return {
                 "120",
                 "144",
                 "_",
-            }, spawn_frame = 110, env = {
+            }, spawn_frame = 120, env = {
                 x = "120",
             } },
             { class_name = "heavySniper_L", args = {
                 "-100",
                 "180",
                 "_",
-            }, spawn_frame = 152, env = {
+            }, spawn_frame = 240, env = {
                 x = "-100",
             } },
             { class_name = "sniper2_route1A_L", args = {
@@ -8121,21 +9088,21 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 344, env = {
+            }, spawn_frame = 360, env = {
                 x = "-100",
             } },
             { class_name = "heavySniper_L", args = {
                 "-100",
                 "200",
                 "_",
-            }, spawn_frame = 371, env = {
+            }, spawn_frame = 387, env = {
                 x = "-100",
             } },
             { class_name = "kamikaze_L", args = {
                 "-120",
                 "246",
                 "_",
-            }, spawn_frame = 611, env = {
+            }, spawn_frame = 507, env = {
                 x = "-120",
             } },
             { class_name = "bigGuy2_L", args = {
@@ -8143,7 +9110,7 @@ return {
                 "246",
                 "0.8",
                 "270",
-            }, spawn_frame = 819, env = {
+            }, spawn_frame = 627, env = {
                 x = "-120",
             } },
             { class_name = "sniper1_L", args = {
@@ -8151,22 +9118,33 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 819, env = {
+            }, spawn_frame = 627, env = {
                 x = "-100",
             } },
             { class_name = "heavySniper_L", args = {
                 "-150",
                 "220",
                 "_",
-            }, spawn_frame = 849, env = {
+            }, spawn_frame = 657, env = {
                 x = "-150",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_02", name = "xiv@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "bomber_L",
+            "laserShooter1",
+            "sniper2_route2A_L",
+            "sniper2_route2B_L",
+            "sniper3_L",
+            "youseiDestroyer_L",
+            "youseiEraser_L",
+            "youseiMortar_L",
+        }, members = {
             { class_name = "youseiMortar_L", args = {
                 "-200",
                 "180",
                 "0.7",
                 "0",
-            }, spawn_frame = 1041, env = {
+            }, spawn_frame = 0, env = {
                 x = "-150",
             } },
             { class_name = "youseiMortar_L", args = {
@@ -8174,7 +9152,7 @@ return {
                 "180",
                 "0.7",
                 "180",
-            }, spawn_frame = 1041, env = {
+            }, spawn_frame = 0, env = {
                 x = "-150",
             } },
             { class_name = "sniper3_L", args = {
@@ -8182,7 +9160,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1116, env = {
+            }, spawn_frame = 120, env = {
                 x = "-135",
             } },
             { class_name = "youseiDestroyer_L", args = {
@@ -8190,7 +9168,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1236, env = {
+            }, spawn_frame = 240, env = {
                 x = "-135",
             } },
             { class_name = "youseiMortar_L", args = {
@@ -8198,14 +9176,14 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 1316, env = {
+            }, spawn_frame = 360, env = {
                 x = "-60",
             } },
             { class_name = "laserShooter1", args = {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 2036, env = {
+            }, spawn_frame = 480, env = {
                 x = "-60",
             } },
             { class_name = "bomber_L", args = {
@@ -8213,7 +9191,7 @@ return {
                 "246",
                 "3",
                 "270",
-            }, spawn_frame = 2036, env = {
+            }, spawn_frame = 480, env = {
                 x = "-100",
             } },
             { class_name = "youseiEraser_L", args = {
@@ -8221,7 +9199,7 @@ return {
                 "246",
                 "0.5",
                 "270",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "youseiMortar_L", args = {
@@ -8229,7 +9207,7 @@ return {
                 "246",
                 "0.5",
                 "270",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route2A_L", args = {
@@ -8237,7 +9215,7 @@ return {
                 "210",
                 "5",
                 "170",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route2B_L", args = {
@@ -8245,15 +9223,23 @@ return {
                 "210.596",
                 "5",
                 "170",
-            }, spawn_frame = 2256, env = {
+            }, spawn_frame = 600, env = {
                 x = "-120",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_03", name = "xiv@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 529, duration_seconds = 8.8, classes = {
+            "bigGuy1_L",
+            "sniper1_L",
+            "sniper2_route3_L",
+            "sniper4_L",
+            "youseiDestroyer_L",
+        }, members = {
             { class_name = "sniper2_route3_L", args = {
                 "-200",
                 "120",
                 "5",
                 "-20",
-            }, spawn_frame = 2505, env = {
+            }, spawn_frame = 0, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_L", args = {
@@ -8261,7 +9247,7 @@ return {
                 "120",
                 "5",
                 "-160",
-            }, spawn_frame = 2544, env = {
+            }, spawn_frame = 120, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_L", args = {
@@ -8269,21 +9255,21 @@ return {
                 "246",
                 "5",
                 "-45",
-            }, spawn_frame = 2583, env = {
+            }, spawn_frame = 240, env = {
                 x = "-120",
             } },
             { class_name = "sniper4_L", args = {
                 "-125",
                 "246",
                 "1.2",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "sniper4_L", args = {
                 "125",
                 "246",
                 "1.2",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "sniper2_route3_L", args = {
@@ -8291,7 +9277,7 @@ return {
                 "246",
                 "5",
                 "-135",
-            }, spawn_frame = 2607, env = {
+            }, spawn_frame = 264, env = {
                 x = "-120",
             } },
             { class_name = "youseiDestroyer_L", args = {
@@ -8299,7 +9285,7 @@ return {
                 "144",
                 "1",
                 "0",
-            }, spawn_frame = 2856, env = {
+            }, spawn_frame = 384, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -8308,7 +9294,7 @@ return {
                 "246",
                 "0.4",
                 "-90",
-            }, spawn_frame = 2881, env = {
+            }, spawn_frame = 409, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -8317,27 +9303,15 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 2881, env = {
+            }, spawn_frame = 409, env = {
                 a = "0",
                 x = "-200",
             } },
         } },
-        { id = "legacy_xiv_lunatic_wave_02", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 6873, duration_seconds = 114.6, classes = {
-            "bigFortress",
+        { id = "legacy_xiv_lunatic_wave_04", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
             "bigGuy1_L",
-            "bigGuy2_L",
-            "bomber_L",
-            "heavySniper_L",
             "kamikaze_L",
-            "laserShooter1",
-            "sniper1_L",
-            "sniper2_route1A_L",
-            "sniper2_route1B_L",
-            "sniper2_route2A_L",
-            "sniper2_route2B_L",
-            "sniper2_route3_L",
             "sniper3_L",
-            "sniper4_L",
             "youseiEraser_L",
         }, members = {
             { class_name = "kamikaze_L", args = {
@@ -8353,7 +9327,7 @@ return {
                 "240",
                 "1.3",
                 "-140",
-            }, spawn_frame = 126, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -8362,7 +9336,7 @@ return {
                 "240",
                 "1.3",
                 "-50",
-            }, spawn_frame = 216, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 x = "-200",
             } },
@@ -8371,7 +9345,7 @@ return {
                 "246",
                 "1",
                 "-45",
-            }, spawn_frame = 366, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8381,7 +9355,7 @@ return {
                 "150",
                 "1",
                 "0",
-            }, spawn_frame = 456, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8391,17 +9365,27 @@ return {
                 "150",
                 "1",
                 "180",
-            }, spawn_frame = 532, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_05", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 762, duration_seconds = 12.7, classes = {
+            "bigGuy1_L",
+            "sniper2_route1A_L",
+            "sniper2_route1B_L",
+            "sniper2_route2A_L",
+            "sniper2_route2B_L",
+            "sniper2_route3_L",
+            "sniper4_L",
+        }, members = {
             { class_name = "sniper2_route1A_L", args = {
                 "-200",
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 1298, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8411,7 +9395,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 1367, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8421,7 +9405,7 @@ return {
                 "210",
                 "5",
                 "170",
-            }, spawn_frame = 1436, env = {
+            }, spawn_frame = 240, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8431,7 +9415,7 @@ return {
                 "210.596",
                 "5",
                 "170",
-            }, spawn_frame = 1505, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8441,7 +9425,7 @@ return {
                 "222",
                 "5",
                 "0",
-            }, spawn_frame = 1554, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8451,7 +9435,7 @@ return {
                 "202",
                 "5",
                 "0",
-            }, spawn_frame = 1575, env = {
+            }, spawn_frame = 501, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8461,7 +9445,7 @@ return {
                 "182",
                 "5",
                 "0",
-            }, spawn_frame = 1596, env = {
+            }, spawn_frame = 522, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8471,7 +9455,7 @@ return {
                 "246",
                 "1",
                 "-90",
-            }, spawn_frame = 1725, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8480,17 +9464,25 @@ return {
                 "-192",
                 "246",
                 "2",
-            }, spawn_frame = 1725, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_06", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 762, duration_seconds = 12.7, classes = {
+            "bigGuy1_L",
+            "bigGuy2_L",
+            "heavySniper_L",
+            "sniper2_route3_L",
+            "sniper4_L",
+        }, members = {
             { class_name = "sniper2_route3_L", args = {
                 "200",
                 "222",
                 "5",
                 "180",
-            }, spawn_frame = 1917, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8500,7 +9492,7 @@ return {
                 "202",
                 "5",
                 "180",
-            }, spawn_frame = 1938, env = {
+            }, spawn_frame = 21, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8510,7 +9502,7 @@ return {
                 "182",
                 "5",
                 "180",
-            }, spawn_frame = 1959, env = {
+            }, spawn_frame = 42, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8520,7 +9512,7 @@ return {
                 "246",
                 "1",
                 "-90",
-            }, spawn_frame = 2088, env = {
+            }, spawn_frame = 162, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8529,7 +9521,7 @@ return {
                 "192",
                 "246",
                 "2",
-            }, spawn_frame = 2088, env = {
+            }, spawn_frame = 162, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8539,7 +9531,7 @@ return {
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 2370, env = {
+            }, spawn_frame = 282, env = {
                 a = "-45",
                 x = "-200",
                 y = "246",
@@ -8548,7 +9540,7 @@ return {
                 "100",
                 "200",
                 "_",
-            }, spawn_frame = 2400, env = {
+            }, spawn_frame = 402, env = {
                 a = "-45",
                 x = "100",
                 y = "246",
@@ -8558,7 +9550,7 @@ return {
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 2735, env = {
+            }, spawn_frame = 522, env = {
                 a = "-45",
                 x = "100",
                 y = "246",
@@ -8567,17 +9559,24 @@ return {
                 "-100",
                 "200",
                 "_",
-            }, spawn_frame = 2765, env = {
+            }, spawn_frame = 642, env = {
                 a = "-45",
                 x = "-100",
                 y = "246",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_07", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "bigGuy2_L",
+            "laserShooter1",
+            "sniper1_L",
+            "sniper4_L",
+        }, members = {
             { class_name = "bigGuy2_L", args = {
                 "0",
                 "246",
                 "0.8",
                 "-90",
-            }, spawn_frame = 3085, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 x = "-100",
                 y = "246",
@@ -8586,7 +9585,7 @@ return {
                 "-180",
                 "246",
                 "1.2",
-            }, spawn_frame = 3115, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 x = "-180",
                 y = "246",
@@ -8595,7 +9594,7 @@ return {
                 "-180",
                 "246",
                 "3",
-            }, spawn_frame = 4330, env = {
+            }, spawn_frame = 240, env = {
                 a = "-45",
                 x = "-180",
                 y = "246",
@@ -8605,7 +9604,7 @@ return {
                 "180",
                 "4",
                 "0",
-            }, spawn_frame = 4369, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -8616,7 +9615,7 @@ return {
                 "180",
                 "4",
                 "180",
-            }, spawn_frame = 4369, env = {
+            }, spawn_frame = 360, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -8626,7 +9625,7 @@ return {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 4419, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 v = "4",
                 x = "-180",
@@ -8636,7 +9635,7 @@ return {
                 "-40",
                 "246",
                 "1.3",
-            }, spawn_frame = 4419, env = {
+            }, spawn_frame = 480, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
@@ -8646,7 +9645,7 @@ return {
                 "-180",
                 "246",
                 "_",
-            }, spawn_frame = 4499, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
@@ -8656,18 +9655,28 @@ return {
                 "-40",
                 "246",
                 "1.3",
-            }, spawn_frame = 4499, env = {
+            }, spawn_frame = 600, env = {
                 a = "-45",
                 v = "4",
                 x = "-40",
                 y = "180",
             } },
+        } },
+        { id = "legacy_xiv_lunatic_wave_08", name = "xiv@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 606, duration_seconds = 10.1, classes = {
+            "bigFortress",
+            "bigGuy1_L",
+            "bomber_L",
+            "sniper2_route1A_L",
+            "sniper2_route1B_L",
+            "sniper3_L",
+            "sniper4_L",
+        }, members = {
             { class_name = "bomber_L", args = {
                 "-150",
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 4579, env = {
+            }, spawn_frame = 0, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -8678,7 +9687,7 @@ return {
                 "246",
                 "3",
                 "-90",
-            }, spawn_frame = 4630, env = {
+            }, spawn_frame = 120, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -8689,7 +9698,7 @@ return {
                 "246",
                 "8",
                 "45",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -8700,7 +9709,7 @@ return {
                 "120",
                 "1.5",
                 "10",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -8711,7 +9720,7 @@ return {
                 "120",
                 "1.5",
                 "170",
-            }, spawn_frame = 4636, env = {
+            }, spawn_frame = 126, env = {
                 a = "-45",
                 v = "4",
                 x = "150",
@@ -8721,7 +9730,7 @@ return {
                 "-150",
                 "246",
                 "0.8",
-            }, spawn_frame = 6166, env = {
+            }, spawn_frame = 246, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -8732,7 +9741,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 6803, env = {
+            }, spawn_frame = 366, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -8743,7 +9752,7 @@ return {
                 "205",
                 "5",
                 "85",
-            }, spawn_frame = 6803, env = {
+            }, spawn_frame = 366, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -8754,7 +9763,7 @@ return {
                 "246",
                 "0.5",
                 "-90",
-            }, spawn_frame = 6872, env = {
+            }, spawn_frame = 486, env = {
                 a = "-45",
                 v = "4",
                 x = "-150",
@@ -8763,7 +9772,7 @@ return {
         } },
     } },
     { id = "legacy_sf_lunatic", source_stage = "sf@Lunatic", waves = {
-        { id = "legacy_sf_lunatic_wave_01", name = "sf@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 766, duration_seconds = 12.8, classes = {
+        { id = "legacy_sf_lunatic_wave_01", name = "sf@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 530, duration_seconds = 8.8, classes = {
             "sf_wave1",
             "sf_wave3_ghost",
             "sf_wave3_毛玉",
@@ -8816,7 +9825,7 @@ return {
                 "140",
                 "230",
                 "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 165, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8828,7 +9837,7 @@ return {
                 "-140",
                 "230",
                 "{0,0,0,-101.30993247403,0.15297058540779,-101.30993247402,0.25495097567966,-101.30993247402,0.35693136595149,-101.30993247402,0.45891175622337,-101.30993247402,0.56089214649519,-101.30993247402,0.66287253676706,-101.30993247402,0.76485292703892,-101.30993247402,0.8668333173108,-101.30993247402,0.96881370758262,-97.839263331806,1.3930183056945,-97.230242639252,1.3507405376311,-96.581944655177,1.3086252328303,-95.890626416205,1.2666885963014,-95.152081702205,1.2249489785293,-94.361572645021,1.1834272263219,-93.513750260605,1.1421471008587,-92.6025622025,1.1011357772773,-91.621145913653,1.0604244433245,-90.561705332567,1.02004901843,-90,1.79,-90,1.77,-90,1.75,-90,1.73,-90,1.71,-90,1.69,-90,1.67,-90,1.65,-90,1.63,-90.000000000001,1.61,-83.271487906231,1.7923448328935,-82.470073222312,1.7551353224182,-81.634113875968,1.718284027744,-80.761707068707,1.6818144963105,-79.850848201032,1.6457521077003,-78.899429978494,1.6101242188104,-77.905242922989,1.5749603169604,-76.865977693603,1.5402921800749,-75.779229699812,1.5061540425866,-74.642506576502,1.4725827650764,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-83.65980825409,1.8110770276275,-74.192915911312,2.2760711763915,-73.082994139021,2.2681490250863,-71.96571443287,2.2610838109191,-70.841860951417,2.2548835890129,-69.71224731252,2.2495555116511,-68.577713380806,2.2451057881534,-67.439121763631,2.2415396494374,-66.297354049034,2.2388613177238,-65.153306824577,2.2370739817896,-64.007887520605,2.2361797781037,-61.436059224636,2.9489320100674,-60.907551930526,2.941054232754,-60.376251248826,2.9334280287745,-59.842227057911,2.9260553651632,-59.305551846622,2.9189381630997,-58.766300685466,2.9120782956507,-58.224551192214,2.905477585527,-57.68038349182,2.8991378028648,-57.133880170634,2.8930606630349,-56.585126224855,2.8872478244861,-42.360980166152,3.5322089405923,-41.660572021289,3.5202982828164,-40.955514425819,3.5089172119046,-40.245976536397,3.4980708969373,-39.532135160199,3.4877643269005,-38.814174596834,3.4780023001718,-38.092286450574,3.4687894141905,-37.366669412769,3.4601300553592,-36.637529014517,3.4520283892228,-35.905077349883,3.4444883509746,-27.696179757911,3.8512595342303,-27.295317047619,3.8597668323359,-26.896236965493,3.8684622267769,-26.498966108905,3.8773444520703,-26.103530138874,3.8864122272348,-25.709953780811,3.8956642565806,-25.318260826244,3.9050992304934,-24.928474135461,3.9147158262127,-24.540615641076,3.9245127086047,-24.15470635246,3.9344885309275,-15.747948820798,4.3845752359835,-15.357493423498,4.4177482952291,-14.972875766787,4.4511234536912,-14.593999797585,4.4846961992982,-14.220770300188,4.5184621277598,-13.853092958514,4.5524169404834,-13.490874412124,4.586556442474,-13.134022306396,4.6208765402248,-12.782445337212,4.6553732396017,-12.436053290506,4.6900426437294,-11.882394152093,4.71094470356,-11.119423518526,4.7185802949616,-10.359052488084,4.7270498199194,-9.6015341717031,4.7363488047229,-8.8471157981033,4.7464723743007,-8.096038279981,4.7574152646159,-7.3485358112624,4.7691718358642,-6.6048354967539,4.7817360864021,-5.8651570152433,4.7951016673268,-5.1297123168309,4.8092618976305,11.473985796674,5.479507277119,13.450833840343,5.4597618995703,15.439645535319,5.4465585464585,17.435705152665,5.4399448526616,19.434192493179,5.4399448526616,21.430252110525,5.4465585464585,23.419063805501,5.4597618995704,25.395911849171,5.479507277119,27.356250477364,5.50572429386,29.295763444559,5.5383210452266,54.068935440588,5.2487046020899,56.860542342159,5.1950072184743,59.703551823762,5.1538820320221,62.58507376621,5.1256316683898,65.491094566176,5.1104696457371,68.406862149981,5.108512503655,71.317325446741,5.1197753856981,74.207596471142,5.1441714590398,77.063400034283,5.1815152224036,79.871477821791,5.2315294130875,116.00121992045,5.9079776573714,120.06858282186,5.927714568027,124.08887161572,5.9770394009074,128.02436396606,6.0552291451274,131.84205520356,6.1611849509652,135.51500437269,6.2935045880654,139.0229691235,6.4505658666507,142.35237935989,6.6306108315901,145.4957963323,6.8318225972284,148.45104428002,7.0523896659218,170.31355462296,5.8838847711355,174.38723121599,5.8279413174808,178.51854282911,5.8019393309479,-177.33470685258,5.8062810817252,-173.21566382098,5.8408989034223,-169.1657771154,5.9052603668255,-165.22240488441,5.9984081221604,-161.41700039673,6.119027700542,-157.77405931187,6.2655326988214,-154.31084107785,6.436155684879,-124.67328073996,6.6268695475314,-123.76147893002,6.6758220467595,-122.86317554471,6.7264403661967,-121.97850481466,6.7786871885344,-121.10757093766,6.8325251554605,-120.25044951808,6.8879169565261,-119.40718906073,6.9448254117724,-118.57781250168,7.0032135480792,-117.76231875994,7.0630446692627,-116.96068429553,7.1242824200055,-121.70964323495,6.9822990483078,-123.21032938735,6.9561842988811,-124.72128019587,6.9348756297428,-126.24048104031,6.9184174490992,-127.76584896496,6.9068444314318,-129.2952491975,6.9001811570422,-130.82651274413,6.8984418530564,-132.35745470594,6.9016302421964,-133.88589293316,6.9097395030493,-135.40966662097,6.9227523428186,-169.23879905924,6.9624421002979,-170.96785857395,7.0068823309658,-172.67359333983,7.0576199954375,-174.35351400164,7.1145203633133,-176.00538299185,7.1774368684092,-177.62722287263,7.2462128039411,-179.21731945941,7.3206830282426,179.22577983507,7.4006756448314,177.70327188162,7.4860136254217,176.21610731192}",
-            }, spawn_frame = 475, env = {
+            }, spawn_frame = 285, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8840,7 +9849,7 @@ return {
                 "list1[i]",
                 "list1[i+1]+50",
                 "27",
-            }, spawn_frame = 760, env = {
+            }, spawn_frame = 405, env = {
                 i = "#list2-1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8852,7 +9861,7 @@ return {
                 "list1[i]",
                 "list1[i+1]+50",
                 "27",
-            }, spawn_frame = 765, env = {
+            }, spawn_frame = 410, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8861,7 +9870,7 @@ return {
                 list2 = "{-149.99669187146,3.999881852552,-149.98676748582,3.9995274102079,-149.9702268431,3.9989366729679,-149.94706994329,3.9981096408318,-149.91729678639,3.9970463137996,-149.8809073724,3.9957466918715,-149.83790170132,3.9942107750473,-149.78827977316,3.992438563327,-149.7320415879,3.9904300567108,-149.66918714556,3.9881852551985,-149.59971644612,3.9857041587902,-149.5236294896,3.9829867674858,-149.44092627599,3.9800330812854,-149.35160680529,3.976843100189,-149.2556710775,3.9734168241966,-149.15311909263,3.9697542533081,-149.04395085066,3.9658553875236,-148.92816635161,3.9617202268431,-148.80576559546,3.9573487712665,-148.67674858223,3.952741020794,-148.54111531191,3.9478969754253,-148.3988657845,3.9428166351607,-148.25,3.9375,-148.09451795841,3.9319470699433,-147.93241965974,3.9261578449905,-147.76370510397,3.9201323251418,-147.58837429112,3.913870510397,-147.40642722117,3.9073724007561,-147.21786389414,3.9006379962193,-147.02268431002,3.8936672967864,-146.82088846881,3.8864603024575,-146.61247637051,3.8790170132325,-146.39744801512,3.8713374291115,-146.17580340265,3.8634215500945,-145.94754253308,3.8552693761815,-145.71266540643,3.8468809073724,-145.47117202268,3.8382561436673,-145.22306238185,3.8293950850662,-144.96833648393,3.820297731569,-144.70699432892,3.8109640831758,-144.43903591682,3.8013941398866,-144.16446124764,3.7915879017013,-143.88327032136,3.78154536862,-143.595463138,3.7712665406427,-143.30103969754,3.7607514177694,-143,3.75,-142.69234404537,3.7390122873346,-142.37807183365,3.7277882797732,-142.05718336484,3.7163279773157,-141.72967863894,3.7046313799622,-141.39555765595,3.6926984877127,-141.05482041588,3.6805293005671,-140.70746691871,3.6681238185255,-140.35349716446,3.6554820415879,-139.99291115312,3.6426039697543,-139.62570888469,3.6294896030246,-139.25189035917,3.6161389413989,-138.87145557656,3.6025519848771,-138.48440453686,3.5887287334594,-138.09073724008,3.5746691871456,-137.6904536862,3.5603733459357,-137.28355387524,3.5458412098299,-136.87003780718,3.531072778828,-136.44990548204,3.5160680529301,-136.02315689981,3.5008270321361,-135.58979206049,3.4853497164461,-135.14981096408,3.4696361058601,-134.70321361059,3.4536862003781,-134.25,3.4375,-133.79017013233,3.4210775047259,-133.32372400756,3.4044187145558,-132.85066162571,3.3875236294896,-132.37098298677,3.3703922495274,-131.88468809074,3.3530245746692,-131.39177693762,3.3354206049149,-130.89224952741,3.3175803402646,-130.38610586011,3.2995037807183,-129.87334593573,3.281190926276,-129.35396975425,3.2626417769376,-128.82797731569,3.2438563327032,-128.29536862004,3.2248345935728,-127.7561436673,3.2055765595463,-127.21030245747,3.1860822306238,-126.65784499055,3.1663516068053,-126.09877126654,3.1463846880907,-125.53308128544,3.1261814744801,-124.96077504726,3.1057419659735,-124.38185255198,3.0850661625709,-123.79631379962,3.0641540642722,-123.20415879017,3.0430056710775,-122.60538752363,3.0216209829868,-122,3,-121.36968336484,3.0008270321361,-120.73960302457,3.0033081285444,-120.10975897921,3.0074432892249,-119.48015122873,3.0132325141777,-118.85077977316,3.0206758034026,-118.22164461248,3.0297731568998,-117.59274574669,3.0405245746692,-116.9640831758,3.0529300567108,-116.33565689981,3.0669896030246,-115.70746691871,3.0827032136106,-115.07951323251,3.1000708884688,-114.45179584121,3.1190926275992,-113.8243147448,3.1397684310019,-113.19706994329,3.1620982986767,-112.57006143667,3.1860822306238,-111.94328922495,3.2117202268431,-111.31675330813,3.2390122873346,-110.6904536862,3.2679584120983,-110.06439035917,3.2985586011342,-109.43856332703,3.3308128544423,-108.81297258979,3.3647211720227,-108.18761814745,3.4002835538752,-107.5625,3.4375,-106.93761814745,3.476370510397,-106.31297258979,3.5168950850662,-105.68856332703,3.5590737240076,-105.06439035917,3.6029064272212,-104.4404536862,3.648393194707,-103.81675330813,3.695534026465,-103.19328922495,3.7443289224953,-102.57006143667,3.7947778827977,-101.94706994329,3.8468809073724,-101.3243147448,3.9006379962193,-100.70179584121,3.9560491493384,-100.07951323251,4.0131143667297,-99.457466918715,4.0718336483932,-98.835656899811,4.1322069943289,-98.214083175803,4.1942344045369,-97.592745746692,4.257915879017,-96.971644612476,4.3232514177694,-96.350779773157,4.3902410207939,-95.730151228733,4.4588846880907,-95.109758979206,4.5291824196597,-94.489603024575,4.6011342155009,-93.869683364839,4.6747400756144,-93.25,4.75,-92.630552930057,4.8269139886578,-92.011342155009,4.9054820415879,-91.392367674858,4.9857041587902,-90.773629489603,5.0675803402646,-90.155127599244,5.1511105860113,-89.536862003781,5.2362948960302,-88.918832703214,5.3231332703214,-88.301039697543,5.4116257088847,-87.683482986767,5.5017722117202,-87.066162570888,5.593572778828,-86.449078449905,5.6870274102079,-85.832230623818,5.7821361058601,-85.215619092628,5.8788988657845,-84.599243856333,5.9773156899811,-83.983104914934,6.0773865784499,-83.367202268431,6.1791115311909,-82.751535916824,6.2824905482042,-82.136105860113,6.3875236294896,-81.520912098299,6.4942107750473,-80.90595463138,6.6025519848771,-80.291233459357,6.7125472589792,-79.676748582231,6.8241965973535,-79.0625,6.9375,-78.448487712665,7.0524574669187,-77.834711720227,7.1690689981096,-77.221172022684,7.2873345935728,-76.607868620038,7.4072542533081,-75.994801512287,7.5288279773157,-75.381970699433,7.6520557655955,-74.769376181474,7.7769376181475,-74.157017958412,7.9034735349717,-73.544896030246,8.0316635160681,-72.933010396975,8.1615075614367,-72.321361058601,8.2930056710775,-71.709948015123,8.4261578449906,-71.098771266541,8.5609640831758,-70.487830812854,8.6974243856333,-69.877126654064,8.835538752363,-69.26665879017,8.9753071833649,-68.656427221172,9.116729678639,-68.04643194707,9.2598062381853,-67.436672967864,9.4045368620038,-66.827150283554,9.5509215500945,-66.21786389414,9.6989603024575,-65.608813799622,9.8486531190927,-65,10,-64.412807183365,10.195534026465,-63.825141776938,10.390831758034,-63.237003780718,10.585893194707,-62.648393194707,10.780718336484,-62.059310018904,10.975307183365,-61.469754253308,11.16965973535,-60.879725897921,11.363775992439,-60.289224952741,11.557655954631,-59.698251417769,11.751299621928,-59.106805293006,11.944706994329,-58.51488657845,12.137878071834,-57.922495274102,12.330812854442,-57.329631379962,12.523511342155,-56.73629489603,12.715973534972,-56.142485822306,12.908199432892,-55.54820415879,13.100189035917,-54.953449905482,13.291942344045,-54.358223062382,13.483459357278,-53.76252362949,13.674740075614,-53.166351606805,13.865784499055,-52.569706994329,14.056592627599,-51.97258979206,14.247164461248,-51.375,14.4375,-50.776937618147,14.627599243856,-50.178402646503,14.817462192817,-49.579395085066,15.007088846881,-48.979914933837,15.196479206049,-48.379962192817,15.385633270321,-47.779536862004,15.574551039698,-47.178638941399,15.763232514178,-46.577268431002,15.951677693762,-45.975425330813,16.13988657845,-45.373109640832,16.327859168242,-44.770321361059,16.515595463138,-44.167060491493,16.703095463138,-43.563327032136,16.890359168242,-42.959120982987,17.07738657845,-42.354442344045,17.264177693762,-41.749291115312,17.450732514178,-41.143667296786,17.637051039698,-40.537570888469,17.823133270321,-39.931001890359,18.008979206049,-39.323960302457,18.194588846881,-38.716446124764,18.379962192817,-38.108459357278,18.565099243856,-37.5,18.75,-36.89106805293,18.934664461248,-36.281663516068,19.119092627599,-35.671786389414,19.303284499055,-35.061436672968,19.487240075614,-34.45061436673,19.670959357278,-33.839319470699,19.854442344045,-33.227551984877,20.037689035917,-32.615311909263,20.220699432892,-32.002599243856,20.403473534972,-31.389413988658,20.586011342155,-30.775756143667,20.768312854442,-30.161625708885,20.950378071834,-29.54702268431,21.132206994329,-28.931947069943,21.313799621928,-28.316398865784,21.495155954631,-27.700378071834,21.676275992439,-27.083884688091,21.85715973535,-26.466918714556,22.037807183365,-25.849480151229,22.218218336484,-25.23156899811,22.398393194707,-24.613185255198,22.578331758034,-23.994328922495,22.758034026465,-23.375,22.9375,-22.755198487713,23.116729678639,-22.134924385633,23.295723062382,-21.514177693762,23.474480151229,-20.892958412098,23.65300094518,-20.271266540643,23.831285444234,-19.649102079395,24.009333648393,-19.026465028355,24.187145557656,-18.403355387524,24.364721172023,-17.7797731569,24.542060491493,-17.155718336484,24.719163516068,-16.531190926276,24.896030245747,-15.906190926276,25.072660680529,-15.280718336484,25.249054820416,-14.6547731569,25.425212665406,-14.028355387524,25.601134215501,-13.401465028355,25.776819470699,-12.774102079395,25.952268431002,-12.146266540643,26.127481096408,-11.517958412098,26.302457466919,-10.889177693762,26.477197542533,-10.259924385633,26.651701323251,-9.6301984877126,26.825968809074,-8.9999999999999,27,-8.391186200378,27.086602079395,-7.78213610586,27.172495274102,-7.172849716446,27.257679584121,-6.563327032136,27.342155009452,-5.95356805293,27.425921550095,-5.3435727788279,27.508979206049,-4.7333412098298,27.591327977316,-4.1228733459356,27.672967863894,-3.5121691871455,27.753898865785,-2.9012287334593,27.834120982987,-2.290051984877,27.913634215501,-1.6786389413988,27.992438563327,-1.0669896030245,28.070534026465,-0.45510396975418,28.147920604915,0.15701795841217,28.224598298677,0.76937618147455,28.30056710775,1.381970699433,28.375827032136,1.9948015122874,28.450378071834,2.6078686200379,28.524220226843,3.2211720226844,28.597353497164,3.8347117202269,28.669777882798,4.4484877126655,28.741493383743,5.0625000000001,28.8125,5.6767485822307,28.882797731569,6.2912334593573,28.95238657845,6.90595463138,29.021266540643,7.5209120982987,29.089437618147,8.1361058601135,29.156899810964,8.7515359168242,29.223653119093,9.367202268431,29.289697542533,9.9831049149339,29.355033081285,10.599243856333,29.41965973535,11.215619092628,29.483577504726,11.832230623819,29.546786389414,12.449078449906,29.609286389414,13.066162570888,29.671077504726,13.683482986768,29.73215973535,14.301039697543,29.792533081285,14.918832703214,29.852197542533,15.536862003781,29.911153119093,16.155127599244,29.969399810964,16.773629489603,30.026937618147,17.392367674858,30.083766540643,18.011342155009,30.13988657845,18.630552930057,30.195297731569,19.25,30.25,19.869683364839,30.303993383743,20.489603024575,30.357277882798,21.109758979206,30.409853497164,21.730151228733,30.461720226843,22.350779773157,30.512878071834,22.971644612476,30.563327032136,23.592745746692,30.61306710775,24.214083175803,30.662098298677,24.835656899811,30.710420604915,25.457466918715,30.758034026465,26.079513232514,30.804938563327,26.70179584121,30.851134215501,27.324314744802,30.896620982987,27.947069943289,30.941398865785,28.570061436673,30.985467863894,29.193289224953,31.028827977316,29.816753308129,31.071479206049,30.4404536862,31.113421550095,31.064390359168,31.154655009452,31.688563327032,31.195179584121,32.312972589792,31.234995274102,32.937618147448,31.274102079395,33.5625,31.3125,34.187618147448,31.350189035917,34.812972589792,31.387169187146,35.438563327032,31.423440453686,36.064390359168,31.459002835539,36.6904536862,31.493856332703,37.316753308129,31.52800094518,37.943289224953,31.561436672968,38.570061436673,31.594163516068,39.197069943289,31.62618147448,39.824314744802,31.657490548204,40.45179584121,31.68809073724,41.079513232514,31.717982041588,41.707466918715,31.747164461248,42.335656899811,31.775637996219,42.964083175803,31.803402646503,43.592745746692,31.830458412098,44.221644612476,31.856805293006,44.850779773157,31.882443289225,45.480151228734,31.907372400756,46.109758979206,31.931592627599,46.739603024575,31.955103969754,47.369683364839,31.977906427221,48,32,48.608577504726,31.82561436673,49.216918714556,31.650283553875,49.82502362949,31.474007561437,50.432892249528,31.296786389414,51.040524574669,31.118620037807,51.647920604915,30.939508506616,52.255080340265,30.759451795841,52.862003780718,30.578449905482,53.468690926276,30.396502835539,54.075141776938,30.213610586011,54.681356332703,30.0297731569,55.287334593573,29.844990548204,55.893076559546,29.659262759924,56.498582230624,29.47258979206,57.103851606805,29.284971644612,57.708884688091,29.09640831758,58.31368147448,28.906899810964,58.918241965974,28.716446124764,59.522566162571,28.525047258979,60.126654064272,28.332703213611,60.730505671078,28.139413988658,61.334120982987,27.945179584121,61.9375,27.75,62.540642722117,27.553875236295,63.143549149338,27.356805293006,63.746219281664,27.158790170132,64.348653119093,26.959829867675,64.950850661626,26.759924385633,65.552811909263,26.559073724008,66.154536862004,26.357277882798,66.756025519849,26.154536862004,67.357277882798,25.950850661626,67.958293950851,25.746219281664,68.559073724008,25.540642722117,69.159617202268,25.334120982987,69.759924385633,25.126654064272,70.359995274102,24.918241965974,70.959829867675,24.708884688091,71.559428166352,24.498582230624,72.158790170132,24.287334593573,72.757915879017,24.075141776938,73.356805293006,23.862003780718,73.955458412098,23.647920604915,74.553875236295,23.432892249527,75.152055765595,23.216918714556,75.75,23,76.347707939509,22.78213610586,76.945179584121,22.563327032136,77.542414933837,22.343572778828,78.139413988658,22.122873345936,78.736176748582,21.901228733459,79.332703213611,21.678638941399,79.928993383743,21.455103969754,80.525047258979,21.230623818526,81.120864839319,21.005198487713,81.716446124764,20.778827977316,82.311791115312,20.551512287335,82.906899810964,20.323251417769,83.50177221172,20.09404536862,84.09640831758,19.863894139887,84.690808128544,19.632797731569,85.284971644613,19.400756143667,85.878898865785,19.167769376181,86.472589792061,18.933837429112,87.066044423441,18.698960302457,87.659262759924,18.463137996219,88.252244801512,18.226370510397,88.844990548204,17.988657844991,89.4375,17.75,90.0297731569,17.510396975425,90.621810018904,17.269848771267,91.213610586011,17.028355387524,91.805174858223,16.785916824197,92.396502835539,16.542533081285,92.987594517958,16.29820415879,93.578449905482,16.052930056711,94.16906899811,15.806710775047,94.759451795841,15.5595463138,95.349598298677,15.311436672968,95.939508506616,15.062381852552,96.52918241966,14.812381852552,97.118620037807,14.561436672968,97.707821361059,14.3095463138,98.296786389414,14.056710775047,98.885515122873,13.802930056711,99.474007561437,13.54820415879,100.0622637051,13.292533081285,100.65028355388,13.035916824197,101.23806710775,12.778355387524,101.82561436673,12.519848771266,102.41292533081,12.260396975425,103,12,103,12}",
             } },
         } },
-        { id = "legacy_sf_lunatic_wave_02", name = "sf@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 1040, duration_seconds = 17.3, classes = {
+        { id = "legacy_sf_lunatic_wave_02", name = "sf@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 381, duration_seconds = 6.4, classes = {
             "sf_wave3_毛玉",
             "sf_wave7_毛玉",
         }, members = {
@@ -8893,7 +9902,7 @@ return {
                 "210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 840, env = {
+            }, spawn_frame = 135, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8906,7 +9915,7 @@ return {
                 "-210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 843, env = {
+            }, spawn_frame = 138, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8919,7 +9928,7 @@ return {
                 "210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 1036, env = {
+            }, spawn_frame = 258, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8932,7 +9941,7 @@ return {
                 "-210+ran:Float(-15,15)",
                 "250",
                 "Angle(x,-224,0,-180)+180",
-            }, spawn_frame = 1039, env = {
+            }, spawn_frame = 261, env = {
                 i = "1",
                 list = "{-147.99612456747,0.999723183391,-147.9844982699,0.99889273356401,-147.96512110727,0.99750865051903,-147.93799307958,0.99557093425606,-147.90311418685,0.99307958477509,-147.86048442907,0.99003460207612,-147.81010380623,0.98643598615917,-147.75197231834,0.98228373702422,-147.6860899654,0.97757785467128,-147.6124567474,0.97231833910035,-147.53107266436,0.96650519031142,-147.44193771626,0.9601384083045,-147.34505190311,0.95321799307958,-147.24041522491,0.94574394463668,-147.12802768166,0.93771626297578,-147.00788927336,0.92913494809689,-146.88,0.92,-146.74435986159,0.91031141868512,-146.60096885813,0.90006920415225,-146.44982698962,0.88927335640138,-146.29093425606,0.87792387543253,-146.12429065744,0.86602076124567,-145.94989619377,0.85356401384083,-145.76775086505,0.84055363321799,-145.57785467128,0.82698961937716,-145.38020761246,0.81287197231834,-145.17480968858,0.79820069204152,-144.96166089965,0.78297577854671,-144.74076124567,0.76719723183391,-144.51211072664,0.75086505190311,-144.27570934256,0.73397923875432,-144.03155709343,0.71653979238754,-143.77965397924,0.69854671280277,-143.52,0.68,-143.25259515571,0.66089965397924,-142.97743944637,0.64124567474048,-142.69453287197,0.62103806228374,-142.40387543253,0.600276816609,-142.10546712803,0.57896193771626,-141.79930795848,0.55709342560554,-141.48539792388,0.53467128027682,-141.16373702422,0.5116955017301,-140.83432525952,0.4881660899654,-140.49716262976,0.4640830449827,-140.15224913495,0.43944636678201,-139.79958477509,0.41425605536332,-139.43916955017,0.38851211072664,-139.07100346021,0.36221453287197,-138.69508650519,0.33536332179931,-138.31141868512,0.30795847750865,-137.92,0.28,-137.52083044983,0.25148788927336,-137.1139100346,0.22242214532872,-136.69923875433,0.19280276816609,-136.276816609,0.16262975778547,-135.84664359862,0.13190311418685,-135.40871972318,0.10062283737024,-134.9630449827,0.068788927335641,-134.50961937716,0.036401384083046,-134.04844290657,0.0034602076124576,-133.57951557093,-0.030034602076124,-133.10283737024,-0.064083044982698,-132.6184083045,-0.098685121107265,-132.1262283737,-0.13384083044983,-131.62629757785,-0.16955017301038,-131.11861591696,-0.20581314878893,-130.603183391,-0.24262975778547,-130.08,-0.28,-129.54906574394,-0.31792387543252,-129.01038062284,-0.35640138408304,-128.46394463668,-0.39543252595155,-127.90975778547,-0.43501730103806,-127.3478200692,-0.47515570934256,-126.77813148789,-0.51584775086505,-126.20069204152,-0.55709342560553,-125.6155017301,-0.59889273356401,-125.02256055363,-0.64124567474048,-124.42186851211,-0.68415224913494,-123.81342560554,-0.7276124567474,-123.19723183391,-0.77162629757785,-122.57328719723,-0.81619377162629,-121.9415916955,-0.86131487889273,-121.30214532872,-0.90698961937716,-120.65494809689,-0.95321799307958,-120,-0.99999999999999,-119.41134948097,-1.3284429065744,-118.82186851211,-1.6549480968858,-118.23155709343,-1.9795155709343,-117.64041522491,-2.3021453287197,-117.04844290657,-2.6228373702422,-116.45564013841,-2.9415916955017,-115.86200692042,-3.2584083044983,-115.2675432526,-3.5732871972318,-114.67224913495,-3.8862283737024,-114.07612456747,-4.19723183391,-113.47916955017,-4.5062975778547,-112.88138408305,-4.8134256055363,-112.28276816609,-5.118615916955,-111.68332179931,-5.4218685121107,-111.0830449827,-5.7231833910035,-110.48193771626,-6.0225605536332,-109.88,-6.32,-109.27723183391,-6.6155017301038,-108.67363321799,-6.9090657439446,-108.06920415225,-7.2006920415225,-107.46394463668,-7.4903806228374,-106.85785467128,-7.7781314878893,-106.25093425606,-8.0639446366782,-105.643183391,-8.3478200692042,-105.03460207612,-8.6297577854671,-104.42519031142,-8.9097577854671,-103.81494809689,-9.1878200692042,-103.20387543253,-9.4639446366782,-102.59197231834,-9.7381314878893,-101.97923875433,-10.010380622837,-101.36567474048,-10.280692041522,-100.75128027682,-10.549065743945,-100.13605536332,-10.815501730104,-99.52,-11.08,-98.903114186851,-11.342560553633,-98.285397923875,-11.603183391003,-97.666851211073,-11.861868512111,-97.047474048443,-12.118615916955,-96.427266435986,-12.373425605536,-95.806228373702,-12.626297577855,-95.184359861592,-12.87723183391,-94.561660899654,-13.126228373702,-93.938131487889,-13.373287197232,-93.313771626298,-13.618408304498,-92.688581314879,-13.861591695502,-92.062560553633,-14.102837370242,-91.435709342561,-14.34214532872,-90.808027681661,-14.579515570934,-90.179515570934,-14.814948096886,-89.550173010381,-15.048442906574,-88.92,-15.28,-88.288996539792,-15.509619377163,-87.657162629758,-15.737301038062,-87.024498269896,-15.963044982699,-86.391003460208,-16.186851211073,-85.756678200692,-16.408719723183,-85.121522491349,-16.628650519031,-84.48553633218,-16.846643598616,-83.848719723183,-17.062698961938,-83.21107266436,-17.276816608997,-82.572595155709,-17.488996539792,-81.933287197232,-17.699238754325,-81.293148788927,-17.907543252595,-80.652179930796,-18.113910034602,-80.010380622837,-18.318339100346,-79.367750865052,-18.520830449827,-78.724290657439,-18.721384083045,-78.08,-18.92,-77.434878892734,-19.116678200692,-76.78892733564,-19.311418685121,-76.14214532872,-19.504221453287,-75.494532871972,-19.69508650519,-74.846089965398,-19.88401384083,-74.196816608997,-20.071003460208,-73.546712802768,-20.256055363322,-72.895778546713,-20.439169550173,-72.244013840831,-20.620346020761,-71.591418685121,-20.799584775086,-70.937993079585,-20.976885813149,-70.283737024222,-21.152249134948,-69.628650519031,-21.325674740484,-68.972733564014,-21.497162629758,-68.31598615917,-21.666712802768,-67.658408304498,-21.834325259516,-67,-22,-66.341453287197,-21.927750865052,-65.683460207613,-21.852179930796,-65.026020761246,-21.773287197232,-64.369134948097,-21.69107266436,-63.712802768166,-21.60553633218,-63.057024221453,-21.516678200692,-62.401799307959,-21.424498269896,-61.747128027682,-21.328996539792,-61.093010380623,-21.230173010381,-60.439446366782,-21.128027681661,-59.786435986159,-21.022560553633,-59.133979238754,-20.913771626298,-58.482076124568,-20.801660899654,-57.830726643599,-20.686228373702,-57.179930795848,-20.567474048443,-56.529688581315,-20.445397923875,-55.88,-20.32,-55.230865051903,-20.191280276817,-54.582283737024,-20.059238754325,-53.934256055363,-19.923875432526,-53.28678200692,-19.785190311419,-52.639861591696,-19.643183391003,-51.993494809689,-19.49785467128,-51.3476816609,-19.349204152249,-50.702422145329,-19.19723183391,-50.057716262976,-19.041937716263,-49.413564013841,-18.883321799308,-48.769965397924,-18.721384083045,-48.126920415225,-18.556124567474,-47.484429065744,-18.387543252595,-46.842491349481,-18.215640138408,-46.201107266436,-18.040415224913,-45.560276816609,-17.861868512111,-44.92,-17.68,-44.280276816609,-17.494809688581,-43.641107266436,-17.306297577855,-43.002491349481,-17.11446366782,-42.364429065744,-16.919307958477,-41.726920415225,-16.720830449827,-41.089965397924,-16.519031141869,-40.453564013841,-16.313910034602,-39.817716262976,-16.105467128028,-39.182422145329,-15.893702422145,-38.5476816609,-15.678615916955,-37.913494809689,-15.460207612457,-37.279861591696,-15.238477508651,-36.64678200692,-15.013425605536,-36.014256055363,-14.785051903114,-35.382283737024,-14.553356401384,-34.750865051903,-14.318339100346,-34.12,-14.08,-33.489688581315,-13.838339100346,-32.859930795848,-13.593356401384,-32.230726643599,-13.345051903114,-31.602076124567,-13.093425605536,-30.973979238754,-12.838477508651,-30.346435986159,-12.580207612457,-29.719446366782,-12.318615916955,-29.093010380623,-12.053702422145,-28.467128027682,-11.785467128028,-27.841799307959,-11.513910034602,-27.217024221453,-11.239031141869,-26.592802768166,-10.960830449827,-25.969134948097,-10.679307958478,-25.346020761246,-10.39446366782,-24.723460207612,-10.106297577855,-24.101453287197,-9.8148096885813,-23.48,-9.52,-22.859100346021,-9.2218685121107,-22.23875432526,-8.9204152249135,-21.618961937716,-8.6156401384083,-20.999723183391,-8.3075432525952,-20.381038062284,-7.9961245674741,-19.762906574395,-7.681384083045,-19.145328719723,-7.363321799308,-18.52830449827,-7.041937716263,-17.911833910035,-6.7172318339101,-17.295916955017,-6.3892041522492,-16.680553633218,-6.0578546712803,-16.065743944637,-5.7231833910035,-15.451487889273,-5.3851903114187,-14.837785467128,-5.043875432526,-14.224636678201,-4.6992387543253,-13.612041522491,-4.3512802768166,-13,-4,-12.411349480969,-3.5786851211073,-11.821868512111,-3.1617993079585,-11.231557093426,-2.7493425605537,-10.640415224914,-2.3413148788928,-10.048442906574,-1.9377162629758,-9.4556401384084,-1.5385467128028,-8.8620069204153,-1.1438062283737,-8.2675432525952,-0.75349480968861,-7.6722491349482,-0.36761245674744,-7.0761245674741,0.013840830449796,-6.4791695501731,0.39086505190308,-5.881384083045,0.76346020761243,-5.28276816609,1.1316262975778,-4.683321799308,1.4953633217993,-4.083044982699,1.8546712802768,-3.481937716263,2.2095501730104,-2.88,2.56,-2.2772318339101,2.9060207612457,-1.6736332179931,3.2476124567474,-1.0692041522492,3.5847750865052,-0.46394463667823,3.917508650519,0.14214532871969,4.2458131487889,0.74906574394461,4.5696885813149,1.3568166089965,4.8891349480969,1.9653979238754,5.2041522491349,2.5748096885813,5.5147404844291,3.1850519031142,5.8208996539792,3.796124567474,6.1226297577855,4.4080276816609,6.4199307958477,5.0207612456747,6.7128027681661,5.6343252595156,7.0012456747405,6.2487197231834,7.2852595155709,6.8639446366782,7.5648442906574,7.48,7.84,8.0968858131488,8.1107266435986,8.7146020761246,8.3770242214533,9.3331487889273,8.638892733564,9.9525259515571,8.8963321799308,10.572733564014,9.1493425605536,11.193771626298,9.3979238754325,11.815640138408,9.6420761245675,12.438339100346,9.8817993079585,13.061868512111,10.117093425606,13.686228373702,10.347958477509,14.311418685121,10.574394463668,14.937439446367,10.796401384083,15.564290657439,11.013979238754,16.191972318339,11.227128027682,16.820484429066,11.435847750865,17.449826989619,11.640138408304,18.08,11.84,18.711003460208,12.035432525952,19.342837370242,12.226435986159,19.975501730104,12.413010380623,20.608996539792,12.595155709343,21.243321799308,12.772871972318,21.878477508651,12.94615916955,22.51446366782,13.115017301038,23.151280276817,13.279446366782,23.78892733564,13.439446366782,24.427404844291,13.595017301038,25.066712802768,13.74615916955,25.706851211073,13.892871972318,26.347820069204,14.035155709343,26.989619377163,14.173010380623,27.632249134948,14.306435986159,28.275709342561,14.435432525952,28.92,14.56,29.565121107266,14.680138408304,30.21107266436,14.795847750865,30.85785467128,14.907128027682,31.505467128028,15.013979238754,32.153910034602,15.116401384083,32.803183391003,15.214394463668,33.453287197232,15.307958477509,34.104221453287,15.397093425606,34.75598615917,15.481799307958,35.408581314879,15.562076124567,36.062006920415,15.637923875433,36.716262975778,15.709342560554,37.371349480969,15.776332179931,38.027266435986,15.838892733564,38.68401384083,15.897024221453,39.341591695502,15.950726643599,40,16,40.658131487889,15.787266435986,41.314878892733,15.572595155709,41.970242214533,15.35598615917,42.624221453287,15.137439446367,43.276816608996,14.916955017301,43.928027681661,14.694532871972,44.57785467128,14.470173010381,45.226297577855,14.243875432526,45.873356401384,14.015640138408,46.519031141868,13.785467128028,47.163321799308,13.553356401384,47.806228373702,13.319307958478,48.447750865052,13.083321799308,49.087889273356,12.845397923875,49.726643598616,12.60553633218,50.36401384083,12.363737024221,51,12.12,51.634602076125,11.874325259516,52.267820069204,11.626712802768,52.899653979239,11.377162629758,53.530103806228,11.125674740484,54.159169550173,10.872249134948,54.786851211073,10.616885813149,55.413148788927,10.359584775087,56.038062283737,10.100346020761,56.661591695502,9.839169550173,57.283737024221,9.5760553633218,57.904498269896,9.3110034602076,58.523875432526,9.0440138408304,59.141868512111,8.7750865051903,59.758477508651,8.5042214532872,60.373702422145,8.2314186851211,60.987543252595,7.956678200692,61.6,7.68,62.21107266436,7.401384083045,62.820761245675,7.120830449827,63.429065743945,6.838339100346,64.03598615917,6.5539100346021,64.641522491349,6.2675432525951,65.245674740484,5.9792387543252,65.848442906574,5.6889965397924,66.449826989619,5.3968166089965,67.049826989619,5.1026989619377,67.648442906574,4.8066435986159,68.245674740484,4.5086505190311,68.841522491349,4.2087197231834,69.43598615917,3.9068512110727,70.029065743945,3.603044982699,70.620761245675,3.2973010380623,71.21107266436,2.9896193771626,71.8,2.68,72.387543252595,2.3684429065744,72.973702422145,2.0549480968858,73.558477508651,1.7395155709343,74.141868512111,1.4221453287197,74.723875432526,1.1028373702422,75.304498269896,0.78159169550173,75.883737024221,0.45840830449827,76.461591695502,0.13328719723184,77.038062283737,-0.19377162629757,77.613148788927,-0.52276816608996,78.186851211073,-0.85370242214532,78.759169550173,-1.1865743944637,79.330103806228,-1.521384083045,79.899653979239,-1.8581314878893,80.467820069204,-2.1968166089965,81.034602076125,-2.5374394463668,81.6,-2.88,82.16401384083,-3.2244982698962,82.726643598616,-3.5709342560553,83.287889273356,-3.9193079584775,83.847750865052,-4.2696193771626,84.406228373702,-4.6218685121107,84.963321799308,-4.9760553633218,85.519031141868,-5.3321799307958,86.073356401384,-5.6902422145328,86.626297577855,-6.0502422145328,87.17785467128,-6.4121799307958,87.728027681661,-6.7760553633218,88.276816608996,-7.1418685121107,88.824221453287,-7.5096193771626,89.370242214533,-7.8793079584775,89.914878892734,-8.2509342560553,90.458131487889,-8.6244982698962,91,-9,91.612041522491,-9.3280276816609,92.224636678201,-9.6532871972318,92.837785467128,-9.9757785467128,93.451487889273,-10.295501730104,94.065743944637,-10.612456747405,94.680553633218,-10.926643598616,95.295916955017,-11.238062283737,95.911833910035,-11.546712802768,96.52830449827,-11.852595155709,97.145328719723,-12.155709342561,97.762906574394,-12.456055363322,98.381038062284,-12.753633217993,98.999723183391,-13.048442906574,99.618961937716,-13.340484429066,100.23875432526,-13.629757785467,100.85910034602,-13.916262975779,101.48,-14.2,102.1014532872,-14.480968858131,102.72346020761,-14.759169550173,103.34602076125,-15.034602076125,103.9691349481,-15.307266435986,104.59280276817,-15.577162629758,105.21702422145,-15.844290657439,105.84179930796,-16.108650519031,106.46712802768,-16.370242214533,107.09301038062,-16.629065743945,107.71944636678,-16.885121107266,108.34643598616,-17.138408304498,108.97397923875,-17.38892733564,109.60207612457,-17.636678200692,110.2307266436,-17.881660899654,110.85993079585,-18.123875432526,111.48968858131,-18.363321799308,112.12,-18.6,112.7508650519,-18.833910034602,113.38228373702,-19.065051903114,114.01425605536,-19.293425605536,114.64678200692,-19.519031141869,115.2798615917,-19.741868512111,115.91349480969,-19.961937716263,116.5476816609,-20.179238754325,117.18242214533,-20.393771626298,117.81771626298,-20.60553633218,118.45356401384,-20.814532871972,119.08996539792,-21.020761245675,119.72692041522,-21.224221453287,120.36442906574,-21.42491349481,121.00249134948,-21.622837370242,121.64110726644,-21.817993079585,122.28027681661,-22.010380622837,122.92,-22.2,123.56027681661,-22.386851211073,124.20110726644,-22.570934256055,124.84249134948,-22.752249134948,125.48442906574,-22.930795847751,126.12692041522,-23.106574394464,126.76996539792,-23.279584775086,127.41356401384,-23.449826989619,128.05771626298,-23.617301038062,128.70242214533,-23.782006920415,129.3476816609,-23.943944636678,129.99349480969,-24.103114186851,130.6398615917,-24.259515570934,131.28678200692,-24.413148788927,131.93425605536,-24.56401384083,132.58228373702,-24.712110726644,133.2308650519,-24.857439446367,133.88,-25,134.52968858131,-25.139792387543,135.17993079585,-25.276816608997,135.8307266436,-25.41107266436,136.48207612457,-25.542560553633,137.13397923875,-25.671280276817,137.78643598616,-25.79723183391,138.43944636678,-25.920415224913,139.09301038062,-26.040830449827,139.74712802768,-26.158477508651,140.40179930796,-26.273356401384,141.05702422145,-26.385467128028,141.71280276817,-26.494809688581,142.3691349481,-26.601384083045,143.02602076125,-26.705190311419,143.68346020761,-26.806228373702,144.3414532872,-26.904498269896,145,-27,145,-27}",
                 list00 = "{0,0,0,-135.00000000001,0.084852813742359,-134.99999999999,0.14142135623736,-135,0.19798989873221,-135,0.25455844122717,-135,0.31112698372206,-135,0.36769552621701,-135,0.42426406871194,-135,0.48083261120685,-135,0.53740115370178,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099989,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099993,-116.56505117708,0.89442719099992,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099993,-116.56505117708,0.8944271909999,-116.56505117708,0.89442719099992,-116.56505117708,0.89442719099993,-120.56083926737,1.2193850909372,-119.85207626918,1.3259336333316,-119.24882633655,1.4326548781895,-118.72926878446,1.5395129099816,-118.27718695635,1.6464810961563,-117.88028443805,1.7535392781458,-117.52907187246,1.8606719216455,-117.21611155731,1.9678668654154,-116.93549286559,2.0751144546747,-116.68246039699,2.1824069281415,-116.74810416292,1.3997856978838,-117.07208023799,1.5161134522192,-117.34987578007,1.6324827717315,-117.59069725304,1.7488853593074,-117.80145877993,1.8653149868052,-117.98745319076,1.9817668884104,-118.15280056353,2.0982373554963,-118.30075576601,2.214723459035,-118.43392410149,2.3312228550698,-118.5544155565,2.4477336456404,-125.69005982501,1.7483706700811,-125.98067756862,1.804217281815,-126.25383773744,1.8601075237739,-126.5110561195,1.9160375779196,-126.75367918553,1.972004056791,-126.98290692634,2.0280039447693,-127.19981211582,2.0840345486579,-127.40535663141,2.1400934559033,-127.60040534011,2.1961784991207,-127.78573796079,2.2522877258468,-127.96205923682,2.3084193726444,-128.13000769179,2.3645718428502,-128.29016319224,2.4207436873821,-128.44305350184,2.4769335881287,-128.58915997977,2.5331403435262,-128.7289225505,2.5893628559937,-128.86274405074,2.6456001209556,-128.99099404251,2.7018512172213,-129.11401216697,2.7581152985327,-129.23211110209,2.8143915861159,-141.09887520857,2.5956309444911,-140.63494520217,2.6645262243033,-140.19442890773,2.7335873865674,-139.77564583459,2.8028021692585,-139.37706797705,2.8721594663249,-138.99730343741,2.9416491973041,-138.63508204104,3.0112621938317,-138.28924267849,3.0809901006008,-137.95872214678,3.1508252887141,-137.64254529406,3.2207607796916,-146.41979960592,2.8927668416241,-146.63764546568,2.909450119868,-146.85300416774,2.9261749776799,-147.06591208221,2.9429407061645,-147.27640502686,2.959746610776,-147.48451827233,2.9765920110086,-147.69028654746,2.9934762400928,-147.89374404488,3.0103986446981,-148.09492442668,3.0273585846411,-148.2938608303,3.0443554325998,-155.69545073406,4.7620583784746,-155.98714112234,4.6198268365816,-156.29735404903,4.4777226354476,-156.62789160522,4.3357582958463,-156.98079455931,4.1939480206603,-157.35838266898,4.0523079843467,-157.76330331754,3.9108566836436,-158.19859051365,3.7696153649942,-158.66773687211,3.6286085487415,-159.17478195763,3.487864676274,-165.41705767052,3.8128335919628,-167.18933503151,3.9687907478223,-168.82616175819,4.1282562904936,-170.34010692156,4.2908390787817,-171.74261430823,4.4561979309721,-173.04404259573,4.6240350344694,-174.2537307902,4.7940901117939,-175.38007651834,4.9661353183336,-176.43061899627,5.1399708170378,-177.41212149259,5.3154209616925,172.80433537678,5.0296123111031,172.09597902975,5.0176687814163,171.38435181584,5.0064957804836,170.66965204248,4.9960984778125,169.95208355574,4.9864817256258,169.23185543889,4.9776500479644,168.50918168807,4.9696076303869,167.78428086587,4.9623583103198,167.05737573421,4.9559055681076,166.3286928678,4.9502525188115,154.67581859805,4.9562889342733,150.89952258846,4.8525457236382,146.9761324442,4.7707441767506,142.93555037009,4.7120271646076,138.81407483429,4.6772641576032,134.65275710291,4.666990464957,130.49509313639,4.6813673216273,126.38435181584,4.7201694884824,122.36093755937,4.7828025257165,118.46017599877,4.8683467419649,81.794804924078,5.3952293741787,77.995224442279,5.3367124711755,74.128821388542,5.3021222166223,70.229647251439,5.2919278150783,66.333525622204,5.3062698762879,62.476113161673,5.3449508884554,58.690982879882,5.4074485665608,55.007979801441,5.4929500270801,51.452035010599,5.6004017713018,48.042524509176,5.7285687566791,9.0634440829774,5.903710697519,7.6392414310393,5.9427434741876,6.234480095541,5.9853989006582,4.8504175536969,6.0316001193713,3.4881780497841,6.0812663154971,2.148752134595,6.1343133275046,0.83299787293714,6.1906542465235,-0.45835645800028,6.2501999968001,-1.7247083738227,6.312859890731,-2.9655760947025,6.3785421531883,-6.1046848769288,5.6419943282496,-6.0831614964877,5.6618813127793,-6.0617887887291,5.681769090697,-6.0405651828969,5.7016576537004,-6.019489129917,5.7215469936023,-5.9985591020151,5.741437102329,-5.9777735923603,5.7613279719176,-5.9571311147082,5.7812195945146,-5.9366302030479,5.8011119623741,-5.9162694112632,5.8210050678555,-9.4400930027342,8.4747684334146,-9.3949814599777,8.3925740985707,-9.3489775892872,8.3103850692973,-9.3020547112989,8.2282015045817,-9.2541850748955,8.1460235698161,-9.2053398029759,8.0638514371236,-9.1554888349043,7.9816852857025,-9.1046008654022,7.8995253021938,-9.0526432796261,7.8173716810703,-8.9995820841485,7.7352246250513,-9.5505470517581,7.4735868229385,-10.235857002392,7.4282232061241,-10.929488002181,7.383935265155,-11.631385518465,7.3407424692602,-12.341483789096,7.2986642613563,-13.059705432165,7.2577200276671,-13.785961076782,7.2179290658748,-14.520149018537,7.1793105518566,-15.26215490338,7.1418835050706,-16.011851443726}",
@@ -8944,7 +9953,7 @@ return {
         } },
     } },
     { id = "legacy_ae_lunatic", source_stage = "ae@Lunatic", waves = {
-        { id = "legacy_ae_lunatic_wave_01", name = "ae@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 1311, duration_seconds = 21.8, classes = {
+        { id = "legacy_ae_lunatic_wave_01", name = "ae@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "AE_L_w1e1",
             "AE_L_w2e1",
             "AE_L_w2e2",
@@ -8974,7 +9983,7 @@ return {
                 "180",
                 "-6",
                 "170",
-            }, spawn_frame = 90, env = {
+            }, spawn_frame = 120, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e1", args = {
@@ -8982,7 +9991,7 @@ return {
                 "124",
                 "190",
                 "1",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e2", args = {
@@ -8990,7 +9999,7 @@ return {
                 "ran:Float(94,124)",
                 "180",
                 "1.5",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e2", args = {
@@ -8998,7 +10007,7 @@ return {
                 "ran:Float(94,124)",
                 "0",
                 "1.5",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 240, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e1", args = {
@@ -9006,7 +10015,7 @@ return {
                 "124",
                 "-10",
                 "1",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e2", args = {
@@ -9014,7 +10023,7 @@ return {
                 "ran:Float(94,124)",
                 "180",
                 "2",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w2e2", args = {
@@ -9022,7 +10031,7 @@ return {
                 "ran:Float(94,124)",
                 "0",
                 "2",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w3e2", args = {
@@ -9030,7 +10039,7 @@ return {
                 "164",
                 "185",
                 "1.5",
-            }, spawn_frame = 990, env = {
+            }, spawn_frame = 480, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w3e1", args = {
@@ -9041,15 +10050,20 @@ return {
                 "0",
                 "27",
                 "-13",
-            }, spawn_frame = 1120, env = {
+            }, spawn_frame = 600, env = {
                 r = "170",
             } },
+        } },
+        { id = "legacy_ae_lunatic_wave_02", name = "ae@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 240, duration_seconds = 4, classes = {
+            "AE_L_w3e1",
+            "AE_L_w3e2",
+        }, members = {
             { class_name = "AE_L_w3e2", args = {
                 "-202",
                 "164",
                 "-5",
                 "1.5",
-            }, spawn_frame = 1180, env = {
+            }, spawn_frame = 0, env = {
                 r = "170",
             } },
             { class_name = "AE_L_w3e1", args = {
@@ -9060,19 +10074,18 @@ return {
                 "180",
                 "-27",
                 "13",
-            }, spawn_frame = 1310, env = {
+            }, spawn_frame = 120, env = {
                 r = "170",
             } },
         } },
     } },
     { id = "legacy_void_lunatic", source_stage = "void@Lunatic", waves = {
-        { id = "legacy_void_lunatic_wave_01", name = "void@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 2042, duration_seconds = 34, classes = {
+        { id = "legacy_void_lunatic_wave_01", name = "void@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "void_part1_1_aim:Lunatic",
             "void_part1_2_aim:Lunatic",
             "void_part1_2_spread:Lunatic",
             "void_part1_3_aim:Lunatic",
             "void_part1_3_spread:Lunatic",
-            "void_part1_4_aim:Lunatic",
         }, members = {
             { class_name = "void_part1_1_aim:Lunatic", args = {
                 "-120",
@@ -9096,7 +10109,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 138, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "void_part1_1_aim:Lunatic", args = {
                 "90",
@@ -9104,7 +10117,7 @@ return {
                 "0",
                 "0",
                 "1",
-            }, spawn_frame = 138, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "void_part1_2_spread:Lunatic", args = {
                 "0",
@@ -9113,7 +10126,7 @@ return {
                 "16",
                 "10",
                 "1",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_aim:Lunatic", args = {
                 "-120",
@@ -9121,7 +10134,7 @@ return {
                 "0",
                 "1",
                 "0",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_aim:Lunatic", args = {
                 "120",
@@ -9129,7 +10142,7 @@ return {
                 "1",
                 "0",
                 "0",
-            }, spawn_frame = 277, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "void_part1_2_spread:Lunatic", args = {
                 "150",
@@ -9138,7 +10151,7 @@ return {
                 "16",
                 "10",
                 "1",
-            }, spawn_frame = 535, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "void_part1_2_spread:Lunatic", args = {
                 "-150",
@@ -9147,7 +10160,7 @@ return {
                 "16",
                 "10",
                 "-1",
-            }, spawn_frame = 535, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "void_part1_3_spread:Lunatic", args = {
                 "256",
@@ -9158,7 +10171,7 @@ return {
                 "1",
                 "75",
                 "96",
-            }, spawn_frame = 844, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "void_part1_3_aim:Lunatic", args = {
                 "-150+ran:Int(0,100)",
@@ -9166,16 +10179,22 @@ return {
                 "1-i%2",
                 "1-(i+1)%2",
                 "0",
-            }, spawn_frame = 998, env = {
+            }, spawn_frame = 600, env = {
                 i = "0",
             } },
+        } },
+        { id = "legacy_void_lunatic_wave_02", name = "void@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 480, duration_seconds = 8, classes = {
+            "void_part1_3_aim:Lunatic",
+            "void_part1_3_spread:Lunatic",
+            "void_part1_4_aim:Lunatic",
+        }, members = {
             { class_name = "void_part1_3_aim:Lunatic", args = {
                 "150+ran:Int(-100,0)",
                 "260",
                 "1-i%2",
                 "1-(i+1)%2",
                 "0",
-            }, spawn_frame = 1163, env = {
+            }, spawn_frame = 0, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Lunatic", args = {
@@ -9187,7 +10206,7 @@ return {
                 "-1",
                 "-75",
                 "96",
-            }, spawn_frame = 1327, env = {
+            }, spawn_frame = 120, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Lunatic", args = {
@@ -9199,7 +10218,7 @@ return {
                 "-1",
                 "30",
                 "96",
-            }, spawn_frame = 1481, env = {
+            }, spawn_frame = 240, env = {
                 i = "0",
             } },
             { class_name = "void_part1_3_spread:Lunatic", args = {
@@ -9211,7 +10230,7 @@ return {
                 "-1",
                 "-30",
                 "96",
-            }, spawn_frame = 1481, env = {
+            }, spawn_frame = 240, env = {
                 i = "0",
             } },
             { class_name = "void_part1_4_aim:Lunatic", args = {
@@ -9220,16 +10239,15 @@ return {
                 "0",
                 "0",
                 "1",
-            }, spawn_frame = 1790, env = {
+            }, spawn_frame = 360, env = {
                 i = "0",
             } },
         } },
-        { id = "legacy_void_lunatic_wave_02", name = "void@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 4032, duration_seconds = 67.2, classes = {
+        { id = "legacy_void_lunatic_wave_03", name = "void@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 735, duration_seconds = 12.2, classes = {
             "void_part2_1_aim:Lunatic",
             "void_part2_1_aim_2:Lunatic",
             "void_part2_1_spread:Lunatic",
             "void_part2_4_spread:Lunatic",
-            "void_part2_5_last:Lunatic",
             "void_partm_1_aim:Lunatic",
         }, members = {
             { class_name = "void_partm_1_aim:Lunatic", args = {
@@ -9291,7 +10309,7 @@ return {
                 "1",
                 "50",
                 "140",
-            }, spawn_frame = 758, env = {
+            }, spawn_frame = 255, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -9305,7 +10323,7 @@ return {
                 "1",
                 "-50",
                 "140",
-            }, spawn_frame = 758, env = {
+            }, spawn_frame = 255, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -9316,7 +10334,7 @@ return {
                 "1-math.ceil(((i+2)%3)/3)",
                 "1-math.ceil(((i+1)%3)/3)",
                 "1-math.ceil((i%3)/3)",
-            }, spawn_frame = 878, env = {
+            }, spawn_frame = 375, env = {
                 a = "16",
                 cr = "0",
                 i = "0",
@@ -9330,7 +10348,7 @@ return {
                 "-1",
                 "120",
                 "96",
-            }, spawn_frame = 2785, env = {
+            }, spawn_frame = 495, env = {
                 a = "-200",
                 ag = "30",
                 cr = "0",
@@ -9345,12 +10363,16 @@ return {
                 "-1",
                 "-120",
                 "96",
-            }, spawn_frame = 3414, env = {
+            }, spawn_frame = 615, env = {
                 a = "200",
                 ag = "30",
                 cr = "0",
                 i = "-1",
             } },
+        } },
+        { id = "legacy_void_lunatic_wave_04", name = "void@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 120, duration_seconds = 2, classes = {
+            "void_part2_5_last:Lunatic",
+        }, members = {
             { class_name = "void_part2_5_last:Lunatic", args = {
                 "0",
                 "288",
@@ -9360,7 +10382,7 @@ return {
                 "1",
                 "0",
                 "96",
-            }, spawn_frame = 4031, env = {
+            }, spawn_frame = 0, env = {
                 a = "200",
                 ag = "30",
                 cr = "0",
@@ -9369,7 +10391,44 @@ return {
         } },
     } },
     { id = "legacy_wyj_lunatic", source_stage = "wyj@Lunatic", waves = {
-        { id = "legacy_wyj_lunatic_wave_01", name = "wyj@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 1470, duration_seconds = 24.5, classes = {
+        { id = "legacy_wyj_lunatic_wave_01", name = "wyj@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 480, duration_seconds = 8, classes = {
+            "wyj-w1:Lunatic",
+            "wyj-w1-b:Lunatic",
+            "wyj-w2:Lunatic",
+            "wyj-w3:Lunatic",
+        }, members = {
+            { class_name = "wyj-w1:Lunatic", args = {
+                "-192",
+                "140",
+                "_",
+            }, spawn_frame = 0, env = {
+            } },
+            { class_name = "wyj-w1-b:Lunatic", args = {
+                "192",
+                "140",
+                "_",
+            }, spawn_frame = 120, env = {
+            } },
+            { class_name = "wyj-w2:Lunatic", args = {
+                "0",
+                "225",
+                "_",
+            }, spawn_frame = 240, env = {
+            } },
+            { class_name = "wyj-w3:Lunatic", args = {
+                "-150",
+                "225",
+                "1",
+            }, spawn_frame = 360, env = {
+            } },
+            { class_name = "wyj-w3:Lunatic", args = {
+                "150",
+                "225",
+                "-1",
+            }, spawn_frame = 360, env = {
+            } },
+        } },
+        { id = "legacy_wyj_lunatic_wave_02", name = "wyj@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 480, duration_seconds = 8, classes = {
             "wyj-w1:Lunatic",
             "wyj-w1-b:Lunatic",
             "wyj-w9:Lunatic",
@@ -9390,45 +10449,40 @@ return {
                 "0",
                 "225",
                 "_",
-            }, spawn_frame = 330, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "wyj-w9:Lunatic", args = {
                 "-150",
                 "225",
                 "_",
-            }, spawn_frame = 690, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "wyj-w9:Lunatic", args = {
                 "150",
                 "225",
                 "_",
-            }, spawn_frame = 690, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "wyj-w9:Lunatic", args = {
                 "-70",
                 "225",
                 "_",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "wyj-w9:Lunatic", args = {
                 "70",
                 "225",
                 "_",
-            }, spawn_frame = 1050, env = {
+            }, spawn_frame = 360, env = {
             } },
         } },
     } },
     { id = "legacy_yyzy_lunatic", source_stage = "yyzy@Lunatic", waves = {
-        { id = "legacy_yyzy_lunatic_wave_01", name = "yyzy@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 2748, duration_seconds = 45.8, classes = {
-            "yyzy_last_enemy:Lunatic",
-            "yyzy_midboss:Lunatic",
+        { id = "legacy_yyzy_lunatic_wave_01", name = "yyzy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 770, duration_seconds = 12.8, classes = {
             "yyzy_s1e1:Lunatic",
-            "yyzy_s1e10:Lunatic",
             "yyzy_s1e2:Lunatic",
             "yyzy_s1e3",
             "yyzy_s1e4:Lunatic",
-            "yyzy_s1e6:Lunatic",
-            "yyzy_s1e7",
             "yyzy_s1e9:Lunatic",
         }, members = {
             { class_name = "yyzy_s1e1:Lunatic", args = {
@@ -9458,7 +10512,7 @@ return {
                 "3",
                 "-90",
                 "0",
-            }, spawn_frame = 110, env = {
+            }, spawn_frame = 140, env = {
                 i = "120",
                 yyzyach1 = "true",
             } },
@@ -9467,7 +10521,7 @@ return {
                 "144",
                 "1.4",
                 "0",
-            }, spawn_frame = 130, env = {
+            }, spawn_frame = 160, env = {
                 i = "120",
                 yyzyach1 = "true",
             } },
@@ -9490,7 +10544,7 @@ return {
                 "8",
                 "0",
                 "2",
-            }, spawn_frame = 370, env = {
+            }, spawn_frame = 400, env = {
                 i = "120",
                 w3_v1 = "1",
                 yyzyach1 = "true",
@@ -9502,7 +10556,7 @@ return {
                 "0",
                 "8",
                 "2",
-            }, spawn_frame = 370, env = {
+            }, spawn_frame = 400, env = {
                 i = "120",
                 w3_v1 = "1",
                 yyzyach1 = "true",
@@ -9513,7 +10567,7 @@ return {
                 "5",
                 "3",
                 "5",
-            }, spawn_frame = 580, env = {
+            }, spawn_frame = 520, env = {
                 ax = "-180",
                 i = "120",
                 w3_v1 = "1",
@@ -9525,7 +10579,7 @@ return {
                 "5",
                 "3",
                 "5",
-            }, spawn_frame = 590, env = {
+            }, spawn_frame = 530, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9540,12 +10594,17 @@ return {
                 "5",
                 "5",
                 "10",
-            }, spawn_frame = 750, env = {
+            }, spawn_frame = 650, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
                 yyzyach1 = "true",
             } },
+        } },
+        { id = "legacy_yyzy_lunatic_wave_02", name = "yyzy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "yyzy_s1e1:Lunatic",
+            "yyzy_s1e4:Lunatic",
+        }, members = {
             { class_name = "yyzy_s1e4:Lunatic", args = {
                 "150",
                 "230",
@@ -9555,7 +10614,7 @@ return {
                 "15",
                 "0",
                 "5",
-            }, spawn_frame = 900, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9568,7 +10627,7 @@ return {
                 "1",
                 "0",
                 "0.03",
-            }, spawn_frame = 930, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9583,7 +10642,7 @@ return {
                 "0",
                 "15",
                 "5",
-            }, spawn_frame = 1100, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9596,7 +10655,7 @@ return {
                 "1",
                 "180",
                 "0.03",
-            }, spawn_frame = 1130, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9611,7 +10670,7 @@ return {
                 "0",
                 "15",
                 "5",
-            }, spawn_frame = 1360, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9626,7 +10685,7 @@ return {
                 "15",
                 "0",
                 "5",
-            }, spawn_frame = 1360, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9641,12 +10700,20 @@ return {
                 "0",
                 "0",
                 "20",
-            }, spawn_frame = 1510, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
                 yyzyach1 = "true",
             } },
+        } },
+        { id = "legacy_yyzy_lunatic_wave_03", name = "yyzy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "yyzy_midboss:Lunatic",
+            "yyzy_s1e10:Lunatic",
+            "yyzy_s1e2:Lunatic",
+            "yyzy_s1e3",
+            "yyzy_s1e7",
+        }, members = {
             { class_name = "yyzy_s1e10:Lunatic", args = {
                 "210*yflag01",
                 "144",
@@ -9654,7 +10721,7 @@ return {
                 "90+yflag01*90",
                 "0.04",
                 "-90-yflag01*60",
-            }, spawn_frame = 1660, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9665,7 +10732,7 @@ return {
                 "0",
                 "230",
                 "_",
-            }, spawn_frame = 1740, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "120",
                 w3_v1 = "1",
@@ -9678,7 +10745,7 @@ return {
                 "7",
                 "3",
                 "5",
-            }, spawn_frame = 1740, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9693,7 +10760,7 @@ return {
                 "180",
                 "0.04",
                 "-150",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9708,7 +10775,7 @@ return {
                 "0",
                 "0.04",
                 "-30",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9722,7 +10789,7 @@ return {
                 "5",
                 "3",
                 "5",
-            }, spawn_frame = 1890, env = {
+            }, spawn_frame = 240, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9737,7 +10804,7 @@ return {
                 "8",
                 "0",
                 "2",
-            }, spawn_frame = 2022, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9752,7 +10819,7 @@ return {
                 "0",
                 "8",
                 "2",
-            }, spawn_frame = 2022, env = {
+            }, spawn_frame = 360, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9767,7 +10834,7 @@ return {
                 "6",
                 "15",
                 "1",
-            }, spawn_frame = 2207, env = {
+            }, spawn_frame = 480, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9783,7 +10850,7 @@ return {
                 "6",
                 "15",
                 "-1",
-            }, spawn_frame = 2297, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9799,7 +10866,7 @@ return {
                 "6",
                 "15",
                 "1",
-            }, spawn_frame = 2297, env = {
+            }, spawn_frame = 600, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9808,6 +10875,13 @@ return {
                 yyzyach1 = "true",
                 yyzyflag = "last",
             } },
+        } },
+        { id = "legacy_yyzy_lunatic_wave_04", name = "yyzy@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 240, duration_seconds = 4, classes = {
+            "yyzy_last_enemy:Lunatic",
+            "yyzy_s1e3",
+            "yyzy_s1e6:Lunatic",
+            "yyzy_s1e7",
+        }, members = {
             { class_name = "yyzy_s1e7", args = {
                 "120",
                 "230",
@@ -9815,7 +10889,7 @@ return {
                 "6",
                 "15",
                 "-1",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9831,7 +10905,7 @@ return {
                 "6",
                 "15",
                 "1",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9844,7 +10918,7 @@ return {
                 "0",
                 "230",
                 "4.4",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 0, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9857,7 +10931,7 @@ return {
                 "0",
                 "245",
                 "_",
-            }, spawn_frame = 2747, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9872,7 +10946,7 @@ return {
                 "5",
                 "2",
                 "4",
-            }, spawn_frame = 2747, env = {
+            }, spawn_frame = 120, env = {
                 ax = "144",
                 i = "1",
                 w3_v1 = "1",
@@ -9884,19 +10958,7 @@ return {
         } },
     } },
     { id = "legacy_stp_lunatic", source_stage = "stp@Lunatic", waves = {
-        { id = "legacy_stp_lunatic_wave_01", name = "stp@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 2600, duration_seconds = 43.3, classes = {
-            "_stupid带字的小妖精（A）",
-            "_stupid带字的小妖精（的）",
-            "_stupid带字的小妖精（精）",
-            "_stupid带字的小妖精（盛）",
-            "_stupid带字的小妖精（下）",
-            "_stupid带字的小妖精（宴）",
-            "_stupid带字的小妖精（妖）",
-            "_stupid带字的小妖精（月）",
-            "stupid_柴刀女非符:Lunatic",
-            "stupid_封位弹小妖精:Lunatic",
-            "stupid_画月亮的卖萌小妖精",
-            "stupid_雪花弹幕的小怪:Lunatic",
+        { id = "legacy_stp_lunatic_wave_01", name = "stp@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "wave1-1 r",
             "wave1-2 b",
         }, members = {
@@ -9911,14 +10973,14 @@ return {
                 "192",
                 "224",
                 "170",
-            }, spawn_frame = 90, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
             } },
             { class_name = "wave1-2 b", args = {
                 "-170",
                 "224",
                 "-170",
-            }, spawn_frame = 180, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "-170",
             } },
@@ -9926,7 +10988,7 @@ return {
                 "170",
                 "224",
                 "170",
-            }, spawn_frame = 230, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -9934,7 +10996,7 @@ return {
                 "-170",
                 "224",
                 "-170",
-            }, spawn_frame = 340, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "-170",
             } },
@@ -9942,10 +11004,19 @@ return {
                 "170",
                 "224",
                 "170",
-            }, spawn_frame = 390, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
+        } },
+        { id = "legacy_stp_lunatic_wave_02", name = "stp@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "_stupid带字的小妖精（的）",
+            "_stupid带字的小妖精（下）",
+            "_stupid带字的小妖精（月）",
+            "stupid_柴刀女非符:Lunatic",
+            "stupid_封位弹小妖精:Lunatic",
+            "stupid_雪花弹幕的小怪:Lunatic",
+        }, members = {
             { class_name = "stupid_封位弹小妖精:Lunatic", args = {
                 "-100",
                 "224",
@@ -9954,7 +11025,7 @@ return {
                 "-100",
                 "-192",
                 "10",
-            }, spawn_frame = 560, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -9966,7 +11037,7 @@ return {
                 "100",
                 "-192",
                 "10",
-            }, spawn_frame = 560, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -9977,7 +11048,7 @@ return {
                 "120",
                 "-100",
                 "-224",
-            }, spawn_frame = 980, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -9988,7 +11059,7 @@ return {
                 "120",
                 "100",
                 "-224",
-            }, spawn_frame = 980, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -9999,7 +11070,7 @@ return {
                 "160",
                 "0",
                 "-224",
-            }, spawn_frame = 1400, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10007,7 +11078,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2000, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10015,7 +11086,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2030, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10023,15 +11094,24 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2060, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
+        } },
+        { id = "legacy_stp_lunatic_wave_03", name = "stp@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "_stupid带字的小妖精（A）",
+            "_stupid带字的小妖精（精）",
+            "_stupid带字的小妖精（盛）",
+            "_stupid带字的小妖精（宴）",
+            "_stupid带字的小妖精（妖）",
+            "stupid_画月亮的卖萌小妖精",
+        }, members = {
             { class_name = "_stupid带字的小妖精（妖）", args = {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2090, env = {
+            }, spawn_frame = 0, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10039,7 +11119,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2120, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10047,7 +11127,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2150, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10055,7 +11135,7 @@ return {
                 "192",
                 "180",
                 "_",
-            }, spawn_frame = 2180, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10063,7 +11143,7 @@ return {
                 "-192",
                 "180",
                 "_",
-            }, spawn_frame = 2210, env = {
+            }, spawn_frame = 480, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10081,19 +11161,13 @@ return {
                 "300",
                 "54",
                 "32",
-            }, spawn_frame = 2240, env = {
+            }, spawn_frame = 600, env = {
                 X = "170",
                 X2 = "170",
             } },
         } },
-        { id = "legacy_stp_lunatic_wave_02", name = "stp@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 9468, duration_seconds = 157.8, classes = {
+        { id = "legacy_stp_lunatic_wave_04", name = "stp@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
             "stupid_飞刀阵",
-            "stupid_飞行阵:Lunatic",
-            "stupid_分裂圆周札大怪",
-            "stupid_分裂圆周札小怪",
-            "stupid_高爆大蝴蝶",
-            "stupid_蝴蝶轰炸机",
-            "stupid_圆圈妖精阵",
             "stupid_正弦小妖精",
             "wave3-1:Lunatic",
             "wave3-3 big:Lunatic",
@@ -10118,7 +11192,7 @@ return {
                 "120",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10126,7 +11200,7 @@ return {
                 "0",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10134,7 +11208,7 @@ return {
                 "-120",
                 "224",
                 "_",
-            }, spawn_frame = 400, env = {
+            }, spawn_frame = 120, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10142,7 +11216,7 @@ return {
                 "120",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10150,7 +11224,7 @@ return {
                 "-120",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10158,7 +11232,7 @@ return {
                 "-30",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10166,7 +11240,7 @@ return {
                 "30",
                 "224",
                 "_",
-            }, spawn_frame = 800, env = {
+            }, spawn_frame = 240, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10174,7 +11248,7 @@ return {
                 "0",
                 "224",
                 "_",
-            }, spawn_frame = 1400, env = {
+            }, spawn_frame = 360, env = {
                 X = "170",
                 X2 = "170",
             } },
@@ -10184,7 +11258,7 @@ return {
                 "1.5",
                 "10",
                 "1",
-            }, spawn_frame = 3920, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10195,7 +11269,7 @@ return {
                 "-1.5",
                 "-10",
                 "-1",
-            }, spawn_frame = 3920, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10211,7 +11285,7 @@ return {
                 "10",
                 "3",
                 "5",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10228,12 +11302,17 @@ return {
                 "10",
                 "3",
                 "5",
-            }, spawn_frame = 4320, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
                 y = "190",
             } },
+        } },
+        { id = "legacy_stp_lunatic_wave_05", name = "stp@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "stupid_飞行阵:Lunatic",
+            "stupid_分裂圆周札小怪",
+        }, members = {
             { class_name = "stupid_分裂圆周札小怪", args = {
                 "-120",
                 "224",
@@ -10246,7 +11325,7 @@ return {
                 "20",
                 "-224",
                 "140",
-            }, spawn_frame = 4870, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10264,7 +11343,7 @@ return {
                 "20",
                 "-224",
                 "140",
-            }, spawn_frame = 4870, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10282,7 +11361,7 @@ return {
                 "24",
                 "-224",
                 "140",
-            }, spawn_frame = 5350, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10300,7 +11379,7 @@ return {
                 "24",
                 "-224",
                 "140",
-            }, spawn_frame = 5350, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 X = "170",
                 X2 = "170",
@@ -10314,7 +11393,7 @@ return {
                 "1.5",
                 "90",
                 "0",
-            }, spawn_frame = 5832, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10329,7 +11408,7 @@ return {
                 "1.5",
                 "180",
                 "0",
-            }, spawn_frame = 5932, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10344,7 +11423,7 @@ return {
                 "1.5",
                 "0",
                 "40",
-            }, spawn_frame = 6032, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10359,7 +11438,25 @@ return {
                 "1.5",
                 "-90",
                 "55",
-            }, spawn_frame = 6132, env = {
+            }, spawn_frame = 600, env = {
+                b = "0",
+                stupid_achi = "true",
+                X = "170",
+                X2 = "170",
+                y = "190",
+            } },
+        } },
+        { id = "legacy_stp_lunatic_wave_06", name = "stp@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "stupid_高爆大蝴蝶",
+            "stupid_蝴蝶轰炸机",
+            "stupid_圆圈妖精阵",
+        }, members = {
+            { class_name = "stupid_蝴蝶轰炸机", args = {
+                "-192",
+                "100",
+                "192",
+                "140",
+            }, spawn_frame = 0, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10367,23 +11464,11 @@ return {
                 y = "190",
             } },
             { class_name = "stupid_蝴蝶轰炸机", args = {
-                "-192",
-                "100",
-                "192",
-                "140",
-            }, spawn_frame = 6832, env = {
-                b = "0",
-                stupid_achi = "true",
-                X = "170",
-                X2 = "170",
-                y = "190",
-            } },
-            { class_name = "stupid_蝴蝶轰炸机", args = {
                 "192",
                 "100",
                 "-192",
                 "140",
-            }, spawn_frame = 6952, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10402,7 +11487,7 @@ return {
                 "2",
                 "30",
                 "100",
-            }, spawn_frame = 7712, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10421,7 +11506,7 @@ return {
                 "2",
                 "30",
                 "100",
-            }, spawn_frame = 7712, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10440,7 +11525,7 @@ return {
                 "3",
                 "30",
                 "100",
-            }, spawn_frame = 8112, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10459,7 +11544,7 @@ return {
                 "3",
                 "30",
                 "100",
-            }, spawn_frame = 8112, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10478,7 +11563,7 @@ return {
                 "5",
                 "120",
                 "300",
-            }, spawn_frame = 8512, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 stupid_achi = "true",
                 X = "170",
@@ -10494,7 +11579,7 @@ return {
                 "1",
                 "1",
                 "-1",
-            }, spawn_frame = 8912, env = {
+            }, spawn_frame = 600, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -10502,6 +11587,11 @@ return {
                 X2 = "170",
                 y = "190",
             } },
+        } },
+        { id = "legacy_stp_lunatic_wave_07", name = "stp@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 480, duration_seconds = 8, classes = {
+            "stupid_分裂圆周札大怪",
+            "stupid_圆圈妖精阵",
+        }, members = {
             { class_name = "stupid_圆圈妖精阵", args = {
                 "180*cos(a)",
                 "180*sin(a)",
@@ -10511,7 +11601,7 @@ return {
                 "10",
                 "2",
                 "1",
-            }, spawn_frame = 9052, env = {
+            }, spawn_frame = 0, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -10528,7 +11618,7 @@ return {
                 "5",
                 "3",
                 "-1",
-            }, spawn_frame = 9172, env = {
+            }, spawn_frame = 120, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -10545,7 +11635,7 @@ return {
                 "12",
                 "4",
                 "1",
-            }, spawn_frame = 9277, env = {
+            }, spawn_frame = 240, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -10562,7 +11652,7 @@ return {
                 "10",
                 "25",
                 "600",
-            }, spawn_frame = 9467, env = {
+            }, spawn_frame = 360, env = {
                 a = "90",
                 b = "0",
                 stupid_achi = "true",
@@ -10573,14 +11663,11 @@ return {
         } },
     } },
     { id = "legacy_smf_lunatic", source_stage = "smf@Lunatic", waves = {
-        { id = "legacy_smf_lunatic_wave_01", name = "smf@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 2326, duration_seconds = 38.8, classes = {
+        { id = "legacy_smf_lunatic_wave_01", name = "smf@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 736, duration_seconds = 12.3, classes = {
             "笑脸-5way狙",
-            "笑脸-大蝴蝶",
-            "笑脸-关底狙",
             "笑脸-红火弹",
             "笑脸-开场狙",
             "笑脸-开幕狙2",
-            "笑脸-蓝火弹",
             "笑脸-毛玉狙",
             "笑脸-下落玉",
         }, members = {
@@ -10600,54 +11687,60 @@ return {
                 "-220",
                 "120",
                 "_",
-            }, spawn_frame = 306, env = {
+            }, spawn_frame = 136, env = {
             } },
             { class_name = "笑脸-毛玉狙", args = {
                 "220",
                 "120",
                 "_",
-            }, spawn_frame = 396, env = {
+            }, spawn_frame = 256, env = {
             } },
             { class_name = "笑脸-5way狙", args = {
                 "100+b",
                 "250",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-红火弹", args = {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-5way狙", args = {
                 "-100-b",
                 "250",
                 "_",
-            }, spawn_frame = 556, env = {
+            }, spawn_frame = 376, env = {
                 b = "0",
             } },
             { class_name = "笑脸-下落玉", args = {
                 "220",
                 "100",
                 "_",
-            }, spawn_frame = 856, env = {
+            }, spawn_frame = 496, env = {
                 b = "0",
             } },
             { class_name = "笑脸-下落玉", args = {
                 "-220",
                 "100",
                 "_",
-            }, spawn_frame = 931, env = {
+            }, spawn_frame = 616, env = {
                 b = "0",
             } },
+        } },
+        { id = "legacy_smf_lunatic_wave_02", name = "smf@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 600, duration_seconds = 10, classes = {
+            "笑脸-大蝴蝶",
+            "笑脸-关底狙",
+            "笑脸-蓝火弹",
+        }, members = {
             { class_name = "笑脸-大蝴蝶", args = {
                 "cos(r)*ran:Int(-100,-120)",
                 "220",
                 "_",
-            }, spawn_frame = 1196, env = {
+            }, spawn_frame = 0, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10655,7 +11748,7 @@ return {
                 "220",
                 "200-b",
                 "_",
-            }, spawn_frame = 1676, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10663,7 +11756,7 @@ return {
                 "ran:Sign()*ran:Int(-100,-120)",
                 "220",
                 "_",
-            }, spawn_frame = 1965, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10671,7 +11764,7 @@ return {
                 "220",
                 "100",
                 "_",
-            }, spawn_frame = 2175, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10679,7 +11772,7 @@ return {
                 "-130",
                 "220",
                 "_",
-            }, spawn_frame = 2325, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10687,12 +11780,12 @@ return {
                 "130",
                 "220",
                 "_",
-            }, spawn_frame = 2325, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
         } },
-        { id = "legacy_smf_lunatic_wave_02", name = "smf@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 1150, duration_seconds = 19.2, classes = {
+        { id = "legacy_smf_lunatic_wave_03", name = "smf@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
             "笑脸-5way狙",
             "笑脸-关底狙",
             "笑脸-红火弹",
@@ -10720,7 +11813,7 @@ return {
                 "230",
                 "200",
                 "_",
-            }, spawn_frame = 95, env = {
+            }, spawn_frame = 120, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10728,7 +11821,7 @@ return {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 394, env = {
+            }, spawn_frame = 240, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10736,7 +11829,7 @@ return {
                 "-220",
                 "130",
                 "_",
-            }, spawn_frame = 594, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10744,7 +11837,7 @@ return {
                 "220",
                 "130",
                 "_",
-            }, spawn_frame = 594, env = {
+            }, spawn_frame = 360, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10752,7 +11845,7 @@ return {
                 "100+b",
                 "250",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10760,7 +11853,7 @@ return {
                 "-220",
                 "200-b",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10768,7 +11861,7 @@ return {
                 "-100-b",
                 "250",
                 "_",
-            }, spawn_frame = 699, env = {
+            }, spawn_frame = 480, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10776,7 +11869,7 @@ return {
                 "-100",
                 "240",
                 "_",
-            }, spawn_frame = 1149, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 r = "0",
             } },
@@ -10784,23 +11877,17 @@ return {
                 "100",
                 "240",
                 "_",
-            }, spawn_frame = 1149, env = {
+            }, spawn_frame = 600, env = {
                 b = "0",
                 r = "0",
             } },
         } },
     } },
     { id = "legacy_olc_lunatic", source_stage = "olc@Lunatic", waves = {
-        { id = "legacy_olc_lunatic_wave_01", name = "olc@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 5204, duration_seconds = 86.7, classes = {
+        { id = "legacy_olc_lunatic_wave_01", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
             "OLC_BF_Big_01",
-            "OLC_BF_Big_02",
             "OLC_BF_Small_01",
-            "OLC_SCDHD_01:Lunatic",
-            "OLC_SCDHD_02:Lunatic",
-            "OLC_SCDHD_03:Lunatic",
             "OLC_YYY_01",
-            "OLC_YYY_02",
-            "OLC_ZY_01",
         }, members = {
             { class_name = "OLC_BF_Big_01", args = {
                 "0",
@@ -10822,7 +11909,7 @@ return {
                 "35",
                 "400",
                 "-1",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_BF_Big_01", args = {
                 "120",
@@ -10833,7 +11920,7 @@ return {
                 "35",
                 "400",
                 "-1",
-            }, spawn_frame = 900, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_BF_Small_01", args = {
                 "-200",
@@ -10842,7 +11929,7 @@ return {
                 "0",
                 "10",
                 "4",
-            }, spawn_frame = 1625, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_BF_Small_01", args = {
                 "200",
@@ -10851,97 +11938,107 @@ return {
                 "180",
                 "10",
                 "4",
-            }, spawn_frame = 1875, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2290, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_lunatic_wave_02", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 2335, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 2335, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2380, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 2425, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 2425, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2470, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 2515, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 2515, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2560, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_lunatic_wave_03", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_BF_Big_02",
+            "OLC_YYY_01",
+            "OLC_ZY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 2605, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 2605, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2635, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 2845, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_BF_Big_02", args = {
                 "0",
                 "220",
                 "4",
-            }, spawn_frame = 3125, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_ZY_01", args = {
                 "0+ran:Float(-200,200)",
@@ -10951,55 +12048,60 @@ return {
                 "270+ran:Float(-30,30)",
                 "ran:Float(-0.8,0.8)",
                 "4",
-            }, spawn_frame = 3565, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 3709, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 3709, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_lunatic_wave_04", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+            "OLC_ZY_01",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 3754, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 3754, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 3799, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 3799, env = {
+            }, spawn_frame = 120, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_ZY_01", args = {
                 "0+ran:Float(-200,200)",
@@ -11009,55 +12111,60 @@ return {
                 "270+ran:Float(-30,30)",
                 "ran:Float(-0.8,0.8)",
                 "4",
-            }, spawn_frame = 3844, env = {
+            }, spawn_frame = 240, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 3928, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 3928, env = {
+            }, spawn_frame = 360, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 3973, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 3973, env = {
+            }, spawn_frame = 480, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "150",
                 "220",
                 "4",
-            }, spawn_frame = 4018, env = {
+            }, spawn_frame = 600, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-150",
                 "220",
                 "4",
-            }, spawn_frame = 4018, env = {
+            }, spawn_frame = 600, env = {
             } },
+        } },
+        { id = "legacy_olc_lunatic_wave_05", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_01",
+            "OLC_YYY_02",
+        }, members = {
             { class_name = "OLC_YYY_01", args = {
                 "75",
                 "220",
                 "4",
-            }, spawn_frame = 4063, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_01", args = {
                 "-75",
                 "220",
                 "4",
-            }, spawn_frame = 4063, env = {
+            }, spawn_frame = 0, env = {
             } },
             { class_name = "OLC_YYY_02", args = {
                 "0",
@@ -11067,7 +12174,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4108, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11078,7 +12185,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4108, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11089,7 +12196,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4153, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11100,7 +12207,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4153, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11111,7 +12218,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4198, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11122,7 +12229,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4198, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11133,7 +12240,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4243, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11144,7 +12251,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4243, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11155,7 +12262,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11166,7 +12273,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11177,7 +12284,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11188,7 +12295,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11199,7 +12306,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11210,7 +12317,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11221,7 +12328,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11232,7 +12339,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11243,7 +12350,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11254,7 +12361,33 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4288, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_lunatic_wave_06", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11265,7 +12398,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4378, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11276,7 +12409,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4378, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11287,7 +12420,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4423, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11298,7 +12431,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4423, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11309,7 +12442,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4468, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11320,7 +12453,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4468, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11331,7 +12464,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11342,7 +12475,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11353,7 +12486,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11364,7 +12497,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11375,7 +12508,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11386,7 +12519,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4513, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11397,7 +12530,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4693, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11408,7 +12541,33 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4693, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_lunatic_wave_07", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 720, duration_seconds = 12, classes = {
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11419,7 +12578,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4738, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11430,7 +12589,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4738, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11441,7 +12600,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4783, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11452,7 +12611,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4783, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11463,7 +12622,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4828, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11474,7 +12633,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4828, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11485,7 +12644,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11496,7 +12655,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11507,7 +12666,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11518,7 +12677,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11529,7 +12688,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11540,7 +12699,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11551,7 +12710,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11562,7 +12721,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11573,7 +12732,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11584,7 +12743,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4873, env = {
+            }, spawn_frame = 360, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11595,7 +12754,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11606,7 +12765,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 480, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11617,7 +12776,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 600, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11628,7 +12787,36 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 4963, env = {
+            }, spawn_frame = 600, env = {
+                xi = "ran:Float(10,20)",
+            } },
+        } },
+        { id = "legacy_olc_lunatic_wave_08", name = "olc@Lunatic Before Mid-Boss", difficulty = 4, duration_frames = 360, duration_seconds = 6, classes = {
+            "OLC_SCDHD_01:Lunatic",
+            "OLC_SCDHD_02:Lunatic",
+            "OLC_SCDHD_03:Lunatic",
+            "OLC_YYY_02",
+        }, members = {
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "ran:Float(10,20)",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
+                xi = "ran:Float(10,20)",
+            } },
+            { class_name = "OLC_YYY_02", args = {
+                "0",
+                "230",
+                "-xi",
+                "200",
+                "30",
+                "15",
+                "4",
+            }, spawn_frame = 0, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11639,7 +12827,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 5008, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11650,7 +12838,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 5008, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11661,7 +12849,7 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 5053, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_YYY_02", args = {
@@ -11672,115 +12860,37 @@ return {
                 "30",
                 "15",
                 "4",
-            }, spawn_frame = 5053, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5098, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5098, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "ran:Float(10,20)",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5143, env = {
-                xi = "ran:Float(10,20)",
-            } },
-            { class_name = "OLC_YYY_02", args = {
-                "0",
-                "230",
-                "-xi",
-                "200",
-                "30",
-                "15",
-                "4",
-            }, spawn_frame = 5143, env = {
+            }, spawn_frame = 120, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_01:Lunatic", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_02:Lunatic", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
             { class_name = "OLC_SCDHD_03:Lunatic", args = {
                 "0",
                 "50",
                 "_",
-            }, spawn_frame = 5203, env = {
+            }, spawn_frame = 240, env = {
                 xi = "ran:Float(10,20)",
             } },
         } },
     } },
     { id = "legacy_er_lunatic", source_stage = "er@Lunatic", waves = {
-        { id = "legacy_er_lunatic_wave_01", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 7191, duration_seconds = 119.8, classes = {
+        { id = "legacy_er_lunatic_wave_01", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 721, duration_seconds = 12, classes = {
             "wuer_enm_1-1:Lunatic",
             "wuer_enm_3-1-1:Lunatic",
-            "wuer_enm_4-2-1:Lunatic",
-            "wuer_enm_4-2-2:Lunatic",
-            "wuer_enm_aim1:Lunatic",
-            "wuer_enm_aim2:Lunatic",
-            "wuer_enm_baoju:Lunatic",
-            "wuer_enm_bar_enm:Lunatic",
             "wuer_enm_bar_enm2:Lunatic",
-            "wuer_enm_dfhlaser:Lunatic",
-            "wuer_enm_ghost1:Lunatic",
-            "wuer_enm_ghost2:Lunatic",
-            "wuer_enm_tama1:Lunatic",
-            "wuer_enm1-4:Lunatic",
-            "wuer_yinyangyu:Lunatic",
         }, members = {
             { class_name = "wuer_enm_1-1:Lunatic", args = {
                 "-120",
@@ -11814,7 +12924,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 150, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -11835,7 +12945,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 300, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -11856,7 +12966,7 @@ return {
                 "-1",
                 "nil",
                 "6",
-            }, spawn_frame = 450, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 co = "6",
                 enm2 = "nil",
@@ -11870,7 +12980,7 @@ return {
                 "120*sin(c)",
                 "270",
                 "2.5",
-            }, spawn_frame = 1410, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11886,7 +12996,7 @@ return {
                 "120*sin(c)",
                 "270",
                 "2.5",
-            }, spawn_frame = 1411, env = {
+            }, spawn_frame = 481, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11902,7 +13012,7 @@ return {
                 "0",
                 "240",
                 "_",
-            }, spawn_frame = 1532, env = {
+            }, spawn_frame = 601, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11914,11 +13024,16 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_02", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_3-1-1:Lunatic",
+            "wuer_enm_aim2:Lunatic",
+        }, members = {
             { class_name = "wuer_enm_3-1-1:Lunatic", args = {
                 "90",
                 "240",
                 "_",
-            }, spawn_frame = 1682, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11934,7 +13049,7 @@ return {
                 "-90",
                 "240",
                 "_",
-            }, spawn_frame = 1832, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11950,7 +13065,7 @@ return {
                 "-80",
                 "240",
                 "_",
-            }, spawn_frame = 2387, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11966,7 +13081,7 @@ return {
                 "-40",
                 "240",
                 "_",
-            }, spawn_frame = 2432, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11982,7 +13097,7 @@ return {
                 "80",
                 "240",
                 "_",
-            }, spawn_frame = 2477, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -11998,7 +13113,7 @@ return {
                 "40",
                 "240",
                 "_",
-            }, spawn_frame = 2522, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12010,11 +13125,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_03", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_aim1:Lunatic",
+            "wuer_enm_aim2:Lunatic",
+            "wuer_enm_ghost2:Lunatic",
+        }, members = {
             { class_name = "wuer_enm_aim2:Lunatic", args = {
                 "-130",
                 "240",
                 "_",
-            }, spawn_frame = 2612, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12030,7 +13151,7 @@ return {
                 "130",
                 "240",
                 "_",
-            }, spawn_frame = 2612, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12046,7 +13167,7 @@ return {
                 "-60",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12062,7 +13183,7 @@ return {
                 "60",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12078,7 +13199,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2702, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12094,7 +13215,7 @@ return {
                 "-ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2742, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12110,7 +13231,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2782, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12126,7 +13247,7 @@ return {
                 "-ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2852, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12142,7 +13263,7 @@ return {
                 "ran:Float(80,140)",
                 "240",
                 "_",
-            }, spawn_frame = 2852, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12158,7 +13279,7 @@ return {
                 "210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3162, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12171,45 +13292,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_04", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 735, duration_seconds = 12.2, classes = {
+            "wuer_enm_4-2-1:Lunatic",
+            "wuer_enm_4-2-2:Lunatic",
+            "wuer_enm_ghost2:Lunatic",
+        }, members = {
             { class_name = "wuer_enm_ghost2:Lunatic", args = {
                 "-210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3212, env = {
-                a = "0",
-                bar_v = "2.5",
-                c = "0",
-                co = "6",
-                d1 = "1",
-                enm2 = "nil",
-                first_enm = "nil",
-                i = "0",
-                meet_ufo = "0",
-                n = "1",
-                ufo = "1",
-            } },
-            { class_name = "wuer_enm_ghost2:Lunatic", args = {
-                "210*d1",
-                "ran:Float(100,150)",
-                "1",
-            }, spawn_frame = 3262, env = {
-                a = "0",
-                bar_v = "2.5",
-                c = "0",
-                co = "6",
-                d1 = "1",
-                enm2 = "nil",
-                first_enm = "nil",
-                i = "0",
-                meet_ufo = "0",
-                n = "1",
-                ufo = "1",
-            } },
-            { class_name = "wuer_enm_ghost2:Lunatic", args = {
-                "-210*d1",
-                "ran:Float(100,150)",
-                "1",
-            }, spawn_frame = 3297, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12226,7 +13319,7 @@ return {
                 "210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3332, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12243,7 +13336,41 @@ return {
                 "-210*d1",
                 "ran:Float(100,150)",
                 "1",
-            }, spawn_frame = 3347, env = {
+            }, spawn_frame = 240, env = {
+                a = "0",
+                bar_v = "2.5",
+                c = "0",
+                co = "6",
+                d1 = "1",
+                enm2 = "nil",
+                first_enm = "nil",
+                i = "0",
+                meet_ufo = "0",
+                n = "1",
+                ufo = "1",
+            } },
+            { class_name = "wuer_enm_ghost2:Lunatic", args = {
+                "210*d1",
+                "ran:Float(100,150)",
+                "1",
+            }, spawn_frame = 360, env = {
+                a = "0",
+                bar_v = "2.5",
+                c = "0",
+                co = "6",
+                d1 = "1",
+                enm2 = "nil",
+                first_enm = "nil",
+                i = "0",
+                meet_ufo = "0",
+                n = "1",
+                ufo = "1",
+            } },
+            { class_name = "wuer_enm_ghost2:Lunatic", args = {
+                "-210*d1",
+                "ran:Float(100,150)",
+                "1",
+            }, spawn_frame = 375, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12260,7 +13387,7 @@ return {
                 "0",
                 "240",
                 "_",
-            }, spawn_frame = 3572, env = {
+            }, spawn_frame = 495, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12277,7 +13404,7 @@ return {
                 "120",
                 "240",
                 "_",
-            }, spawn_frame = 3632, env = {
+            }, spawn_frame = 615, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12294,7 +13421,7 @@ return {
                 "-120",
                 "240",
                 "_",
-            }, spawn_frame = 3632, env = {
+            }, spawn_frame = 615, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12307,11 +13434,17 @@ return {
                 n = "1",
                 ufo = "1",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_05", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 730, duration_seconds = 12.2, classes = {
+            "wuer_enm_bar_enm:Lunatic",
+            "wuer_enm_ghost1:Lunatic",
+            "wuer_enm_tama1:Lunatic",
+        }, members = {
             { class_name = "wuer_enm_bar_enm:Lunatic", args = {
                 "listx[i]",
                 "270",
                 "2.5",
-            }, spawn_frame = 3723, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12329,7 +13462,7 @@ return {
                 "listx[i]",
                 "270",
                 "2.5",
-            }, spawn_frame = 3783, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12347,7 +13480,7 @@ return {
                 "ran:Float(-160,160)",
                 "ran:Float(236,260)",
                 "_",
-            }, spawn_frame = 4174, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12365,7 +13498,7 @@ return {
                 "x+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4424, env = {
+            }, spawn_frame = 360, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12385,7 +13518,7 @@ return {
                 "x+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4529, env = {
+            }, spawn_frame = 480, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12405,7 +13538,7 @@ return {
                 "x1+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4624, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12427,7 +13560,7 @@ return {
                 "x2+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4624, env = {
+            }, spawn_frame = 600, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12449,7 +13582,7 @@ return {
                 "x1+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4634, env = {
+            }, spawn_frame = 610, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12471,7 +13604,7 @@ return {
                 "x2+ran:Float(-6,6)",
                 "y+ran:Float(-6,6)",
                 "_",
-            }, spawn_frame = 4634, env = {
+            }, spawn_frame = 610, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12489,11 +13622,17 @@ return {
                 x2 = "160",
                 y = "-140",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_06", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 740, duration_seconds = 12.3, classes = {
+            "wuer_enm_baoju:Lunatic",
+            "wuer_enm1-4:Lunatic",
+            "wuer_yinyangyu:Lunatic",
+        }, members = {
             { class_name = "wuer_enm1-4:Lunatic", args = {
                 "-210",
                 "190",
                 "_",
-            }, spawn_frame = 4944, env = {
+            }, spawn_frame = 0, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12515,7 +13654,7 @@ return {
                 "210",
                 "190",
                 "_",
-            }, spawn_frame = 5064, env = {
+            }, spawn_frame = 120, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12538,7 +13677,7 @@ return {
                 "45*sin(a)+30",
                 "0",
                 "7",
-            }, spawn_frame = 5364, env = {
+            }, spawn_frame = 240, env = {
                 a = "0",
                 bar_v = "2.5",
                 c = "0",
@@ -12561,7 +13700,7 @@ return {
                 "45*sin(a)+30",
                 "120",
                 "7",
-            }, spawn_frame = 5608, env = {
+            }, spawn_frame = 360, env = {
                 a = "120",
                 bar_v = "2.5",
                 c = "0",
@@ -12584,7 +13723,7 @@ return {
                 "45*sin(a)",
                 "-120",
                 "3",
-            }, spawn_frame = 5912, env = {
+            }, spawn_frame = 480, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12606,7 +13745,7 @@ return {
                 "ran:Float(-220,-120)",
                 "-240",
                 "1",
-            }, spawn_frame = 6215, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12629,7 +13768,7 @@ return {
                 "-ran:Float(-220,-120)",
                 "-240",
                 "-enm_s",
-            }, spawn_frame = 6215, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12652,7 +13791,7 @@ return {
                 "ran:Float(-220,-120)",
                 "-240",
                 "1",
-            }, spawn_frame = 6230, env = {
+            }, spawn_frame = 615, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12675,7 +13814,7 @@ return {
                 "-ran:Float(-220,-120)",
                 "-240",
                 "-enm_s",
-            }, spawn_frame = 6235, env = {
+            }, spawn_frame = 620, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12694,13 +13833,17 @@ return {
                 x2 = "160",
                 y = "-140",
             } },
+        } },
+        { id = "legacy_er_lunatic_wave_07", name = "er@Lunatic After Mid-Boss", difficulty = 6, duration_frames = 720, duration_seconds = 12, classes = {
+            "wuer_enm_dfhlaser:Lunatic",
+        }, members = {
             { class_name = "wuer_enm_dfhlaser:Lunatic", args = {
                 "-140",
                 "240",
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6540, env = {
+            }, spawn_frame = 0, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12725,7 +13868,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6690, env = {
+            }, spawn_frame = 120, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12750,7 +13893,7 @@ return {
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6840, env = {
+            }, spawn_frame = 240, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12775,7 +13918,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 6990, env = {
+            }, spawn_frame = 360, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12800,7 +13943,7 @@ return {
                 "1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 7090, env = {
+            }, spawn_frame = 480, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12825,7 +13968,7 @@ return {
                 "-1",
                 "0",
                 "-0.55",
-            }, spawn_frame = 7190, env = {
+            }, spawn_frame = 600, env = {
                 a = "-120",
                 bar_v = "2.5",
                 c = "0",
@@ -12847,5 +13990,392 @@ return {
         } },
     } },
     { id = "legacy_yh_lunatic", source_stage = "yh@Lunatic", waves = {
+        { id = "legacy_yh_lunatic_wave_01", name = "yh@Lunatic Complete Enemy Run", difficulty = 5, duration_frames = 292, duration_seconds = 4.9, classes = {
+            "激光(红):Lunatic",
+            "激光(蓝):Lunatic",
+            "落耶弹(紫):Lunatic",
+            "扭曲弹(红):Lunatic",
+            "扭曲弹(蓝):Lunatic",
+            "扭曲弹(绿):Lunatic",
+            "扭曲弹(紫):Lunatic",
+            "随机弹(蓝):Lunatic",
+            "小(红):Lunatic",
+            "小(绿):Lunatic",
+            "自机狙(红):Lunatic",
+            "自机狙(蓝):Lunatic",
+            "自机狙(绿):Lunatic",
+            "自机狙(紫):Lunatic",
+        }, members = {
+            { class_name = "自机狙(红):Lunatic", args = {
+                "-150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 0, env = {
+                i = "1",
+                x = "-150",
+                y = "240",
+            } },
+            { class_name = "自机狙(蓝):Lunatic", args = {
+                "150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 24, env = {
+                i = "1",
+                x = "150",
+                y = "240",
+            } },
+            { class_name = "自机狙(绿):Lunatic", args = {
+                "-150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 48, env = {
+                i = "1",
+                x = "-150",
+                y = "240",
+            } },
+            { class_name = "自机狙(紫):Lunatic", args = {
+                "150",
+                "240",
+                "224*x/150",
+            }, spawn_frame = 72, env = {
+                i = "1",
+                x = "150",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "-50",
+                "240",
+                "20",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "50",
+                "240",
+                "-20",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-75",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "-50",
+                "240",
+                "50*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "-50",
+                "240",
+                "20",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "50",
+                "240",
+                "-20",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "0",
+                "240",
+                "0",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "-50",
+                "240",
+                "20*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "落耶弹(紫):Lunatic", args = {
+                "-50",
+                "240",
+                "50*i",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "激光(红):Lunatic", args = {
+                "-50",
+                "240",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "1",
+                l = "4",
+                r = "0",
+                x = "-50",
+                y = "240",
+            } },
+            { class_name = "激光(蓝):Lunatic", args = {
+                "50",
+                "240",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "激光(红):Lunatic", args = {
+                "100",
+                "240",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "激光(蓝):Lunatic", args = {
+                "-100",
+                "240",
+                "1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(红):Lunatic", args = {
+                "0",
+                "240",
+                "90",
+                "-1",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "50",
+                y = "240",
+            } },
+            { class_name = "小(红):Lunatic", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 112, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Lunatic", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 117, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(蓝):Lunatic", args = {
+                "0",
+                "240",
+                "90",
+                "1",
+            }, spawn_frame = 127, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Lunatic", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 127, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Lunatic", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 132, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(绿):Lunatic", args = {
+                "0",
+                "240",
+                "90",
+                "-1",
+            }, spawn_frame = 142, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Lunatic", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 142, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Lunatic", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 147, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "扭曲弹(紫):Lunatic", args = {
+                "0",
+                "240",
+                "90",
+                "1",
+            }, spawn_frame = 157, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(红):Lunatic", args = {
+                "240",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 157, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "小(绿):Lunatic", args = {
+                "-x",
+                "ran:Float(0,50)",
+                "_",
+            }, spawn_frame = 162, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "随机弹(蓝):Lunatic", args = {
+                "150",
+                "240",
+                "_",
+            }, spawn_frame = 172, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+            { class_name = "随机弹(蓝):Lunatic", args = {
+                "-150",
+                "240",
+                "_",
+            }, spawn_frame = 172, env = {
+                i = "-1",
+                l = "4",
+                r = "0",
+                x = "240",
+                y = "240",
+            } },
+        } },
     } },
 }

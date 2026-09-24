@@ -1882,25 +1882,77 @@ end
 -- node's six-band progression. Falls back to the nearest available band so a
 -- thin band can never leave the room empty.
 local WaveDifficulty = require("tnr.stages.wave_difficulty")
+-- Formal rooms must last at least this long. The catalog stores short atoms;
+-- the selector concatenates them until the target is reached, which keeps the
+-- early-floor variety high while guaranteeing a substantial fight.
+local WAVE_MIN_SECONDS = 30
+local WAVE_MIN_FRAMES = WAVE_MIN_SECONDS * 60
+-- Atoms shorter than this are setup remnants and are never used as a seed.
+local WAVE_ATOM_MIN_SECONDS = 4
+
+local function wave_has_loaded_class(wave)
+    if type(wave) ~= "table" or type(wave.members) ~= "table" then return false end
+    if #wave.members == 0 then return false end
+    for _, member in ipairs(wave.members) do
+        if type(member) == "table" and _editor_class[member.class_name] then
+            return true
+        end
+    end
+    return false
+end
+
+--- Concatenate atoms on a shared timeline into one formal wave.
+-- Each atom's members keep their original relative offsets and are shifted by
+-- the running total, so formations never overlap and the source order is
+-- preserved. The returned wave is a plain table the enemy spec builder already
+-- understands.
+local function concatenate_wave_atoms(atoms)
+    local members = {}
+    local offset = 0
+    local classes_seen = {}
+    local class_list = {}
+    local first = atoms[1]
+    for _, atom in ipairs(atoms) do
+        for _, member in ipairs(atom.members or {}) do
+            members[#members + 1] = {
+                class_name = member.class_name,
+                args = member.args,
+                env = member.env,
+                spawn_frame = offset + (tonumber(member.spawn_frame) or 0),
+            }
+            local name = member.class_name
+            if name and not classes_seen[name] then
+                classes_seen[name] = true
+                class_list[#class_list + 1] = name
+            end
+        end
+        offset = offset + math.max(1, math.floor(tonumber(atom.duration_frames) or 0))
+    end
+    table.sort(class_list)
+    return {
+        id = first and (first.id .. "+combo") or "combo",
+        name = first and first.name or "Combined Wave",
+        legacy_stage = first and first.legacy_stage or nil,
+        difficulty = first and first.difficulty or nil,
+        duration_frames = offset,
+        duration_seconds = offset / 60,
+        classes = class_list,
+        members = members,
+        legacy_exact = true,
+        combined = true,
+    }
+end
+
 local function select_catalog_wave_for_band(seed, band)
     local source = require("tnr.training.enemy_training_catalog")
     local target = math.max(1, math.min(6, math.floor(tonumber(band) or 1)))
     local by_band = {}
     for _, wave in ipairs(source) do
-        if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= 10
-                and type(wave.members) == "table" and #wave.members > 0 then
-            local has_loaded_class = false
-            for _, member in ipairs(wave.members) do
-                if type(member) == "table" and _editor_class[member.class_name] then
-                    has_loaded_class = true
-                    break
-                end
-            end
-            if has_loaded_class then
-                local tier = WaveDifficulty.tier_of(wave)
-                by_band[tier] = by_band[tier] or {}
-                by_band[tier][#by_band[tier] + 1] = wave
-            end
+        if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= WAVE_ATOM_MIN_SECONDS
+                and wave_has_loaded_class(wave) then
+            local tier = WaveDifficulty.tier_of(wave)
+            by_band[tier] = by_band[tier] or {}
+            by_band[tier][#by_band[tier] + 1] = wave
         end
     end
     -- Prefer the exact band; otherwise widen outward until a tier is found.
@@ -1915,7 +1967,33 @@ local function select_catalog_wave_for_band(seed, band)
     end
     if not chosen then return select_catalog_wave(seed) end
     table.sort(chosen, function(left, right) return left.id < right.id end)
-    return chosen[(seeded_value(seed, 29 + target) % #chosen) + 1]
+    local picked = chosen[(seeded_value(seed, 29 + target) % #chosen) + 1]
+    local total = math.max(1, math.floor(tonumber(picked.duration_frames) or 0))
+    if total >= WAVE_MIN_FRAMES then
+        return picked
+    end
+    -- Concatenate more atoms from the same band until the formal wave reaches
+    -- the minimum length. Random draws make two runs differ even when they
+    -- start from the same atom.
+    local atoms = { picked }
+    local total_picks = 1
+    local guard = 0
+    -- Each additional atom needs an independent draw. seeded_value is affine
+    -- in the seed, so reusing one salt for every pick would make the second and
+    -- third atoms perfectly correlated with the first and collapse the
+    -- combination space. Mix the pick index into the seed itself instead.
+    local draw_seed = seed
+    while total < WAVE_MIN_FRAMES and guard < 16 do
+        guard = guard + 1
+        total_picks = total_picks + 1
+        draw_seed = draw_seed * 1103515245 + 12345
+        draw_seed = draw_seed % 2147483647
+        local index = (seeded_value(draw_seed, 131 + target * 7) % #chosen) + 1
+        local extra = chosen[index]
+        atoms[#atoms + 1] = extra
+        total = total + math.max(1, math.floor(tonumber(extra.duration_frames) or 0))
+    end
+    return concatenate_wave_atoms(atoms)
 end
 
 local function select_native_nonspell(class)

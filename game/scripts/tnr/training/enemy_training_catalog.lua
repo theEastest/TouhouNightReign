@@ -1,9 +1,10 @@
 local Content = require("tnr.stages.content_catalog")
 local result = {}
 for _, wave in pairs(Content.enemy_waves or {}) do
-    -- Keep the practice selector aligned with the original wave catalog and
-    -- discard editor fragments shorter than ten seconds.
-    if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= 10 then
+    -- Keep the wave catalog aligned with the original stage data. The room
+    -- selector concatenates the short atoms into a formal wave, so the floor
+    -- here only drops setup remnants.
+    if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= 4 then
         result[#result + 1] = wave
     end
 end

@@ -1,6 +1,13 @@
 param(
     [string]$Source = "E:\gemesmods\stg\_reference_extract_20260827\activity7\_editor_output.lua",
-    [string]$Output = "E:\gemesmods\stg\TouHouNightReign\game\scripts\tnr\stages\legacy_enemy_waves.lua"
+    [string]$Output = "E:\gemesmods\stg\TouHouNightReign\game\scripts\tnr\stages\legacy_enemy_waves.lua",
+    # Consecutive fragments are merged until an atom lasts at least this long.
+    # Atoms are then concatenated at room-generation time to reach the formal
+    # 30 second minimum.
+    [double]$AtomMinSeconds = 12.0,
+    # Extra frames appended to an atom so its last formation has time to act
+    # before the next atom starts.
+    [int]$FragmentTailFrames = 120
 )
 
 if (-not (Test-Path -LiteralPath $Source)) {
@@ -200,30 +207,40 @@ foreach ($stage in $stages) {
     if ($stage.waves.Count -eq 0) { continue }
     $stageKey = Convert-StageKey $stage.name
     [void]$sb.AppendLine(('    {{ id = "legacy_{0}", source_stage = "{1}", waves = {{' -f $stageKey, (Convert-LuaString $stage.name)))
+    # Emit atoms built from the splitter's fragments. Each atom merges
+    # consecutive fragments of one segment until it reaches AtomMinSeconds, so
+    # the catalog keeps many selectable units instead of one huge wave per
+    # segment. Room generation concatenates atoms until the formal wave lasts
+    # at least WAVE_MIN_SECONDS.
     $grouped = @()
     foreach ($segment in @(0, 1)) {
         $members = @()
         $durationFrames = 0
-        foreach ($wave in ($stage.waves | Where-Object { $_.segment -eq $segment })) {
-            $durationFrames += [int]$wave.duration_frames
-            $members += @($wave.members)
-        }
-        if ($members.Count -gt 0) {
-            $firstFrame = ($members | ForEach-Object { [int]$_.spawn_frame } | Measure-Object -Minimum).Minimum
-            foreach ($member in $members) {
-                $member.spawn_frame = [int]$member.spawn_frame - [int]$firstFrame
+        $segmentHadFragments = $false
+        foreach ($fragment in ($stage.waves | Where-Object { $_.segment -eq $segment })) {
+            $segmentHadFragments = $true
+            $fragmentMembers = @($fragment.members)
+            if ($fragmentMembers.Count -eq 0) { continue }
+            # Rebase this fragment's spawn frames on the atom clock.
+            $firstFrame = ($fragmentMembers | ForEach-Object { [int]$_.spawn_frame } | Measure-Object -Minimum).Minimum
+            foreach ($member in $fragmentMembers) {
+                $member.spawn_frame = ([int]$member.spawn_frame - [int]$firstFrame) + $durationFrames
             }
-            $lastFrame = ($members | ForEach-Object { [int]$_.spawn_frame } | Measure-Object -Maximum).Maximum
-            $durationFrames = [math]::Max($durationFrames, [int]$lastFrame + 1)
-            # Very short fragments are setup/transition remnants rather than
-            # useful practice targets. Keep the source data intact, but omit
-            # grouped entries that are ten seconds or shorter from the
-            # selectable catalog.
-            $displayDuration = [math]::Round($durationFrames / 60.0, 1)
-            if ($displayDuration -gt 10.0) {
+            $members += $fragmentMembers
+            $lastFrame = ($fragmentMembers | ForEach-Object { [int]$_.spawn_frame } | Measure-Object -Maximum).Maximum
+            $durationFrames = [math]::Max($durationFrames, [int]$lastFrame + $FragmentTailFrames)
+            if (($durationFrames / 60.0) -ge $AtomMinSeconds) {
                 $grouped += [pscustomobject]@{ segment = $segment; members = $members; duration_frames = $durationFrames }
+                $members = @()
+                $durationFrames = 0
             }
         }
+        # A trailing remainder shorter than the atom minimum still carries real
+        # enemies; keep it so no source content is dropped.
+        if ($members.Count -gt 0) {
+            $grouped += [pscustomobject]@{ segment = $segment; members = $members; duration_frames = $durationFrames }
+        }
+        if (-not $segmentHadFragments) { }
     }
     $total = $grouped.Count
     $groupIndex = 0
