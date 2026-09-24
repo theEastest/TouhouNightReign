@@ -3,6 +3,7 @@ local TrainingCatalog = require("tnr.training.card_training_catalog")
 local Phase1Catalog = require("tnr.equipment.phase1_catalog")
 local ScrollState = require("tnr.ui.scroll_state")
 local EquipmentInfo = require("tnr.ui.equipment_info")
+local TitleAssets = require("tnr.ui.title_assets")
 
 local MapRenderer = {}
 MapRenderer.__index = MapRenderer
@@ -89,6 +90,33 @@ end
 
 function MapRenderer:draw_text(text, x, y, size, values, align)
     self.lstg.RenderTTF("Sans", tostring(text), x, x, y, y, align or 0, color(self.lstg, values or COLORS.text), size or 2)
+end
+
+--- Draw a loaded image stretched to the given rectangle.
+-- LuaSTG Sub exposes RenderRect for the simple case; fall back to a textured
+-- quad so the call also works on builds without it.
+function MapRenderer:draw_image(image, left, right, bottom, top, values)
+    local lstg = self.lstg
+    if not image or not lstg then return end
+    -- Always publish the tint before drawing. Image state persists between
+    -- frames, so a sprite can inherit the color another draw left behind.
+    if type(lstg.SetImageState) == "function" then
+        pcall(lstg.SetImageState, image, "", color(lstg, values or { 255, 255, 255, 255 }))
+    end
+    if type(lstg.RenderRect) == "function" then
+        lstg.RenderRect(image, left, right, bottom, top)
+        return
+    end
+    if type(lstg.RenderTexture) ~= "function" then return end
+    local size = _G["__tnr_" .. tostring(image) .. "_size"]
+    local u1, v1, u2, v2 = 0, 0, 1, 1
+    if size then u2, v2 = size[1], size[2] end
+    local tint = color(lstg, values or { 255, 255, 255, 255 })
+    pcall(lstg.RenderTexture, image, "",
+        { left, top, 0, u1, v1, tint },
+        { right, top, 0, u2, v1, tint },
+        { right, bottom, 0, u2, v2, tint },
+        { left, bottom, 0, u1, v2, tint })
 end
 
 --- Draw a list of { text = string, color = string|table } lines inside a panel.
@@ -614,12 +642,24 @@ function MapRenderer:menu_hit_test(x, y)
     if not x or not y then
         return nil
     end
-    if x < 90 or x > 470 then return nil end
-    for index = 1, 9 do
-        local bottom = 470 - (index - 1) * 48
-        if y >= bottom and y <= bottom + 40 then return index end
+    -- Three by three icon grid anchored to the bottom-left, matching
+    -- render_menu. Cell geometry is mirrored here so mouse picking stays exact.
+    local cell = 104
+    local gap = 6
+    local grid_left = 44
+    local grid_bottom = 36
+    local grid_right = grid_left + 3 * cell + 2 * gap
+    local grid_top = grid_bottom + 3 * cell + 2 * gap
+    if x < grid_left or x > grid_right or y < grid_bottom or y > grid_top then
+        return nil
     end
-    return nil
+    local column = math.floor((x - grid_left) / (cell + gap))
+    local row_from_bottom = math.floor((y - grid_bottom) / (cell + gap))
+    if column < 0 or column > 2 or row_from_bottom < 0 or row_from_bottom > 2 then
+        return nil
+    end
+    local row = 2 - row_from_bottom
+    return row * 3 + column + 1
 end
 
 function MapRenderer:network_menu_hit_test(x, y, item_count)
@@ -839,6 +879,10 @@ function MapRenderer:render_battle_failed(session, cursor)
     lstg.EndScene()
 end
 
+-- Main menu, built entirely from the imported title screen art: a full-screen
+-- background, the logo anchored to the top-left and a three by three icon grid
+-- anchored to the bottom-left. Every label is part of the artwork, so no text
+-- is drawn. The selected cell is highlighted with a frame and a lift.
 function MapRenderer:render_menu(menu_cursor, session)
     local lstg = self.lstg
     lstg.BeginScene()
@@ -847,31 +891,59 @@ function MapRenderer:render_menu(menu_cursor, session)
     lstg.SetScissorRect(0, self.width, 0, self.height)
     lstg.SetOrtho(0, self.width, 0, self.height)
 
-    draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 42, self.width - 42, 38, self.height - 38)
-    self:draw_panel(70, 515, 80, self.height - 116)
-    self:draw_text("TouHouNightReign", 105, self.height - 164, 1.45, COLORS.accent, 0)
-    self:draw_text("幻想乡夜行录", 108, self.height - 220, 0.92, COLORS.text, 0)
-    self:draw_text("探索地图 · 战斗 · 奖励", 108, self.height - 251, 0.72, COLORS.muted, 0)
-
-    local options = { "单人游戏", "局域网主机", "加入局域网", "符卡训练", "非符练习", "小怪练习", "音乐鉴赏", "装备图鉴", "退出游戏" }
-    for index, label in ipairs(options) do
-        local bottom = 470 - (index - 1) * 48
-        local top = bottom + 40
-        local selected = index == (menu_cursor or 1)
-        local fill = selected and { 235, 105, 38, 52 } or { 210, 24, 29, 46 }
-        draw_rect(lstg, self.white, fill, 90, 470, bottom, top)
-        draw_line(lstg, self.white, selected and COLORS.accent or COLORS.panel_border, 90, bottom, 470, bottom, selected and 3 or 1)
-        draw_line(lstg, self.white, selected and COLORS.accent or COLORS.panel_border, 90, top, 470, top, selected and 3 or 1)
-        self:draw_text(selected and ">" or "", 116, bottom + 20, 0.72, COLORS.accent, 1 + 4)
-        self:draw_text(label, 150, bottom + 20, 0.82, selected and COLORS.text or COLORS.muted, 0)
+    if TitleAssets.bg then
+        self:draw_image("tnr-title-bg", 0, self.width, 0, self.height)
+    else
+        draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 0, self.width, 0, self.height)
     end
 
-    self:draw_panel(self.width - 420, self.width - 90, 170, self.height - 150)
-    self:draw_text("RUN PREVIEW", self.width - 385, self.height - 205, 0.95, COLORS.accent, 0)
-    self:draw_text("地图路线", self.width - 385, self.height - 260, 1.0, COLORS.text, 0)
-    self:draw_text("战斗节点     事件节点", self.width - 385, self.height - 294, 0.85, COLORS.muted, 0)
-    self:draw_text("鼠标可选择菜单与地图节点", self.width - 385, self.height - 360, 0.85, COLORS.muted, 0)
-    self:draw_text("方向键移动   Enter 确认", self.width - 385, 212, 0.76, COLORS.muted, 0)
+    -- Logo: top-left corner.
+    local logo_entry = TitleAssets.logo
+    if logo_entry then
+        local logo_size = { logo_entry.width, logo_entry.height }
+        local logo_w = 420
+        local logo_h = logo_w * (logo_size[2] / logo_size[1])
+        local logo_left = 40
+        local logo_top = self.height - 36
+        self:draw_image("tnr-title-logo", logo_left, logo_left + logo_w, logo_top - logo_h, logo_top)
+    end
+
+    -- Menu: a three by three grid of icon buttons in the bottom-left corner.
+    local cell = 104
+    local gap = 6
+    local grid_left = 44
+    local grid_bottom = 36
+    for index = 1, 9 do
+        local column = (index - 1) % 3
+        local row = math.floor((index - 1) / 3)
+        local left = grid_left + column * (cell + gap)
+        local bottom = grid_bottom + (2 - row) * (cell + gap)
+        local selected = index == (menu_cursor or 1)
+        local grow = selected and 5 or 0
+        local image_name = "tnr-title-icon-" .. index
+        local entry = TitleAssets.get(image_name)
+        local size = entry and { entry.width, entry.height } or nil
+        if selected then
+            -- Highlight frame behind the selected icon.
+            draw_rect(lstg, self.white, { 190, 214, 62, 44 },
+                left - 6, left + cell + 6, bottom - 6, bottom + cell + 6)
+            draw_line(lstg, self.white, COLORS.accent, left - 6, bottom - 6, left + cell + 6, bottom - 6, 2)
+            draw_line(lstg, self.white, COLORS.accent, left - 6, bottom + cell + 6, left + cell + 6, bottom + cell + 6, 2)
+            draw_line(lstg, self.white, COLORS.accent, left - 6, bottom - 6, left - 6, bottom + cell + 6, 2)
+            draw_line(lstg, self.white, COLORS.accent, left + cell + 6, bottom - 6, left + cell + 6, bottom + cell + 6, 2)
+        end
+        if size then
+            -- Preserve the icon's aspect ratio inside its cell.
+            local scale = math.min((cell + grow) / size[1], (cell + grow) / size[2])
+            local draw_w = size[1] * scale
+            local draw_h = size[2] * scale
+            local draw_left = left + (cell - draw_w) * 0.5
+            local draw_bottom = bottom + (cell - draw_h) * 0.5
+            self:draw_image(image_name, draw_left, draw_left + draw_w, draw_bottom, draw_bottom + draw_h)
+        else
+            draw_rect(lstg, self.white, { 200, 30, 36, 50 }, left, left + cell, bottom, bottom + cell)
+        end
+    end
     lstg.EndScene()
 end
 

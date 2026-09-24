@@ -8,6 +8,7 @@ lstg.DoFile("legacy_native_main.lua")
 
 local Bootstrap = require("tnr.bootstrap")
 local LANTransport = require("tnr.multiplayer.lan_transport")
+local TitleAssets = require("tnr.ui.title_assets")
 
 local function env_number(name, fallback)
     return tonumber(os.getenv(name)) or fallback
@@ -45,6 +46,41 @@ game.audio:attach_native()
 function GameInit()
     lstg.LoadTexture("tnr-white-texture", "assets/texture/white.png", false)
     lstg.LoadImage("tnr-white", "tnr-white-texture", 0, 0, 16, 16)
+    -- Title screen art: a full-screen background, the logo and the nine menu
+    -- icons. The whole set is loaded into the global pool so the title can be
+    -- rebuilt after any per-stage resource reset.
+    pcall(function()
+        local set_status = lstg.SetResourceStatus
+        local get_status = lstg.GetResourceStatus
+        local previous
+        if type(get_status) == "function" then previous = get_status() end
+        if type(set_status) == "function" then pcall(set_status, "global") end
+        local title_textures = {
+            { texture = "tnr-title-bg-texture", image = "tnr-title-bg", path = "assets/title/bg.png" },
+            { texture = "tnr-title-logo-texture", image = "tnr-title-logo", path = "assets/title/logo.png" },
+        }
+        for index = 1, 9 do
+            title_textures[#title_textures + 1] = {
+                texture = "tnr-title-icon-texture-" .. index,
+                image = "tnr-title-icon-" .. index,
+                path = "assets/title/icon_" .. index .. ".png",
+            }
+        end
+        for _, entry in ipairs(title_textures) do
+            if pcall(lstg.LoadTexture, entry.texture, entry.path, false) then
+                local w, h = 0, 0
+                if lstg.GetTextureSize then
+                    local ok, tw, th = pcall(lstg.GetTextureSize, entry.texture)
+                    if ok then w, h = tonumber(tw) or 0, tonumber(th) or 0 end
+                end
+                if w > 0 and h > 0 then
+                    pcall(lstg.LoadImage, entry.image, entry.texture, 0, 0, w, h, w * 0.5, h * 0.5)
+                    pcall(TitleAssets.set, entry.image, w, h)
+                end
+            end
+        end
+        if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
+    end)
     -- Money pickup animation: a five-frame coin spin, one 32x32 frame per
     -- column. Loaded into the global pool so it survives the per-stage resource
     -- reset that would otherwise evict it before the first room starts.

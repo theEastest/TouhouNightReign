@@ -1410,7 +1410,22 @@ function Bootstrap:update()
         if self.network_menu:is_open() then
             self:_update_network_menu(player_input)
         else
-            self.menu_cursor = self:_scroll_step("menu", self.menu_cursor, 9, 9, player_input.move_y)
+            -- The main menu is a three by three icon grid: vertical input moves
+            -- by a row and horizontal input moves inside the row.
+            local GRID_COLUMNS = 3
+            local GRID_ROWS = 3
+            local menu_cursor = self.menu_cursor or 1
+            local column = (menu_cursor - 1) % GRID_COLUMNS
+            local row = math.floor((menu_cursor - 1) / GRID_COLUMNS)
+            if (player_input.move_y or 0) ~= 0 then
+                row = (row - player_input.move_y) % GRID_ROWS
+                if row < 0 then row = row + GRID_ROWS end
+            end
+            if (player_input.move_x or 0) ~= 0 then
+                column = (column + player_input.move_x) % GRID_COLUMNS
+                if column < 0 then column = column + GRID_COLUMNS end
+            end
+            self.menu_cursor = row * GRID_COLUMNS + column + 1
             if self.input.get_mouse_position and self.renderer and self.renderer.menu_hit_test then
                 local mouse_x, mouse_y = self.input:get_mouse_position()
                 local hit = self.renderer:menu_hit_test(mouse_x, mouse_y)
