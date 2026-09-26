@@ -118,6 +118,11 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
     end
     if object then
         object.x, object.y = x, y
+        -- The ECL creation call carries the enemy's hit points; keep them on the
+        -- object so player damage and the drop check have something to work
+        -- with when the host does not provide a real enemy class.
+        object.hp = tonumber(hp) or object.hp or 50
+        object.max_hp = object.hp
         object.legacy_ecl = routine
         -- Attach the animation player for the stage's enemy archive.
         local archive, archive_name, entry_index = self:enemy_archive()
@@ -895,15 +900,16 @@ function Adapter:fire_bullet_group(thread)
 end
 
 --- Spawn one bullet. Falls back to recording when the style is unavailable.
-function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim)
-    -- Record the shot so a host without a live bullet object can still draw and
-    -- test the pattern. The animation id selects the bullet's sprite sheet.
+-- Player shots are marked so the renderer can draw them differently and so
+-- culling can treat them separately.
+function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is_player)
     self.shots = self.shots or {}
-    if #self.shots < 4096 then
+    if #self.shots < 8192 then
         self.shots[#self.shots + 1] = {
             x = x, y = y, speed = speed, angle = angle, sprite = sprite,
             anim = anim,
             vx = math.cos(angle) * speed, vy = math.sin(angle) * speed,
+            player_bullet = is_player == true,
         }
     end
     if type(self.lstg.New) == "function" and bullet_class then
@@ -916,13 +922,20 @@ function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim)
 end
 
 --- Advance recorded shots so a host-drawn pattern moves like the reference.
--- Each shot also ages so its animation script can pick the right frame.
+-- Player shots are culled once they leave the field so the list cannot grow
+-- without bound; enemy bullets persist while inside the field.
 function Adapter:advance_shots()
+    local kept = {}
     for _, shot in ipairs(self.shots or {}) do
         shot.x = shot.x + (shot.vx or 0)
         shot.y = shot.y + (shot.vy or 0)
         shot.anim_frame = (shot.anim_frame or 0) + 1
+        local in_field = shot.x > -260 and shot.x < 260 and shot.y > -80 and shot.y < 540
+        if in_field or (shot.anim_frame or 0) < 4 then
+            kept[#kept + 1] = shot
+        end
     end
+    self.shots = kept
 end
 
 --- Apply damage to an enemy. The reference reduces health directly and the

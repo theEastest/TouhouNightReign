@@ -9,6 +9,9 @@ local Adapter = require("tnr.legacy_replay.adapter")
 local AnmPlayer = require("tnr.legacy_replay.anm_player")
 local BossUi = require("tnr.legacy_replay.boss_ui")
 local StageBackground = require("tnr.legacy_replay.stage_background")
+local Player = require("tnr.legacy_replay.player")
+local Items = require("tnr.legacy_replay.items")
+local Interfaces = require("tnr.legacy_replay.interfaces")
 
 local StageRuntime = {}
 
@@ -48,6 +51,8 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
         -- The front sheet carries the HUD icons (hearts, stars) and labels.
         "front",
         "ascii",
+        -- Player ship sheets for the replay ships.
+        "pl00", "pl01", "pl02", "pl03",
     }
     local loaded = 0
     local texture_status = {}
@@ -151,10 +156,108 @@ function StageRuntime.new(options)
     })
     -- The adapter resolves enemy sprites from the stage's own archive.
     self.adapter.enemy_archive_name = STAGE_ARCHIVES[self.stage_key] or "st01enm"
+    -- Session, player and items. The session owns the mode and roster so the
+    -- same stage code serves solo and co-op, classic and modern.
+    self.session = options.session or Interfaces.ReplaySession.new({})
+    self.sht = options.sht
+    self.players = {}
+    self.items = Items.new({})
+    self:create_players(options.character or "reimu")
     return self
 end
 
+--- Create the player ships for the session's roster.
+-- Each player gets a ship built from its character's sht definition, so co-op
+-- can mix characters the way the reference does.
+function StageRuntime:create_players(character)
+    local definition = self.sht and self.sht[character]
+    if not definition then
+        -- A character without sht data still gets a ship from the reference
+        -- defaults so the stage remains playable.
+        definition = { hitbox = 2, grazebox = 6, itembox = 28,
+            move_unfocused = 4.5, move_focused = 2.0, power_levels = 4 }
+    end
+    for _, player_id in ipairs(self.session.roster:list()) do
+        local player = Player.new({
+            definition = definition,
+            -- Spread co-op players either side of centre.
+            x = self.session.roster:is_coop() and (player_id == 1 and -48 or 48) or 0,
+        })
+        player.player_id = player_id
+        self.players[player_id] = player
+    end
+    self.items.player = self.players[self.session.roster:list()[1]]
+    return self.players
+end
+
+--- Push a frame of input for a player and fire if the shot button is held.
+function StageRuntime:apply_input(player_id, input)
+    local player = self.players[player_id]
+    if not player or not player.alive then return end
+    player:move(input.move_x, input.move_y, input.focus)
+    player:update()
+    if input.shoot then
+        local bullets = player:fire()
+        for _, bullet in ipairs(bullets) do
+            self.adapter.shots = self.adapter.shots or {}
+            if #self.adapter.shots < 8192 then
+                self.adapter.shots[#self.adapter.shots + 1] = {
+                    x = bullet.x, y = bullet.y, speed = bullet.speed,
+                    angle = bullet.angle, anim = bullet.animation,
+                    vx = math.cos(bullet.angle) * bullet.speed,
+                    vy = math.sin(bullet.angle) * bullet.speed,
+                    player_bullet = true, damage = bullet.damage,
+                }
+            end
+        end
+    end
+end
+
+--- Sample every player's input source for this frame.
+function StageRuntime:sample_inputs()
+    for _, player_id in ipairs(self.session.roster:list()) do
+        self:apply_input(player_id, self.session.roster:sample(player_id))
+    end
+end
+
 --- Start the stage's main timeline.
+--- Resolve player shot hits against enemies.
+-- A shot is consumed on contact and applies its damage. The mode is notified so
+-- a classic run can award power on each hit.
+function StageRuntime:resolve_player_damage()
+    local shots = self.adapter.shots
+    if not shots then return end
+    local kept = {}
+    for _, shot in ipairs(shots) do
+        local hit = false
+        if shot.player_bullet and shot.damage then
+            for _, enemy in ipairs(self.adapter.enemies) do
+                if not enemy.legacy_dropped and enemy.hp and enemy.hp > 0 then
+                    -- The hurtbox is stored as half widths, so the collision
+                    -- radius is the larger dimension.
+                    local box = enemy.legacy_hurtbox
+                    local radius = 24
+                    if box then
+                        radius = math.max(tonumber(box[1]) or 0, tonumber(box[2]) or 0)
+                    end
+                    if radius <= 0 then radius = 24 end
+                    local dx, dy = shot.x - (enemy.x or 0), shot.y - (enemy.y or 0)
+                    if dx * dx + dy * dy <= radius * radius then
+                        enemy.hp = enemy.hp - shot.damage
+                        hit = true
+                        local owner = self.items.player
+                        self.session.mode:on_hit(self.session,
+                            owner and owner.player_id or 1, enemy, shot.damage)
+                        break
+                    end
+                end
+            end
+        end
+        if not hit then kept[#kept + 1] = shot end
+    end
+    self.adapter.shots = kept
+end
+
 function StageRuntime:start()
     local routine = self.stage_key .. ".MainFront"
     local thread = self.adapter.runtime:spawn(routine)
@@ -166,9 +269,31 @@ end
 
 function StageRuntime:update()
     self.frames = self.frames + 1
+    self:sample_inputs()
     self.adapter:update()
     self.boss_ui:update()
     self.background:update()
+    -- Player shots damage enemies they touch, which is what makes drops and
+    -- scoring happen. This runs before the drop check so an enemy killed this
+    -- frame drops on the same frame.
+    self:resolve_player_damage()
+    -- An enemy that dies drops its reference drop table.
+    for _, enemy in ipairs(self.adapter.enemies) do
+        if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped then
+            enemy.legacy_dropped = true
+            if enemy.legacy_drop and enemy.legacy_drop > 0 then
+                self.items:spawn_drop({ enemy.legacy_drop, 0, 2 }, enemy.x or 0, enemy.y or 0)
+            end
+        end
+    end
+    self.items:update()
+    -- Collected items feed the mode, which decides what they are worth.
+    for _, item in ipairs(self.items:drain_collected()) do
+        local owner = self.items.player
+        if owner then
+            self.session.mode:on_item_collected(self.session, owner.player_id, item)
+        end
+    end
 end
 
 --- Draw the stage: background, enemies with their animation, bullets, HUD.
@@ -220,11 +345,62 @@ function StageRuntime:draw()
             lstg.RenderRect(image, x - w * 0.5, x + w * 0.5, y - h * 0.5, y + h * 0.5)
         end
     end
+    -- Items.
+    for _, item in ipairs(self.items.list) do
+        local image = self:item_image(item)
+        if image then
+            local x = left + ((item.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
+            local y = top - (item.y or 0) * BossUi.PLAYFIELD_SCALE
+            local r = 10 * BossUi.PLAYFIELD_SCALE
+            lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
+            lstg.RenderRect(image, x - r, x + r, y - r, y + r)
+        end
+    end
+    -- Player ships.
+    for _, player_id in ipairs(self.session.roster:list()) do
+        local player = self.players[player_id]
+        if player and player.alive then
+            local image = self:player_image(player)
+            if image then
+                local x = left + ((player.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
+                local y = top - (player.y or 0) * BossUi.PLAYFIELD_SCALE
+                local w = 32 * BossUi.PLAYFIELD_SCALE
+                local h = 48 * BossUi.PLAYFIELD_SCALE
+                lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
+                lstg.RenderRect(image, x - w * 0.5, x + w * 0.5, y - h, y)
+            end
+        end
+    end
     if type(lstg.SetScissorRect) == "function" then
         pcall(lstg.SetScissorRect, 0, 1280, 0, 720)
     end
     self.boss_ui:draw()
     self:draw_hud()
+end
+
+--- Resolve the image for an item from the item sheet.
+function StageRuntime:item_image(item)
+    -- The item sheet is the entry whose texture ends in item.png.
+    self.item_entry = self.item_entry or self:find_entry_by_texture("item.png")
+    if not self.item_entry then return nil end
+    return image_name("bullet", self.item_entry.index, self.item_entry.first_sprite)
+end
+
+--- Resolve the image for a player ship.
+function StageRuntime:player_image(player)
+    local sheet = self.primary_player_archive or "pl00"
+    -- The player archive's first entry carries the ship frames.
+    return image_name(sheet, 1, 1)
+end
+
+--- Find the bullet archive entry whose texture path ends with `suffix`.
+function StageRuntime:find_entry_by_texture(suffix)
+    for entry_index, entry in ipairs(self.anm.bullet or {}) do
+        if entry.texture and entry.texture:sub(-#suffix) == suffix then
+            return { index = entry_index, first_sprite = 1 }
+        end
+    end
+    return nil
 end
 
 --- Draw the right hand status panel, matching the reference layout.
