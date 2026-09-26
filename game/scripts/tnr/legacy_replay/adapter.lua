@@ -9,6 +9,7 @@
 -- measured from a real run.
 
 local EclRuntime = require("tnr.legacy_replay.ecl_runtime")
+local BulletPatterns = require("tnr.legacy_replay.bullet_patterns")
 local AnmPlayer = require("tnr.legacy_replay.anm_player")
 
 local Adapter = {}
@@ -39,6 +40,20 @@ local function resolve_angle(value, current)
 end
 
 Adapter.resolve_angle = resolve_angle
+
+--- Resolve an ECL instruction argument to a number.
+-- An argument may be a literal expression, a variable reference, or a
+-- per-difficulty branch table the compiler emitted for a difficulty block. All
+-- three resolve through the same operand resolver.
+local function resolve_arg(thread, value, fallback)
+    if type(value) == "table" then
+        return EclRuntime.resolve(thread, value)
+    end
+    if value == nil then return fallback end
+    return EclRuntime.evaluate_expression(thread, tostring(value))
+end
+
+Adapter.resolve_arg = resolve_arg
 
 -- Reference movement easing curves.
 -- These are the exact factors the original applies while interpolating a move
@@ -441,9 +456,9 @@ function Adapter:build_instructions()
     instructions.etNew = function(thread, runtime, args)
         thread.bullet = {
             index = tonumber(args and args[1]) or 0,
-            count = 1, count_spec = nil,
-            angle = 0, angle_spec = nil,
-            speed = 3, speed_spec = nil,
+            count = 1, count_spec = 1,
+            angle = 0, angle_spec = 0,
+            speed = 3, speed_spec = 3,
             sprite = thread.bullet and thread.bullet.sprite or 0,
             aim = nil, offset = nil,
         }
@@ -466,22 +481,28 @@ function Adapter:build_instructions()
         if thread.bullet then
             -- The angle is the base direction for the volley; a sentinel keeps
             -- the current one, and the second value is the per-bullet spread.
-            local raw = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
+            local raw = resolve_arg(thread, args and args[2], 0)
             thread.bullet.angle = resolve_angle(raw, thread.bullet.angle)
-            local spec = EclRuntime.evaluate_expression(thread, tostring(args and args[3] or "0"))
-            thread.bullet.angle_spec = spec
+            local spec = resolve_arg(thread, args and args[3], 0)
+            thread.bullet.angle_spec = spec or 0
         end
     end
     instructions.etSpeed = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.speed = tonumber(args and args[2]) or 3
-            thread.bullet.speed_spec = tonumber(args and args[3])
+            -- The arguments are ECL expressions, not literals, so a variable
+            -- reference resolves against the calling frame.
+            thread.bullet.speed = resolve_arg(thread, args and args[2], 3)
+            thread.bullet.speed_spec = resolve_arg(thread, args and args[3], 0) or thread.bullet.speed
         end
     end
     instructions.etCount = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.count = tonumber(args and args[2]) or 1
-            thread.bullet.count_spec = tonumber(args and args[3])
+            -- The arguments are ECL expressions, so a dynamic bullet count such
+            -- as a variable reference resolves against the calling frame.
+            local count = resolve_arg(thread, args and args[2], 1)
+            thread.bullet.count = math.max(1, math.floor(count or 1))
+            local rings = resolve_arg(thread, args and args[3], 1)
+            thread.bullet.count_spec = math.max(1, math.floor(rings or 1))
         end
     end
     instructions.etAim = function(thread, runtime, args)
@@ -978,28 +999,42 @@ local function angle_between(x1, y1, x2, y2)
 end
 
 --- Fire the configured bullet group through the THlib bullet styles.
+--- Fire the configured group using the reference pattern geometry.
+-- The ECL stores one parameter block per volley; the aim mode expands it into
+-- the fan or ring the original shows. Reproducing that generator is what makes
+-- a volley land where the original put it.
 function Adapter:fire_bullet_group(thread)
     local group = thread.bullet
     local object = thread.object
     if not group or not object then return end
-    local count = math.max(1, math.floor(group.count or 1))
-    local base_angle = group.angle or 0
-    if group.aim then
-        -- etAim(0, n): aim at the player, offset by n slots of the spread.
-        base_angle = 0
-        if self.lstg.player then
-            base_angle = angle_between(object.x, object.y, self.lstg.player.x, self.lstg.player.y)
-        end
+    local player = self.lstg and self.lstg.player
+    local aim = 0
+    if player then
+        aim = angle_between(object.x, object.y, player.x, player.y)
     end
-    local spread = group.angle_spec or 0
+    -- etAim supplies the mode; without it the reference treats the volley as a
+    -- single ring facing the base angle.
+    local mode = group.aim
+    if mode == nil then mode = BulletPatterns.MODE.CIRCLE end
+    local count = math.max(1, math.floor(group.count or 1))
     local speed = group.speed or 3
+    local expanded = BulletPatterns.expand({
+        count1 = count,
+        count2 = math.max(1, math.floor(group.count_spec or 1)),
+        speed1 = speed,
+        speed2 = group.speed_spec or speed,
+        angle1 = group.angle or 0,
+        angle2 = group.angle_spec or 0,
+        mode = mode,
+        aim_angle = aim,
+        random = self.random_pattern,
+    })
     local bullet_class = self.bullet_styles[1]
-    for index = 0, count - 1 do
-        local angle = base_angle + (index - (count - 1) / 2) * spread
-        local speed_step = speed + index * (group.speed_spec or 0)
-        local x = object.x + (group.offset and group.offset[1] or 0)
-        local y = object.y + (group.offset and group.offset[2] or 0)
-        self:spawn_bullet(bullet_class, x, y, speed_step, angle, group.sprite, group.anim, false, group.color_index)
+    local ox = object.x + (group.offset and group.offset[1] or 0)
+    local oy = object.y + (group.offset and group.offset[2] or 0)
+    for _, bullet in ipairs(expanded) do
+        self:spawn_bullet(bullet_class, ox, oy, bullet.speed, bullet.angle,
+            group.sprite, group.anim, false, group.color_index)
     end
 end
 
