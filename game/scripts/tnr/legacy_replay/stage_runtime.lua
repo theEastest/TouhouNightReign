@@ -549,13 +549,16 @@ function StageRuntime:draw()
     end
     -- Bullets.
     for _, shot in ipairs(self.adapter.shots or {}) do
-        local image, width, height = self:bullet_image(shot)
+        local image, width, height, bullet_scale_x, bullet_scale_y = self:bullet_image(shot)
         if image then
             local x = left + ((shot.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
             local y = top - (shot.y or 0) * BossUi.PLAYFIELD_SCALE
-            -- Draw at the sprite's own size scaled into the field.
-            local w = (width or 16) * BossUi.PLAYFIELD_SCALE
-            local h = (height or 16) * BossUi.PLAYFIELD_SCALE
+            -- Draw at the sprite's own size scaled into the field, then apply
+            -- the scale the animation script asks for on top. That is what makes
+            -- a 16 pixel sheet shape read as the large bullet the original
+            -- shows instead of a small one.
+            local w = (width or 16) * BossUi.PLAYFIELD_SCALE * (bullet_scale_x or 1)
+            local h = (height or 16) * BossUi.PLAYFIELD_SCALE * (bullet_scale_y or bullet_scale_x or 1)
             -- The colour index tints the sprite. Player shots are drawn without
             -- a tint so they keep their own colours.
             local tint
@@ -788,6 +791,40 @@ end
 --- Resolve the bullet image for a shot at a point in its life.
 -- The animation script is a frame timeline: walk it once to find the sprite due
 -- at `frame`, which lets a bullet cycle through its frames like the reference.
+--- Resolve the sprite and scale an animation script asks for at a frame.
+-- A bullet script opens by naming a sprite and then animates its scale, which
+-- is what turns an 8 pixel dot into a small pop on spawn and what makes a
+-- large bullet actually large: the sheet holds a 16 pixel shape and the script
+-- scales it up. Returning the sprite alone drew every bullet at its raw size.
+local function script_sprite_at_frame(script, frame)
+    local sprite, scale_numerator, scale_denominator
+    for _, instruction in ipairs(script) do
+        local id = instruction.id
+        local time = instruction.time or 0
+        if time > frame then break end
+        local candidate = sprite_from_instruction(instruction)
+        if candidate then
+            sprite = candidate
+        elseif id == 402 then
+            -- Absolute scale (x, y) or a single value.
+            local x = tonumber(instruction[1])
+            local y = tonumber(instruction[2])
+            if x then
+                scale_numerator, scale_denominator = x, y or x
+            end
+        elseif id == 412 then
+            -- Scale interpolation: 412 14 4 <end_x> <end_y>. The trailing pair
+            -- is the scale the animation settles on.
+            local end_x = tonumber(instruction[3])
+            local end_y = tonumber(instruction[4])
+            if end_x then
+                scale_numerator, scale_denominator = end_x, end_y or end_x
+            end
+        end
+    end
+    return sprite, scale_numerator, scale_denominator
+end
+
 function StageRuntime:bullet_image(shot)
     -- Player shots live in the ship's own sheet, alongside the ship and the
     -- options. Enemy shots live in the shared bullet sheet. Drawing a player
@@ -804,38 +841,26 @@ function StageRuntime:bullet_image(shot)
     if info then
         entry_index, script = info.entry_index, info.script
     end
-    -- Pick the sprite for the current frame: the last sprite instruction whose
-    -- time has passed.
     local frame = shot.anim_frame or 0
-    local sprite = nil
+    local sprite, scale_x, scale_y = nil, nil, nil
     if script then
-        for _, instruction in ipairs(script) do
-            local candidate = sprite_from_instruction(instruction)
-            if candidate then
-                if (instruction.time or 0) <= frame then
-                    sprite = candidate
-                else
-                    break
-                end
-            end
-        end
-        -- A script that only names one sprite keeps it for the whole life.
+        sprite, scale_x, scale_y = script_sprite_at_frame(script, frame)
         if not sprite then
-            for _, instruction in ipairs(script) do
-                sprite = sprite_from_instruction(instruction)
-                if sprite then break end
-            end
+            -- A script that only names one sprite keeps it for the whole life.
+            sprite = script_sprite_at_frame(script, math.huge)
         end
     end
     if sprite then
         local entry = entries[entry_index]
         local rect = entry and entry.sprites and entry.sprites[sprite]
         return image_name("bullet", entry_index, sprite),
-            rect and rect.w or 16, rect and rect.h or 16
+            rect and rect.w or 16, rect and rect.h or 16,
+            scale_x, scale_y
     end
     local fallback = entries[1] and entries[1].sprites and entries[1].sprites[1]
     return image_name("bullet", 1, 1),
-        fallback and fallback.w or 16, fallback and fallback.h or 16
+        fallback and fallback.w or 16, fallback and fallback.h or 16,
+        nil, nil
 end
 
 return StageRuntime
