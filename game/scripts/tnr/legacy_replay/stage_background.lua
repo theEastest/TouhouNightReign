@@ -3,11 +3,15 @@
 -- The reference background is a stack of scrolling layers described by the
 -- stage std file. Each entry names a texture (through the stage wl animation
 -- script index), a tile size and a list of FACE positions that tile the layer
--- horizontally across a scrolling world. The layer scripts drive the vertical
--- scroll and the tint.
+-- horizontally across a scrolling world.
+--
+-- Each layer also runs its own animation script, and that script is what drives
+-- the scroll: opcode 407 ramps the layer position over a frame count and
+-- opcode 200 loops it. Reproducing that gives the original parallax rather than
+-- a guessed uniform scroll speed.
 --
 -- Geometry is the measured reference playfield: 384x448 units rendered into a
--- 616x718.4 px region at (49.6, 742.4) in the 1280x960 logical canvas.
+-- 462x538.8 px region at (37.2, 556.8) in the 1280x720 canvas.
 
 local StageBackground = {}
 
@@ -22,6 +26,12 @@ local FIELD_TOP = 742.4 * CANVAS_SCALE
 local FIELD_RIGHT = FIELD_LEFT + PLAYFIELD_WIDTH * SCALE
 local FIELD_BOTTOM = FIELD_TOP - PLAYFIELD_HEIGHT * SCALE
 
+StageBackground.SCALE = SCALE
+StageBackground.FIELD_LEFT = FIELD_LEFT
+StageBackground.FIELD_TOP = FIELD_TOP
+StageBackground.FIELD_RIGHT = FIELD_RIGHT
+StageBackground.FIELD_BOTTOM = FIELD_BOTTOM
+
 --- Per-stage fog tint, sampled from a capture of the original game.
 -- The reference composites a coloured overlay over the playfield. Stage 1 uses
 -- a magenta violet wash that turns the green forest canopy into the purple
@@ -32,11 +42,16 @@ local STAGE_TINT = {
     st01 = { 203, 78, 199, 115 },
 }
 
-StageBackground.SCALE = SCALE
-StageBackground.FIELD_LEFT = FIELD_LEFT
-StageBackground.FIELD_TOP = FIELD_TOP
-StageBackground.FIELD_RIGHT = FIELD_RIGHT
-StageBackground.FIELD_BOTTOM = FIELD_BOTTOM
+-- Layer animation opcodes.
+local OP_POS_RAMP = 407   -- ramp the layer position over N frames
+local OP_LOOP = 200       -- loop back a number of instructions
+local OP_STOP = 3
+local OP_SPRITE = 300
+local OP_ROTATE = 401
+local OP_ALPHA = 403
+local OP_BLEND = 302
+local OP_LAYER = 305
+local OP_MOVE = 409
 
 ---@param options table { lstg, anm, std, image_for, texture_sizes }
 function StageBackground.new(options)
@@ -48,7 +63,6 @@ function StageBackground.new(options)
         texture_sizes = options.texture_sizes or {},
         stage = nil,
         layers = {},
-        scroll = {},
     }, StageBackground)
 end
 
@@ -56,11 +70,9 @@ end
 function StageBackground:set_stage(stage_key)
     self.stage = stage_key
     self.layers = {}
-    self.scroll = {}
     self.tint = STAGE_TINT[stage_key]
     local std_entries = self.std[stage_key] or {}
     local wl = self.anm[stage_key .. "wl"] or {}
-    -- Resolve the wl entry that owns a layer script index.
     local function find_entry(script_index)
         for _, entry in ipairs(wl) do
             if entry.scripts and entry.scripts[script_index] then
@@ -73,60 +85,114 @@ function StageBackground:set_stage(stage_key)
         local wl_entry = find_entry(entry.script or 0)
         local texture = wl_entry and wl_entry.texture
         local script = wl_entry and wl_entry.scripts and wl_entry.scripts[entry.script or 0]
-        -- Decode the layer's static settings from its animation script. The
-        -- reference uses opcode 401 for rotation, 403 for alpha and 302 for the
-        -- blend mode; reading them reproduces the original tint and the flipped
-        -- base layer.
-        local rotation, alpha, blend = 0, 255, nil
-        for _, instruction in ipairs(script or {}) do
-            local id = instruction.id
-            if id == 401 then
-                rotation = tonumber(instruction[1]) or 0
-            elseif id == 403 then
-                alpha = tonumber(instruction[1]) or 255
-            elseif id == 302 then
-                blend = tonumber(instruction[1])
-            end
-        end
         local size = self.texture_sizes[texture or ""] or {}
         local texture_w = size[1] or entry.width or 256
         local texture_h = size[2] or entry.height or 256
         local unit_scale = (entry.width or 256) / math.max(1, texture_w)
-        self.layers[#self.layers + 1] = {
+        local layer = {
             texture = texture,
             unit_w = texture_w * unit_scale,
             unit_h = texture_h * unit_scale,
-            rotation = rotation,
-            alpha = alpha,
-            blend = blend,
+            script = script or {},
             base = index == 1,
-            scroll = index == 1 and 0.35 or (0.6 + index * 0.2),
+            -- Layer animation state, advanced by the script each frame.
+            timer = 0,
+            pc = 1,
+            rotation = 0,
+            alpha = index == 1 and 255 or 192,
+            scroll = 0,
+            scroll_speed = 0,
+            loop_pc = nil,
+            loop_count = 0,
+            finished = false,
         }
-        self.scroll[#self.scroll + 1] = 0
+        -- Read the static settings from the script before it starts running.
+        for _, instruction in ipairs(layer.script) do
+            if instruction.id == OP_ALPHA and instruction[1] then
+                layer.alpha = tonumber(instruction[1]) or layer.alpha
+            elseif instruction.id == OP_ROTATE and instruction[1] then
+                layer.rotation = tonumber(instruction[1]) or 0
+            end
+        end
+        self.layers[#self.layers + 1] = layer
     end
+end
+
+--- Advance one layer's animation script by a frame.
+-- The scripts are a frame timeline: every instruction carries the frame it runs
+-- on, so this walks forward executing whatever is due and honours the loop
+-- opcode so a layer repeats forever like the reference.
+function StageBackground:advance_layer(layer)
+    if layer.finished then
+        -- A stopped layer still scrolls at whatever rate it had.
+        layer.scroll = layer.scroll + layer.scroll_speed
+        return
+    end
+    layer.timer = layer.timer + 1
+    local script = layer.script
+    local guard = 0
+    while layer.pc <= #script and guard < 64 do
+        guard = guard + 1
+        local instruction = script[layer.pc]
+        if instruction.time > layer.timer then break end
+        layer.pc = layer.pc + 1
+        local id = instruction.id
+        if id == OP_POS_RAMP then
+            -- 407(frames, mode, delta, ...): move the layer by delta units over
+            -- the given number of frames.
+            local frames = math.max(1, tonumber(instruction[1]) or 1)
+            local delta = tonumber(instruction[3]) or 0
+            layer.scroll_speed = delta / frames
+        elseif id == OP_MOVE then
+            local frames = math.max(1, tonumber(instruction[1]) or 1)
+            layer.scroll_speed = (tonumber(instruction[3]) or 0) / frames
+        elseif id == OP_ALPHA then
+            layer.alpha = tonumber(instruction[1]) or layer.alpha
+        elseif id == OP_ROTATE then
+            layer.rotation = tonumber(instruction[1]) or layer.rotation
+        elseif id == OP_BLEND then
+            layer.blend = tonumber(instruction[1])
+        elseif id == OP_LOOP then
+            -- 200(offset, count): jump back offset instructions; a count of 0
+            -- loops forever.
+            local offset = tonumber(instruction[1]) or 0
+            local count = tonumber(instruction[2]) or 0
+            layer.loop_count = layer.loop_count + 1
+            if count == 0 or layer.loop_count < count then
+                layer.pc = math.max(1, layer.pc - offset)
+            else
+                layer.loop_count = 0
+            end
+        elseif id == OP_STOP then
+            layer.finished = true
+        end
+    end
+    layer.scroll = layer.scroll + layer.scroll_speed
 end
 
 function StageBackground:update()
-    for index, layer in ipairs(self.layers) do
-        self.scroll[index] = (self.scroll[index] or 0) + (layer.scroll or 0)
+    for _, layer in ipairs(self.layers) do
+        self:advance_layer(layer)
     end
 end
 
---- Draw every layer, tiling each at its texture size and scrolling vertically.
+--- Draw every layer, tiling each at its texture size and scrolling by its own
+-- script-driven offset.
 function StageBackground:draw()
     local lstg = self.lstg
     if not lstg or #self.layers == 0 then return end
     if type(lstg.SetScissorRect) == "function" then
         pcall(lstg.SetScissorRect, FIELD_LEFT, FIELD_RIGHT, FIELD_BOTTOM, FIELD_TOP)
     end
+    -- Detail layers draw first so the base covers the gaps.
     for index = #self.layers, 1, -1 do
         local layer = self.layers[index]
         local image = self.image_for(layer.texture)
         if image then
-            local tile_w = (layer.unit_w or 256) * SCALE
-            local tile_h = (layer.unit_h or 256) * SCALE
+            local tile_w = layer.unit_w * SCALE
+            local tile_h = layer.unit_h * SCALE
             if tile_w > 1 and tile_h > 1 then
-                local offset = (self.scroll[index] or 0) % tile_h
+                local offset = (layer.scroll or 0) * SCALE % tile_h
                 local x = FIELD_LEFT - tile_w
                 while x < FIELD_RIGHT + 0.5 do
                     local left = math.max(FIELD_LEFT, x)
@@ -137,8 +203,7 @@ function StageBackground:draw()
                             local bottom = math.max(FIELD_BOTTOM, y)
                             local top = math.min(FIELD_TOP, y + tile_h)
                             if top > bottom then
-                                local alpha = layer.alpha or (layer.base and 255 or 170)
-                                lstg.SetImageState(image, "", lstg.Color(alpha, 255, 255, 255))
+                                lstg.SetImageState(image, "", lstg.Color(layer.alpha or 255, 255, 255, 255))
                                 lstg.RenderRect(image, left, right, bottom, top)
                             end
                             y = y - tile_h
@@ -149,16 +214,12 @@ function StageBackground:draw()
             end
         end
     end
-    -- Restore the full canvas scissor so later layers are not clipped.
     if type(lstg.SetScissorRect) == "function" then
         pcall(lstg.SetScissorRect, 0, 1280, 0, 720)
     end
 end
 
 --- Draw the stage fog tint over the field.
--- The reference applies a coloured overlay to the whole playfield; stage 1
--- uses a violet tint that turns the green forest into the purple scene the
--- original shows.
 function StageBackground:draw_fog()
     local lstg = self.lstg
     if not lstg or not self.tint then return end

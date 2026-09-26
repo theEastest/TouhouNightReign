@@ -297,26 +297,69 @@ end
 --- Resolve the bullet image from the bullet archive.
 -- The bullet archive keeps several sheets; each etSprite animation maps to a
 -- sheet script whose first instruction names the sprite to draw.
+--- Resolve the bullet archive entry and script for a shot's animation.
+-- Cached per animation id because the walk is otherwise repeated every frame
+-- for every bullet on screen.
+function StageRuntime:bullet_anim_info(anim)
+    self.bullet_anim_cache = self.bullet_anim_cache or {}
+    local cached = self.bullet_anim_cache[anim]
+    if cached ~= nil then return cached end
+    local entries = self.anm.bullet
+    local result = nil
+    if entries then
+        for entry_index, entry in ipairs(entries) do
+            local script = entry.scripts and entry.scripts[anim]
+            if script then
+                result = { entry_index = entry_index, script = script }
+                break
+            end
+        end
+    end
+    self.bullet_anim_cache[anim] = result
+    return result
+end
+
+--- Resolve the bullet image for a shot at a point in its life.
+-- The animation script is a frame timeline: walk it once to find the sprite due
+-- at `frame`, which lets a bullet cycle through its frames like the reference.
 function StageRuntime:bullet_image(shot)
     local entries = self.anm.bullet
     if not entries then return nil end
-    local anim = shot.anim or shot.sprite or 0
-    for entry_index, entry in ipairs(entries) do
-        local script = entry.scripts and entry.scripts[anim]
-        if script then
-            local sprite = nil
+    local anim = shot.anim or 0
+    local info = self:bullet_anim_info(anim)
+    local entry_index, script
+    if info then
+        entry_index, script = info.entry_index, info.script
+    end
+    -- Pick the sprite for the current frame: the last sprite instruction whose
+    -- time has passed.
+    local frame = shot.anim_frame or 0
+    local sprite = nil
+    if script then
+        for _, instruction in ipairs(script) do
+            if (instruction.id == 300 or instruction.id == 304) and instruction[1] then
+                if (instruction.time or 0) <= frame then
+                    sprite = (tonumber(instruction[1]) or 0) + 1
+                else
+                    break
+                end
+            end
+        end
+        -- A script that only names one sprite keeps it for the whole life.
+        if not sprite then
             for _, instruction in ipairs(script) do
                 if (instruction.id == 300 or instruction.id == 304) and instruction[1] then
                     sprite = (tonumber(instruction[1]) or 0) + 1
                     break
                 end
             end
-            if sprite then
-                local rect = entry.sprites and entry.sprites[sprite]
-                return image_name("bullet", entry_index, sprite),
-                    rect and rect.w or 16, rect and rect.h or 16
-            end
         end
+    end
+    if sprite then
+        local entry = entries[entry_index]
+        local rect = entry and entry.sprites and entry.sprites[sprite]
+        return image_name("bullet", entry_index, sprite),
+            rect and rect.w or 16, rect and rect.h or 16
     end
     local fallback = entries[1] and entries[1].sprites and entries[1].sprites[1]
     return image_name("bullet", 1, 1),

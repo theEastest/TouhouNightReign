@@ -916,10 +916,12 @@ function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim)
 end
 
 --- Advance recorded shots so a host-drawn pattern moves like the reference.
+-- Each shot also ages so its animation script can pick the right frame.
 function Adapter:advance_shots()
     for _, shot in ipairs(self.shots or {}) do
         shot.x = shot.x + (shot.vx or 0)
         shot.y = shot.y + (shot.vy or 0)
+        shot.anim_frame = (shot.anim_frame or 0) + 1
     end
 end
 
