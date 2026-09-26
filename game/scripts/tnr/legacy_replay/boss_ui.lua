@@ -42,6 +42,24 @@ function BossUi.project(x, y)
            PLAYFIELD_TOP - y * PLAYFIELD_SCALE
 end
 
+-- Icons the reference HUD uses, as 1-based indices into the front00 sprite
+-- table. The anm spec lists them as sprite 12..23, but the compiled table is
+-- 1-based, so the first heart is index 13 and the first star index 19. Each row
+-- has six progressive fill frames from empty to full.
+BossUi.ICON_SHEET = "front"
+BossUi.ICON_SHEET_ENTRY = 1
+BossUi.HEART_FIRST_SPRITE = 13
+BossUi.STAR_FIRST_SPRITE = 19
+BossUi.ICON_FILL_FRAMES = 6
+
+--- Sprite index for a partially filled icon.
+-- `ratio` runs 0 (empty) to 1 (full) and selects one of six frames.
+function BossUi.icon_sprite(first_sprite, ratio)
+    local frames = BossUi.ICON_FILL_FRAMES
+    local index = math.floor(math.max(0, math.min(1, ratio or 0)) * (frames - 1) + 0.5)
+    return first_sprite + index
+end
+
 ---@param options table { lstg, images = { name_plate, name_plate_bg, cut_in, ... } }
 function BossUi.new(options)
     return setmetatable({

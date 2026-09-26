@@ -45,6 +45,9 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
         "enemy",
         "bullet",
         "effect",
+        -- The front sheet carries the HUD icons (hearts, stars) and labels.
+        "front",
+        "ascii",
     }
     local loaded = 0
     local texture_status = {}
@@ -226,18 +229,21 @@ end
 
 --- Draw the right hand status panel, matching the reference layout.
 -- Coordinates are converted from the original capture: the labels sit just
--- right of the playfield and the values are right aligned at x=738. Vertical
--- rows come from the measured capture and are converted to canvas space.
+-- right of the playfield and the values are right aligned at x=738. Hearts and
+-- stars use the front sheet's progressive fill sprites.
 function StageRuntime:draw_hud()
     local lstg = self.lstg
     local stats = self.stats or {}
     local label_x = 510
     local value_x = 738
+    -- Value column: the score and power rows share their space with the icon
+    -- rows, so the icons sit in the gap between the label and the value, and the
+    -- value is right aligned at the panel edge.
     local rows = {
-        { "ハイスコア", stats.hiscore or 1000000, 660 },
+        { "ハイスコア", stats.hiscore or 1000000, 665 },
         { "スコア", stats.score or 0, 636 },
-        { "残り人数", stats.lives or 3, 600 },
-        { "スペルカード", stats.spellcards or 0, 549 },
+        { "残り人数", nil, 596 },
+        { "スペルカード", nil, 549 },
         { "霊力", stats.power or 0, 492 },
         { "最大得点", stats.max_point or 0, 465 },
         { "グレイズ", stats.graze or 0, 444 },
@@ -245,8 +251,32 @@ function StageRuntime:draw_hud()
     for _, row in ipairs(rows) do
         lstg.RenderTTF("Sans", row[1], label_x, label_x, row[3], row[3], 0,
             lstg.Color(255, 240, 236, 236), 0.8)
-        lstg.RenderTTF("Sans", tostring(row[2]), value_x, value_x, row[3], row[3], 2,
-            lstg.Color(255, 255, 255, 255), 0.9)
+        if row[2] ~= nil then
+            -- Values right align to the panel edge, clear of the icon row.
+            lstg.RenderTTF("Sans", tostring(row[2]), value_x, value_x, row[3], row[3], 2,
+                lstg.Color(255, 255, 255, 255), 0.9)
+        end
+    end
+    -- Life hearts and spell card stars, placed between the label and the value
+    -- column exactly as the reference lays them out.
+    self:draw_life_icons(680, 592, stats.lives or 3, 8, BossUi.HEART_FIRST_SPRITE)
+    self:draw_life_icons(680, 545, stats.spellcards or 0, 5, BossUi.STAR_FIRST_SPRITE)
+end
+
+--- Draw a row of icon pips, using the six frame fill sprites.
+-- `value` may be fractional so a partially filled pip renders as the reference
+-- shows it while a life is being collected.
+function StageRuntime:draw_life_icons(x, y, value, capacity, first_sprite)
+    local lstg = self.lstg
+    local icon_w = 20
+    local icon_h = 25
+    for index = 1, capacity do
+        local ratio = math.max(0, math.min(1, (value or 0) - (index - 1)))
+        local sprite = BossUi.icon_sprite(first_sprite, ratio)
+        local image = image_name("front", BossUi.ICON_SHEET_ENTRY, sprite)
+        local left = x + (index - 1) * icon_w
+        lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
+        lstg.RenderRect(image, left, left + icon_w, y, y + icon_h)
     end
 end
 

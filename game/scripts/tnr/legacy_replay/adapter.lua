@@ -23,6 +23,34 @@ local COLOR = {
     DEEP_GRAY = 15, GRAY = 16,
 }
 
+-- Reference movement easing curves.
+-- These are the exact factors the original applies while interpolating a move
+-- over a fixed number of frames, taken from the game's movement update:
+--   0 linear, 1 decelerate, 2 decelerate fast, 3 accelerate, 4 accelerate fast.
+-- The input is the *remaining* fraction of the move, so each curve returns how
+-- far along the path the object should be.
+local function ease_fraction(mode, remaining)
+    local bc = remaining
+    if bc >= 1.0 then bc = 1.0 end
+    if mode == 1 then
+        return 1.0 - bc * bc
+    elseif mode == 2 then
+        local b2 = bc * bc
+        return 1.0 - b2 * b2
+    elseif mode == 3 then
+        local inv = 1.0 - bc
+        return inv * inv
+    elseif mode == 4 then
+        local inv = 1.0 - bc
+        local i2 = inv * inv
+        return i2 * i2
+    end
+    -- Linear.
+    return 1.0 - bc
+end
+
+Adapter.ease_fraction = ease_fraction
+
 ---@param options table { lstg, enemy_class, bullet_styles, anm, difficulty }
 function Adapter.new(options)
     local self = setmetatable({
@@ -151,30 +179,67 @@ function Adapter:build_instructions()
     end
 
     -- --- movement ----------------------------------------------------------
+    -- The reference has two movement modes. A velocity move keeps a constant
+    -- velocity; a time move interpolates the object along an eased path over a
+    -- fixed number of frames. `movePosTime(time, mode, x, y)` and
+    -- `moveVelTime(time, mode, angle, speed)` both select an easing curve from
+    -- their second argument.
+    local function start_velocity_move(object, angle, speed)
+        object.legacy_vx = math.cos(angle) * speed
+        object.legacy_vy = math.sin(angle) * speed
+        object.legacy_move = nil
+    end
+
+    local function start_time_move(object, frames, raw_mode, target_x, target_y, angle, speed)
+        local mode = tonumber(raw_mode) or 0
+        local start_x = object.x or 0
+        local start_y = object.y or 0
+        local end_x, end_y = target_x, target_y
+        if end_x == nil then
+            -- Velocity form: the destination comes from the direction and the
+            -- distance travelled over the move. The reference halves the path
+            -- because the eased interpolation integrates symmetrically.
+            end_x = start_x + math.cos(angle or 0) * (speed or 0) * frames * 0.5
+            end_y = start_y + math.sin(angle or 0) * (speed or 0) * frames * 0.5
+        end
+        object.legacy_move = {
+            mode = mode,
+            total = math.max(1, frames),
+            remaining = math.max(1, frames),
+            start_x = start_x,
+            start_y = start_y,
+            end_x = end_x,
+            end_y = end_y,
+        }
+        object.legacy_vx = nil
+        object.legacy_vy = nil
+    end
+
     instructions.moveVel = function(thread, runtime, args)
         local object = thread.object
         if not object then return end
-        local angle = tonumber(args[1]) or 0
-        local speed = tonumber(args[2]) or 0
-        object.legacy_vx = math.cos(angle) * speed
-        object.legacy_vy = math.sin(angle) * speed
-        thread.move_timer = nil
+        start_velocity_move(object,
+            EclRuntime.evaluate_expression(thread, tostring(args[1] or "0")),
+            EclRuntime.evaluate_expression(thread, tostring(args[2] or "0")))
     end
     instructions.moveVelTime = function(thread, runtime, args)
         local object = thread.object
         if not object then return end
-        local time = tonumber(args[1]) or 0
-        local angle = tonumber(args[3]) or 0
-        local speed = tonumber(args[4]) or 0
-        object.legacy_vx = math.cos(angle) * speed
-        object.legacy_vy = math.sin(angle) * speed
-        thread.move_timer = { remaining = time }
+        start_time_move(object,
+            EclRuntime.evaluate_expression(thread, tostring(args[1] or "0")),
+            args[2],
+            nil, nil,
+            EclRuntime.evaluate_expression(thread, tostring(args[3] or "0")),
+            EclRuntime.evaluate_expression(thread, tostring(args[4] or "0")))
     end
     instructions.movePosTime = function(thread, runtime, args)
-        if thread.object then
-            thread.object.legacy_move_target = { tonumber(args[1]) or 0, tonumber(args[2]) or 0 }
-            thread.move_timer = { remaining = tonumber(args[3]) or 0 }
-        end
+        local object = thread.object
+        if not object then return end
+        start_time_move(object,
+            EclRuntime.evaluate_expression(thread, tostring(args[1] or "0")),
+            args[2],
+            EclRuntime.evaluate_expression(thread, tostring(args[3] or "0")),
+            EclRuntime.evaluate_expression(thread, tostring(args[4] or "0")))
     end
     instructions.moveVelNM = instructions.moveVel
     instructions.moveVelNMTime = instructions.moveVelTime
@@ -897,17 +962,45 @@ function Adapter:advance_interrupts()
 end
 
 --- Advance every enemy animation and the ECL threads by one frame.
+--- Advance one enemy's movement for a frame.
+-- A time move interpolates along its eased path and follows the reference
+-- exactly, including clamping to the destination when the timer expires. A
+-- velocity move simply integrates the velocity.
+function Adapter:advance_enemy_movement(enemy)
+    local move = enemy.legacy_move
+    if move then
+        move.remaining = move.remaining - 1
+        local remaining_fraction = move.remaining / move.total
+        local progress = ease_fraction(move.mode, remaining_fraction)
+        enemy.x = move.start_x + (move.end_x - move.start_x) * progress
+        enemy.y = move.start_y + (move.end_y - move.start_y) * progress
+        -- Keep the axis speed available for aiming, as the reference does.
+        enemy.legacy_vx = enemy.x - (enemy.legacy_prev_x or enemy.x)
+        enemy.legacy_vy = enemy.y - (enemy.legacy_prev_y or enemy.y)
+        enemy.legacy_prev_x = enemy.x
+        enemy.legacy_prev_y = enemy.y
+        if move.remaining <= 0 then
+            enemy.x = move.end_x
+            enemy.y = move.end_y
+            enemy.legacy_move = nil
+            enemy.legacy_vx = 0
+            enemy.legacy_vy = 0
+        end
+        return
+    end
+    if enemy.legacy_vx or enemy.legacy_vy then
+        enemy.x = (enemy.x or 0) + (enemy.legacy_vx or 0)
+        enemy.y = (enemy.y or 0) + (enemy.legacy_vy or 0)
+    end
+end
+
 function Adapter:update()
     self.runtime:update()
     self:advance_shots()
     self:advance_interrupts()
     for _, enemy in ipairs(self.enemies) do
         if enemy.legacy_anm then enemy.legacy_anm:update() end
-        -- Apply the movement the script set.
-        if enemy.legacy_vx or enemy.legacy_vy then
-            enemy.x = (enemy.x or 0) + (enemy.legacy_vx or 0)
-            enemy.y = (enemy.y or 0) + (enemy.legacy_vy or 0)
-        end
+        self:advance_enemy_movement(enemy)
     end
 end
 
