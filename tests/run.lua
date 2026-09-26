@@ -57,11 +57,16 @@ local AudioManagerSpec = require("audio_manager_spec")
 
 -- The legacy replay suite is large, so its specs are loaded together to keep
 -- the number of locals in this file inside Lua's limit.
+--
+-- These have to be strings. The list sat as bare names, which are undefined
+-- globals in this file, and ipairs stops at the first nil, so every one of
+-- these specs was silently skipped.
 local LEGACY_REPLAY_SPECS = {
-    ecl_runtime_spec, anm_player_spec, ecl_adapter_spec,
-    legacy_replay_stage_spec, legacy_replay_fidelity_spec,
-    legacy_replay_interfaces_spec, legacy_replay_player_spec,
-    legacy_replay_hud_spec,
+    "ecl_runtime_spec", "anm_player_spec", "ecl_adapter_spec",
+    "legacy_replay_stage_spec", "legacy_replay_fidelity_spec",
+    "legacy_replay_interfaces_spec", "legacy_replay_player_spec",
+    "legacy_replay_hud_spec", "legacy_replay_bullet_pattern_spec",
+    "legacy_replay_controller_spec", "legacy_replay_select_quit_spec",
 }
 
 local function assert_equal(left, right, message)
@@ -70,6 +75,10 @@ end
 
 local function assert_true(value, message)
     assert(value == true, message)
+end
+
+local function assert_false(value, message)
+    assert(value == false or value == nil, message)
 end
 
 CharacterLoadoutSpec(assert_equal, assert_true)
@@ -838,7 +847,7 @@ assert_true(fallback_session.battle_result ~= nil, "fallback stage should produc
 -- Run the legacy replay suite. Its specs are loaded together to keep this
 -- file's local count inside Lua's limit.
 for _, spec_name in ipairs(LEGACY_REPLAY_SPECS) do
-    require(spec_name)(assert_equal, assert_true)
+    require(spec_name)(assert_equal, assert_true, assert_false)
 end
 
 print("TouHouNightReign core tests passed")

@@ -206,8 +206,11 @@ end
 function Replay:next_reward_round()
     if not self.last_result or self.last_result.outcome ~= "cleared" then return nil end
     local rounds = self.runtime and self.runtime.session:reward_rounds() or 0
-    if self.reward_round >= rounds then return nil end
-    self.reward_round = self.reward_round + 1
+    -- A replay that has not started a stage yet has no reward counter, so treat
+    -- it as zero instead of comparing against nil.
+    local claimed = self.reward_round or 0
+    if claimed >= rounds then return nil end
+    self.reward_round = claimed + 1
     self.reward_cursor = 1
     -- Pick three distinct rewards, seeded by the stage and round so the same
     -- run offers the same choices.
