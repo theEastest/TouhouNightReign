@@ -89,6 +89,29 @@ function AudioManager:play(key, volume, pan)
     end
 end
 
+--- Play a sound effect straight from an asset path.
+-- The imported stage data names its effects by the reference's numeric ids, and
+-- there are far more of them than the project's own effect table lists. Rather
+-- than mirror the whole reference list here, a path is loaded on first use and
+-- then replayed by id.
+function AudioManager:play_effect(path, volume, pan)
+    if not path or not self.lstg or not self.lstg.LoadSound or not self.lstg.PlaySound then
+        return false
+    end
+    self.effects = self.effects or {}
+    local id = self.effects[path]
+    if not id then
+        id = "tnr:se:" .. tostring(#self.loaded) .. ":" .. path:gsub("[^%w]", "_")
+        local ok = self:_with_status("global", function()
+            return self.lstg.LoadSound(id, path)
+        end)
+        if not ok then return false end
+        self.effects[path] = id
+    end
+    pcall(self.lstg.PlaySound, id, volume or 0.6, pan or 0)
+    return true
+end
+
 function AudioManager:play_bomb(focused)
     if focused then
         self:play("bomb_focus_power")
@@ -149,6 +172,38 @@ function AudioManager:_play_raw(id, volume, position)
         return pcall(self.lstg.PlayMusic, id, volume or 1.0, position or 0)
     end
     return false
+end
+
+--- Play a replay stage's background music.
+-- The replay uses the original recordings rather than the project's menu
+-- tracks, so a stage sounds like the stage it is replaying. The track is
+-- loaded once and reused on later visits.
+function AudioManager:play_replay_bgm(stage_key)
+    if not stage_key or not self.lstg or not self.lstg.LoadMusic then return false end
+    self.replay_music = self.replay_music or {}
+    local id = self.replay_music[stage_key]
+    if not id then
+        id = "tnr:bgm:" .. stage_key
+        local path = "assets/legacy_replay/bgm/" .. stage_key .. ".ogg"
+        local ok = self:_with_status("global", function()
+            return self.lstg.LoadMusic(id, path, 0, 0)
+        end)
+        if not ok then return false end
+        self.replay_music[stage_key] = id
+    end
+    self:stop_all_music()
+    if self.lstg.StopMusic then pcall(self.lstg.StopMusic) end
+    local played = self:_play_raw(id, 0.8, 0)
+    if played then self.current_replay_music = stage_key end
+    return played
+end
+
+--- Stop whatever the replay is playing.
+function AudioManager:stop_replay_bgm()
+    if self.current_replay_music and self.lstg and self.lstg.StopMusic then
+        pcall(self.lstg.StopMusic)
+    end
+    self.current_replay_music = nil
 end
 
 function AudioManager:play_music(name)

@@ -104,12 +104,51 @@ function Player:current_shooters()
 end
 
 --- Option positions for the current focus state and power level.
+--- Option positions for the current focus state and power level.
+-- The reference does not snap the options between their unfocused and focused
+-- layouts; it slides them over eight frames. Holding the button pops the
+-- options forward and inwards, releasing lets them fall back out. Interpolating
+-- is what makes the ship read as focusing rather than flickering between two
+-- poses.
 function Player:option_positions()
     local options = self.definition.options
     if not options then return {} end
-    local mode = self.focus and options.focused or options.unfocused
-    if not mode then return {} end
-    return mode[self:power_level()] or {}
+    local focused = self.focus and options.focused or nil
+    local unfocused = options.unfocused
+    local level = self:power_level()
+    local target = (focused and focused[level]) or (unfocused and unfocused[level]) or {}
+    -- No smooth state recorded, or no discrete layouts to blend between them.
+    local blend = self.focus_blend
+    if blend == nil or blend <= 0 then return target end
+    local other = (self.focus and unfocused) or focused
+    local previous = other and other[level]
+    if not previous or #previous == 0 then return target end
+    -- blend is 0 at the previous layout and 1 at the target layout.
+    local result = {}
+    for index, entry in ipairs(target) do
+        local from = previous[index] or entry
+        result[index] = {
+            (from[1] or 0) + ((entry[1] or 0) - (from[1] or 0)) * blend,
+            (from[2] or 0) + ((entry[2] or 0) - (from[2] or 0)) * blend,
+        }
+    end
+    return result
+end
+
+--- Advance the focus transition by one frame.
+-- The reference moves the options over eight frames, so the blend runs from
+-- zero to one across that span.
+function Player:advance_focus_transition()
+    local target = self.focus and 1 or 0
+    local current = self.focus_blend or target
+    if current == target then return end
+    local step = 1 / 8
+    if current < target then
+        current = math.min(target, current + step)
+    else
+        current = math.max(target, current - step)
+    end
+    self.focus_blend = current
 end
 
 --- Fire one volley. Returns a list of bullet spawn descriptors.
@@ -160,6 +199,7 @@ end
 
 function Player:update()
     if self.invulnerable > 0 then self.invulnerable = self.invulnerable - 1 end
+    self:advance_focus_transition()
 end
 
 --- Put the player into the post-hit state.

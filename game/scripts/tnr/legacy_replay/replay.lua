@@ -180,6 +180,7 @@ function Replay:start_stage()
         session = session,
         character = character.key,
         texture_sizes = StageRuntime.texture_sizes,
+        audio = self.audio,
     })
     -- Seed the HUD from the session so the readout is consistent from frame one.
     self.runtime.stats = {
@@ -192,6 +193,11 @@ function Replay:start_stage()
         graze = 0,
     }
     self.runtime:start()
+    -- The stage's own track. The reference plays one recording per stage, so a
+    -- replay should not run over the menu music.
+    if self.audio and self.audio.play_replay_bgm then
+        pcall(function() self.audio:play_replay_bgm(stage.key) end)
+    end
     self.active_stage = stage.key
     self.active_mode = mode.key
     self.active_character = character.key

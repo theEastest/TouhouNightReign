@@ -13,6 +13,7 @@ local Effects = require("tnr.legacy_replay.effects")
 local Palette = require("tnr.legacy_replay.palette")
 local StageBackground = require("tnr.legacy_replay.stage_background")
 local Player = require("tnr.legacy_replay.player")
+local Sounds = require("tnr.legacy_replay.sounds")
 local PlayerAnimation = require("tnr.legacy_replay.player_animation")
 local Items = require("tnr.legacy_replay.items")
 local Interfaces = require("tnr.legacy_replay.interfaces")
@@ -189,6 +190,18 @@ function StageRuntime.new(options)
         boss_ui = self.boss_ui,
         stage_key = self.stage_key,
     })
+    -- Sound effects come from the same audio manager the rest of the game uses,
+    -- so a replay does not ship with a second mixer. The adapter only knows the
+    -- reference's numeric effect ids, so the translation happens here.
+    self.audio = options.audio
+    self.sound_paths = self.sound_paths or {}
+    self.adapter.on_sound = function(path)
+        self.played_sounds = self.played_sounds or {}
+        self.played_sounds[#self.played_sounds + 1] = path
+        if self.audio and self.audio.play_effect then
+            self.audio:play_effect(path)
+        end
+    end
     -- The adapter resolves enemy sprites from the stage's own archive.
     self.adapter.enemy_archive_name = STAGE_ARCHIVES[self.stage_key] or "st01enm"
     -- Session, player and items. The session owns the mode and roster so the
@@ -233,6 +246,17 @@ function StageRuntime:create_players(character)
 end
 
 --- Push a frame of input for a player and fire if the shot button is held.
+--- Play a reference sound by its index.
+-- The tone table lives in sounds.lua; this only forwards to the audio manager
+-- so the stage code can name effects the way the ECL does.
+function StageRuntime:play_sound(index, volume)
+    if not self.audio or not self.audio.play_effect then return end
+    local path = Sounds.path_for(index)
+    if not path then return end
+    pcall(function() self.audio:play_effect(path, volume) end)
+end
+
+--- Push a frame of input for a player and fire if the shot button is held.
 function StageRuntime:apply_input(player_id, input)
     local player = self.players[player_id]
     if not player or not player.alive then return end
@@ -242,6 +266,7 @@ function StageRuntime:apply_input(player_id, input)
     if self.player_animation then self.player_animation:update(input) end
     if input.shoot then
         local bullets = player:fire()
+        if #bullets > 0 then self:play_sound(0) end
         for _, bullet in ipairs(bullets) do
             self.adapter.shots = self.adapter.shots or {}
             if #self.adapter.shots < 8192 then
@@ -284,6 +309,7 @@ function StageRuntime:resolve_player_hits()
                 elseif not shot.player_bullet and player:grazes(shot.x or 0, shot.y or 0) then
                     -- Grazing is counted but does not cost a life.
                     player.graze = (player.graze or 0) + 1
+                    self:play_sound(22)
                 end
             end
             -- Enemy bodies.
@@ -310,6 +336,7 @@ end
 --- Apply the consequences of a player being hit.
 function StageRuntime:on_player_hit(player_id, player)
     player:hit()
+    self:play_sound(2)
     self.session.mode:on_player_hit(self.session, player_id)
     self.session:lose_life(player_id)
     -- Clear the bullets around the player so respawning is survivable.
@@ -461,6 +488,7 @@ function StageRuntime:update()
     for _, enemy in ipairs(self.adapter.enemies) do
         if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped then
             enemy.legacy_dropped = true
+            self:play_sound(1)
             self.effects:spawn(Effects.KIND.ENEMY_DEATH, enemy.x or 0, enemy.y or 0)
             if enemy.legacy_drop and enemy.legacy_drop > 0 then
                 self.items:spawn_drop({ enemy.legacy_drop, 0, 2 }, enemy.x or 0, enemy.y or 0)

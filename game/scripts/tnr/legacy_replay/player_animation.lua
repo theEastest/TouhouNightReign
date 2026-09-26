@@ -50,8 +50,10 @@ function PlayerAnimation:play(pose)
 end
 
 --- Choose the pose from the current input and movement.
--- The reference fires while the shot button is held, steps sideways when moving
--- laterally and idles otherwise.
+-- The reference fires while the shot button is held and steps sideways when
+-- moving laterally. Focusing is a state rather than a pose: the sheet keeps the
+-- same body animation and the change is the options sliding forward, so the pose
+-- choice is the same whether or not the focus button is held.
 function PlayerAnimation:choose_pose(input)
     if input and input.shoot then
         return PlayerAnimation.POSE.FIRE
@@ -82,8 +84,11 @@ function PlayerAnimation:update(input)
         if (instruction.time or 0) > self.frame then break end
         self.pc = self.pc + 1
         local id = instruction.id
-        if id == 300 or id == 304 then
-            -- Set sprite (the anm sprite index is zero based).
+        if id == 300 then
+            -- Set sprite (the anm sprite index is zero based). Opcode 304 is
+            -- not a sprite op: it appears as `304 14` next to the setup calls at
+            -- the head of every script, and reading it as a sprite made the ship
+            -- jump to a frame it should never show.
             if instruction[1] ~= nil then
                 self.sprite = (tonumber(instruction[1]) or 0) + 1
             end

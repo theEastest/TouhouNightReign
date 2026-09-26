@@ -11,6 +11,7 @@
 local EclRuntime = require("tnr.legacy_replay.ecl_runtime")
 local BulletPatterns = require("tnr.legacy_replay.bullet_patterns")
 local AnmPlayer = require("tnr.legacy_replay.anm_player")
+local Sounds = require("tnr.legacy_replay.sounds")
 
 local Adapter = {}
 
@@ -525,7 +526,20 @@ function Adapter:build_instructions()
             thread.wait = 1
         end
     end
-    instructions.playSound = function() end
+    -- Sound. The reference names an effect by its index into a fixed list, so
+    -- the index is translated to the corresponding file and handed to whoever
+    -- owns the audio device.
+    local function play_reference_sound(index)
+        if not self_ref.on_sound then return end
+        local path = Sounds.path_for(index)
+        if not path then return end
+        pcall(self_ref.on_sound, path)
+    end
+    instructions.playSound = function(thread, runtime, args)
+        play_reference_sound(resolve_arg(thread, args and args[1], nil))
+    end
+    instructions.hitSound = instructions.playSound
+    instructions.bgmPlay = function() end
 
     -- --- conditions --------------------------------------------------------
     instructions.diffI = function(thread, runtime, args)
@@ -542,119 +556,232 @@ function Adapter:build_instructions()
     -- --- bullets -----------------------------------------------------------
     -- The et* family builds one bullet group. etNew starts a group, the
     -- following et* calls configure it, and etOn fires it once configured.
+    -- Bullet groups. An enemy can hold several groups at once and fire them in
+    -- any order: a stage enemy creates group 0, copies it to group 1 to offset
+    -- it, and then fires both. Keeping a single group lost every group but the
+    -- last, so a two sided volley collapsed into one bullet.
+    local function bullet_groups(thread)
+        thread.bullets = thread.bullets or {}
+        return thread.bullets
+    end
+    local function group_at(thread, index)
+        local groups = bullet_groups(thread)
+        local key = tonumber(index) or 0
+        local group = groups[key]
+        if not group then
+            group = {
+                count = 1, count_spec = 1,
+                angle = 0, angle_spec = 0,
+                speed = 3, speed_spec = 3,
+                sprite = 0,
+            }
+            groups[key] = group
+        end
+        return group
+    end
+    -- Resolve a per-difficulty argument list.
+    -- etCountD(group, easy, normal, hard, lunatic, overdrive) and etSpeedD carry
+    -- Resolve a per-difficulty argument list.
+    -- etSpeedD(group, easy, normal, hard, lunatic, overdrive) carries one value
+    -- per difficulty. Reading it like the plain two argument form fired the wrong
+    -- value on every difficulty, and reading the tail instead of the entry for
+    -- the active difficulty fired the last one. The active difficulty's entry is
+    -- selected here, with a fallback to the highest supplied entry.
+    local DIFFICULTY_ORDER = { "easy", "normal", "hard", "lunatic", "overdrive" }
+    local function difficulty_value(thread, args)
+        if not args then return nil end
+        local values = {}
+        local supplied = 0
+        for position, name in ipairs(DIFFICULTY_ORDER) do
+            local raw = args[position + 1]
+            if raw ~= nil then
+                local value = resolve_arg(thread, raw, nil)
+                if value ~= nil then
+                    values[name] = value
+                    supplied = position
+                end
+            end
+        end
+        if supplied == 0 then return nil end
+        local active = DIFFICULTY_ORDER[(self_ref.difficulty or 0) + 1] or "normal"
+        if values[active] ~= nil then return values[active] end
+        -- A list that stops early uses its last entry for the harder modes.
+        for position = math.min(supplied, #DIFFICULTY_ORDER), 1, -1 do
+            local name = DIFFICULTY_ORDER[position]
+            if values[name] ~= nil then return values[name] end
+        end
+        return nil
+    end
     instructions.etNew = function(thread, runtime, args)
-        thread.bullet = {
-            index = tonumber(args and args[1]) or 0,
+        local index = tonumber(resolve_arg(thread, args and args[1], 0)) or 0
+        local previous = bullet_groups(thread)[index]
+        bullet_groups(thread)[index] = {
+            index = index,
             count = 1, count_spec = 1,
             angle = 0, angle_spec = 0,
             speed = 3, speed_spec = 3,
-            sprite = thread.bullet and thread.bullet.sprite or 0,
+            -- A new group inherits the sprite the enemy last selected, which is
+            -- how the reference carries etSprite across groups.
+            sprite = previous and previous.sprite or thread.last_bullet_sprite or 0,
+            anim = previous and previous.anim or thread.last_bullet_anim,
+            color_index = previous and previous.color_index or thread.last_bullet_color,
             aim = nil, offset = nil,
         }
     end
     instructions.etSprite = function(thread, runtime, args)
-        if thread.bullet then
-            -- etSprite(group, anim, sprite): the second argument selects a
-            -- bullet animation script and the third the variant within it. The
-            -- drawn sprite comes from the script, not the raw number, so both
-            -- are recorded and resolved when the bullet spawns.
-            thread.bullet.anim = tonumber(args and args[2]) or 0
-            -- The third argument is the colour index into the reference palette.
-            thread.bullet.variant = tonumber(args and args[3]) or 0
-            thread.bullet.color_index = thread.bullet.variant
-            thread.bullet.sprite_family = thread.bullet.anim
-            thread.bullet.sprite = thread.bullet.variant
-        end
+        -- etSprite(group, bulletType, colour). The bullet type is an index into
+        -- the reference's bullet type table, which names the sprite and its
+        -- animation script; the third argument is the colour index into the
+        -- palette. Both are remembered on the enemy so a group created later
+        -- still knows what to draw.
+        thread.last_bullet_sprite = resolve_arg(thread, args and args[2], 0) or 0
+        thread.last_bullet_color = resolve_arg(thread, args and args[3], 0) or 0
+        local group = group_at(thread, args and args[1])
+        group.sprite = thread.last_bullet_sprite
+        group.anim = thread.last_bullet_sprite
+        group.color_index = thread.last_bullet_color
+        group.variant = thread.last_bullet_color
     end
     instructions.etAngle = function(thread, runtime, args)
-        if thread.bullet then
-            -- The angle is the base direction for the volley; a sentinel keeps
-            -- the current one, and the second value is the per-bullet spread.
-            local raw = resolve_arg(thread, args and args[2], 0)
-            thread.bullet.angle = resolve_angle(raw, thread.bullet.angle)
-            local spec = resolve_arg(thread, args and args[3], 0)
-            thread.bullet.angle_spec = spec or 0
-        end
+        -- The angle is the base direction for the volley; a sentinel keeps the
+        -- current one, and the second value is the per-bullet spread.
+        local group = group_at(thread, args and args[1])
+        local raw = resolve_arg(thread, args and args[2], 0)
+        group.angle = resolve_angle(raw, group.angle)
+        group.angle_spec = resolve_arg(thread, args and args[3], 0) or 0
     end
     instructions.etSpeed = function(thread, runtime, args)
-        if thread.bullet then
-            -- The arguments are ECL expressions, not literals, so a variable
-            -- reference resolves against the calling frame.
-            thread.bullet.speed = resolve_arg(thread, args and args[2], 3)
-            thread.bullet.speed_spec = resolve_arg(thread, args and args[3], 0) or thread.bullet.speed
-        end
+        local group = group_at(thread, args and args[1])
+        group.speed = resolve_arg(thread, args and args[2], 3)
+        group.speed_spec = resolve_arg(thread, args and args[3], 0) or group.speed
     end
     instructions.etCount = function(thread, runtime, args)
-        if thread.bullet then
-            -- The arguments are ECL expressions, so a dynamic bullet count such
-            -- as a variable reference resolves against the calling frame.
-            local count = resolve_arg(thread, args and args[2], 1)
-            thread.bullet.count = math.max(1, math.floor(count or 1))
-            local rings = resolve_arg(thread, args and args[3], 1)
-            thread.bullet.count_spec = math.max(1, math.floor(rings or 1))
-        end
+        local group = group_at(thread, args and args[1])
+        local count = resolve_arg(thread, args and args[2], 1)
+        group.count = math.max(1, math.floor(count or 1))
+        local rings = resolve_arg(thread, args and args[3], 1)
+        group.count_spec = math.max(1, math.floor(rings or 1))
+    end
+    -- The D suffixed forms carry one value per difficulty after the group.
+    instructions.etCountD = function(thread, runtime, args)
+        local group = group_at(thread, args and args[1])
+        local value = difficulty_value(thread, args)
+        group.count = math.max(1, math.floor(value or 1))
+        -- The ring count is the last argument in the reference layout; reuse the
+        -- supplied tail when present.
+        local last = resolve_arg(thread, args and args[#args], nil)
+        group.count_spec = math.max(1, math.floor(last or 1))
+    end
+    instructions.etSpeedD = function(thread, runtime, args)
+        local group = group_at(thread, args and args[1])
+        local value = difficulty_value(thread, args)
+        group.speed = value or 3
+        group.speed_spec = group.speed
+    end
+    instructions.etAngleD = function(thread, runtime, args)
+        local group = group_at(thread, args and args[1])
+        local value = difficulty_value(thread, args)
+        group.angle = resolve_angle(value, group.angle)
+    end
+    instructions.etSpriteD = function(thread, runtime, args)
+        local group = group_at(thread, args and args[1])
+        local value = difficulty_value(thread, args)
+        group.sprite = value or group.sprite
+        group.anim = group.sprite
     end
     instructions.etAim = function(thread, runtime, args)
-        if thread.bullet then
-            -- etAim(group, mode): a non-negative mode aims the volley at the
-            -- player, which the reference uses for its aimed shots.
-            thread.bullet.aim = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
-        end
+        -- etAim(group, mode): the mode chooses the volley shape.
+        local group = group_at(thread, args and args[1])
+        group.aim = resolve_arg(thread, args and args[2], 0)
     end
     instructions.etOffset = function(thread, runtime, args)
-        if thread.bullet then
-            thread.bullet.offset = {
-                EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0")),
-                EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0")),
-            }
+        local group = group_at(thread, args and args[1])
+        group.offset = {
+            resolve_arg(thread, args and args[2], 0) or 0,
+            resolve_arg(thread, args and args[3], 0) or 0,
+        }
+    end
+    instructions.etCopy = function(thread, runtime, args)
+        -- etCopy(target, source) duplicates a group.
+        local target = tonumber(resolve_arg(thread, args and args[1], 0)) or 0
+        local source = tonumber(resolve_arg(thread, args and args[2], 0)) or 0
+        local groups = bullet_groups(thread)
+        local from = groups[source]
+        if not from then return end
+        local copy = {}
+        for key, value in pairs(from) do
+            if type(value) == "table" then
+                local inner = {}
+                for k2, v2 in pairs(value) do inner[k2] = v2 end
+                copy[key] = inner
+            else
+                copy[key] = value
+            end
+        end
+        copy.index = target
+        groups[target] = copy
+    end
+    instructions.etClear = function(thread, runtime, args)
+        local groups = bullet_groups(thread)
+        if args and args[1] ~= nil then
+            groups[tonumber(resolve_arg(thread, args[1], 0)) or 0] = nil
+        else
+            thread.bullets = {}
         end
     end
+    instructions.etClearAll = instructions.etClear
+    instructions.etCancel = instructions.etClear
     instructions.etEx = function(thread, runtime, args)
-        if thread.bullet then
-            -- etEx(group, ?, flags, int1, int2, float1, float2). The reference
-            -- reads this as an effects block: the flags choose the behaviour
-            -- and the remaining fields parameterise it. The arguments are ECL
-            -- expressions, so resolve them rather than reading literals.
-            thread.bullet.ex = {
-                flags = resolve_arg(thread, args and args[3], 0) or 0,
-                int1 = resolve_arg(thread, args and args[4], -999999),
-                int2 = resolve_arg(thread, args and args[5], -999999),
-                float1 = resolve_arg(thread, args and args[6], -999999),
-                float2 = resolve_arg(thread, args and args[7], -999999),
-            }
-        end
+        -- etEx(group, ?, flags, int1, int2, float1, float2). The reference reads
+        -- this as an effects block: the flags choose the behaviour and the
+        -- remaining fields parameterise it. The arguments are ECL expressions,
+        -- so resolve them rather than reading literals.
+        local group = group_at(thread, args and args[1])
+        group.ex = {
+            flags = resolve_arg(thread, args and args[3], 0) or 0,
+            int1 = resolve_arg(thread, args and args[4], -999999),
+            int2 = resolve_arg(thread, args and args[5], -999999),
+            float1 = resolve_arg(thread, args and args[6], -999999),
+            float2 = resolve_arg(thread, args and args[7], -999999),
+        }
     end
     instructions.etExSet = instructions.etEx
     instructions.etOn = function(thread, runtime, args)
-        self_ref:fire_bullet_group(thread)
+        -- etOn(group) fires that group. Several groups can be on at once, which
+        -- is how the reference fires a mirrored pair of volleys.
+        if args and args[1] ~= nil then
+            local index = tonumber(resolve_arg(thread, args[1], 0)) or 0
+            self_ref:fire_bullet_group(thread, index)
+        else
+            -- Without an index every prepared group fires.
+            for index in pairs(bullet_groups(thread)) do
+                self_ref:fire_bullet_group(thread, index)
+            end
+        end
     end
-    instructions.etClear = function() end
-    instructions.etCancel = function() end
-    instructions.etClearAll = function() end
-    instructions.etCopy = function() end
-    instructions.etSound = function() end
+    instructions.etSound = function(thread, runtime, args)
+        -- etSound(group, index, ...) plays the effect named by the second
+        -- argument.
+        play_reference_sound(resolve_arg(thread, args and args[2], nil))
+    end
     instructions.etDist = function() end
     instructions.etOffsetAbs = function(thread, runtime, args)
         -- Offset the group to an absolute field position.
-        if thread.bullet then
-            thread.bullet.offset_abs = {
-                EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0")),
-                EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0")),
-            }
-        end
+        local group = group_at(thread, args and args[1])
+        group.offset_abs = {
+            resolve_arg(thread, args and args[2], 0) or 0,
+            resolve_arg(thread, args and args[3], 0) or 0,
+        }
     end
     instructions.etOffsetRad = function(thread, runtime, args)
         -- Offset the group by a distance along an angle.
-        if thread.bullet then
-            local angle = EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0"))
-            local distance = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
-            thread.bullet.offset = {
-                math.cos(angle) * distance, math.sin(angle) * distance,
-            }
-        end
+        local group = group_at(thread, args and args[1])
+        local angle = resolve_arg(thread, args and args[2], 0) or 0
+        local distance = resolve_arg(thread, args and args[3], 0) or 0
+        group.offset = {
+            math.cos(angle) * distance, math.sin(angle) * distance,
+        }
     end
-    instructions.etSpeedD = instructions.etSpeed
-    instructions.etCountD = instructions.etCount
 
     -- --- enemy creation ----------------------------------------------------
     instructions.enmCreate = function(thread, runtime, args)
@@ -761,10 +888,14 @@ function Adapter:build_instructions()
     -- etEx2 / etExSet2 are the two-argument forms of the bullet extras; the
     -- group configuration is the same, only the argument count differs.
     instructions.etEx2 = function(thread, runtime, args)
-        if thread.bullet then
-            thread.bullet.ex = {}
-            for index = 1, #args do thread.bullet.ex[index] = tonumber(args[index]) end
-        end
+        local group = group_at(thread, args and args[1])
+        group.ex = {
+            flags = resolve_arg(thread, args and args[2], 0) or 0,
+            int1 = resolve_arg(thread, args and args[3], -999999),
+            int2 = resolve_arg(thread, args and args[4], -999999),
+            float1 = resolve_arg(thread, args and args[5], -999999),
+            float2 = resolve_arg(thread, args and args[6], -999999),
+        }
     end
     instructions.etExSet2 = instructions.etEx2
 
@@ -1101,8 +1232,9 @@ end
 -- The ECL stores one parameter block per volley; the aim mode expands it into
 -- the fan or ring the original shows. Reproducing that generator is what makes
 -- a volley land where the original put it.
-function Adapter:fire_bullet_group(thread)
-    local group = thread.bullet
+function Adapter:fire_bullet_group(thread, group_index)
+    local groups = thread.bullets or {}
+    local group = groups[tonumber(group_index) or 0]
     local object = thread.object
     if not group or not object then return end
     local player = self.lstg and self.lstg.player
