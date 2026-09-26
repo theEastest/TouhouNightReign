@@ -533,7 +533,7 @@ function Adapter:build_instructions()
         self_ref:begin_spell(thread, args)
     end
     instructions.spellEnd = function()
-        if self_ref.boss_ui then self_ref.boss_ui.card_flash = 0 end
+        if self_ref.boss_ui then self_ref.boss_ui.card_timer = 0 end
     end
     -- 527 / 554 / 536 are declaration helpers with no presentation of their own.
     instructions.stageLogo = function() end

@@ -49,18 +49,20 @@ local ShopRewardSpec = require("shop_reward_spec")
 local DropRewardSpec = require("drop_reward_spec")
 local DropItemsSpec = require("drop_items_spec")
 local WaveConcatSpec = require("wave_concat_spec")
-local EclRuntimeSpec = require("ecl_runtime_spec")
-local AnmPlayerSpec = require("anm_player_spec")
-local EclAdapterSpec = require("ecl_adapter_spec")
-local LegacyReplayStageSpec = require("legacy_replay_stage_spec")
-local LegacyReplayFidelitySpec = require("legacy_replay_fidelity_spec")
-local LegacyReplayInterfacesSpec = require("legacy_replay_interfaces_spec")
-local LegacyReplayPlayerSpec = require("legacy_replay_player_spec")
 local BossSequenceSpec = require("boss_sequence_spec")
 local DialogOverrideSpec = require("dialog_override_spec")
 local CharacterSelectSpec = require("character_select_spec")
 local CharacterStatsSpec = require("character_stats_spec")
 local AudioManagerSpec = require("audio_manager_spec")
+
+-- The legacy replay suite is large, so its specs are loaded together to keep
+-- the number of locals in this file inside Lua's limit.
+local LEGACY_REPLAY_SPECS = {
+    ecl_runtime_spec, anm_player_spec, ecl_adapter_spec,
+    legacy_replay_stage_spec, legacy_replay_fidelity_spec,
+    legacy_replay_interfaces_spec, legacy_replay_player_spec,
+    legacy_replay_hud_spec,
+}
 
 local function assert_equal(left, right, message)
     assert(left == right, string.format("%s: expected %s, got %s", message, tostring(right), tostring(left)))
@@ -93,13 +95,6 @@ ShopRewardSpec(assert_equal, assert_true)
 DropRewardSpec(assert_equal, assert_true)
 DropItemsSpec(assert_equal, assert_true)
 WaveConcatSpec(assert_equal, assert_true)
-EclRuntimeSpec(assert_equal, assert_true)
-AnmPlayerSpec(assert_equal, assert_true)
-EclAdapterSpec(assert_equal, assert_true)
-LegacyReplayStageSpec(assert_equal, assert_true)
-LegacyReplayFidelitySpec(assert_equal, assert_true)
-LegacyReplayInterfacesSpec(assert_equal, assert_true)
-LegacyReplayPlayerSpec(assert_equal, assert_true)
 BossSequenceSpec(assert_equal, assert_true)
 DialogOverrideSpec(assert_equal, assert_true)
 CharacterSelectSpec(assert_equal, assert_true)
@@ -701,7 +696,7 @@ p2_mouse_bootstrap.renderer = {
 }
 p2_mouse_bootstrap.input = {
     poll_all = function()
-        return {
+return {
             [2] = {
                 player_id = 2,
                 tick = 1,
@@ -839,5 +834,11 @@ for _ = 1, 12 do
 end
 assert_equal(fallback_session.run_state, Constants.run_states.MAP, "fallback stage should clear and return to map")
 assert_true(fallback_session.battle_result ~= nil, "fallback stage should produce a battle result")
+
+-- Run the legacy replay suite. Its specs are loaded together to keep this
+-- file's local count inside Lua's limit.
+for _, spec_name in ipairs(LEGACY_REPLAY_SPECS) do
+    require(spec_name)(assert_equal, assert_true)
+end
 
 print("TouHouNightReign core tests passed")

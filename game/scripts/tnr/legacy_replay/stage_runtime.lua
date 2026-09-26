@@ -8,8 +8,10 @@
 local Adapter = require("tnr.legacy_replay.adapter")
 local AnmPlayer = require("tnr.legacy_replay.anm_player")
 local BossUi = require("tnr.legacy_replay.boss_ui")
+local HudFont = require("tnr.legacy_replay.hud_font")
 local StageBackground = require("tnr.legacy_replay.stage_background")
 local Player = require("tnr.legacy_replay.player")
+local PlayerAnimation = require("tnr.legacy_replay.player_animation")
 local Items = require("tnr.legacy_replay.items")
 local Interfaces = require("tnr.legacy_replay.interfaces")
 
@@ -181,6 +183,8 @@ function StageRuntime:create_players(character)
     local character_index = { reimu = 0, marisa = 1, sanae = 2, reisen = 3 }
     local index = character_index[character] or 0
     self.primary_player_archive = string.format("pl%02d", index)
+    self.player_animation = self.player_animation or
+        PlayerAnimation.new(self.anm[self.primary_player_archive][1], self.primary_player_archive)
     for _, player_id in ipairs(self.session.roster:list()) do
         local player = Player.new({
             definition = definition,
@@ -200,6 +204,8 @@ function StageRuntime:apply_input(player_id, input)
     if not player or not player.alive then return end
     player:move(input.move_x, input.move_y, input.focus)
     player:update()
+    -- Drive the ship animation from the same input the movement used.
+    if self.player_animation then self.player_animation:update(input) end
     if input.shoot then
         local bullets = player:fire()
         for _, bullet in ipairs(bullets) do
@@ -400,11 +406,11 @@ function StageRuntime:item_image(item)
     return image_name("bullet", self.item_entry.index, self.item_entry.first_sprite)
 end
 
---- Resolve the image for a player ship.
+--- Resolve the image for a player ship from its current animation frame.
 function StageRuntime:player_image(player)
     local sheet = self.primary_player_archive or "pl00"
-    -- The player archive's first entry carries the ship frames.
-    return image_name(sheet, 1, 1)
+    local sprite = self.player_animation and self.player_animation:sprite_index() or 1
+    return image_name(sheet, 1, sprite)
 end
 
 --- Find the bullet archive entry whose texture path ends with `suffix`.
@@ -442,9 +448,8 @@ function StageRuntime:draw_hud()
         lstg.RenderTTF("Sans", row[1], label_x, label_x, row[3], row[3], 0,
             lstg.Color(255, 240, 236, 236), 0.8)
         if row[2] ~= nil then
-            -- Values right align to the panel edge, clear of the icon row.
-            lstg.RenderTTF("Sans", tostring(row[2]), value_x, value_x, row[3], row[3], 2,
-                lstg.Color(255, 255, 255, 255), 0.9)
+            -- Numbers use the reference ascii glyphs, right aligned.
+            self:draw_number(row[2], value_x, row[3])
         end
     end
     -- Life hearts and spell card stars, placed between the label and the value
@@ -453,9 +458,23 @@ function StageRuntime:draw_hud()
     self:draw_life_icons(680, 545, stats.spellcards or 0, 5, BossUi.STAR_FIRST_SPRITE)
 end
 
+--- Draw a number using the reference ascii glyphs, right aligned at `right_x`.
+-- The ascii sheet lays its glyphs out from ASCII 33, eighteen per row, at 14px,
+-- so a character's sprite is its code minus 32.
+function StageRuntime:draw_number(value, right_x, y)
+    local lstg = self.lstg
+    local text = tostring(value)
+    local draws, width = HudFont.layout(text, { advance = 16 })
+    local x = right_x - width
+    for _, glyph in ipairs(draws) do
+        local image = image_name("ascii", 1, glyph.sprite)
+        local left = x + glyph.x
+        lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
+        lstg.RenderRect(image, left, left + 18, y, y + 20)
+    end
+end
+
 --- Draw a row of icon pips, using the six frame fill sprites.
--- `value` may be fractional so a partially filled pip renders as the reference
--- shows it while a life is being collected.
 function StageRuntime:draw_life_icons(x, y, value, capacity, first_sprite)
     local lstg = self.lstg
     local icon_w = 20

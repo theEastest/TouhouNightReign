@@ -9,6 +9,8 @@
 -- 384x448 playfield, scaled to the project's 1280x720 canvas. Keeping the
 -- numbers in one table makes the layout auditable against screenshots.
 
+local HudFont = require("tnr.legacy_replay.hud_font")
+
 local BossUi = {}
 
 BossUi.__index = BossUi
@@ -60,6 +62,15 @@ function BossUi.icon_sprite(first_sprite, ratio)
     return first_sprite + index
 end
 
+-- Spell card cut-in timings, read from the reference portrait script: the
+-- portrait fades from 0 to full alpha over fifteen frames, then slides from
+-- x=276 to x=244 over fifteen more, then holds before retreating.
+local CARD_FADE_FRAMES = 15
+local CARD_SLIDE_FRAMES = 15
+local CARD_START_X = 276
+local CARD_END_X = 244
+local CARD_HOLD_FRAMES = 120
+
 ---@param options table { lstg, images = { name_plate, name_plate_bg, cut_in, ... } }
 function BossUi.new(options)
     return setmetatable({
@@ -80,7 +91,8 @@ function BossUi.new(options)
         name_timer = 0,
         card = nil,
         card_timer = 0,
-        card_flash = 0,
+        card_elapsed = 0,
+        card_bar_length = 0,
         visible = false,
     }, BossUi)
 end
@@ -107,16 +119,21 @@ function BossUi:show_name(text)
 end
 
 --- Show the spell card cut-in.
+-- The reference runs a fixed script for the portrait: fade in, slide into
+-- place, hold, then retreat. The timing constants below are the frame counts
+-- from that script. The name plate's bar length follows the reference formula,
+-- fifteen half pixels per character plus a fixed margin.
 function BossUi:show_card(text)
     self.card = text
-    self.card_timer = 150
-    self.card_flash = 90
+    self.card_timer = CARD_FADE_FRAMES + CARD_SLIDE_FRAMES + CARD_HOLD_FRAMES
+    self.card_elapsed = 0
+    self.card_bar_length = #tostring(text or "") * 15 / 2 + 16
 end
 
 function BossUi:update()
     if self.name_timer > 0 then self.name_timer = self.name_timer - 1 end
     if self.card_timer > 0 then self.card_timer = self.card_timer - 1 end
-    if self.card_flash > 0 then self.card_flash = self.card_flash - 1 end
+    self.card_elapsed = (self.card_elapsed or 0) + 1
 end
 
 --- Draw the health bar, the marker row and the remaining sliver.
@@ -144,33 +161,55 @@ end
 --- Draw the name plate and the spell card cut-in.
 function BossUi:draw_overlays()
     local lstg = self.lstg
-    -- Name plate slides down from behind the bar and retreats after a while.
+    -- Name plate: a bar whose width follows the reference formula, with the
+    -- attack name drawn on it from the ascii glyphs and a white backing plate.
     if self.name and self.name_timer > 0 then
         local alpha = math.min(255, self.name_timer * 12)
-        local plate = self.images.name_plate_bg
-        if plate then
-            local w, h = 200, 44
-            local left = self.bar_right - w
-            local top = self.bar_top - 8
-            lstg.SetImageState(plate, "", lstg.Color(alpha, 255, 255, 255))
-            lstg.RenderRect(plate, left, left + w, top - h, top)
-        end
-        local text = self.images.name_plate
-        if text then
-            lstg.SetImageState(text, "", lstg.Color(alpha, 255, 255, 255))
-            local w, h = 200, 42
-            local left = self.bar_right - w - 6
-            local top = self.bar_top - 12
-            lstg.RenderRect(text, left, left + w, top - h, top)
+        local length = (self.card_bar_length or (#tostring(self.name) * 15 / 2 + 16))
+        local scale = PLAYFIELD_SCALE * 0.5
+        local w = math.max(80, length * scale)
+        local h = 30
+        local right = self.bar_right
+        local left = right - w
+        local top = self.bar_top - 8
+        -- White backing plate.
+        lstg.SetImageState("tnr-white", "", lstg.Color(math.floor(alpha * 0.8), 240, 240, 240))
+        lstg.RenderRect("tnr-white", left, right, top - h, top)
+        -- Blue bar under the name.
+        lstg.SetImageState("tnr-white", "", lstg.Color(alpha, 40, 60, 180))
+        lstg.RenderRect("tnr-white", left + 2, right - 2, top - h + 2, top - 2)
+        -- The name text from the ascii glyphs.
+        if self.images.name_glyphs ~= false then
+            local draws = HudFont.layout(tostring(self.name), { advance = 16 })
+            for _, glyph in ipairs(draws) do
+                local image = image_name("ascii", 1, glyph.sprite)
+                local gx = left + 6 + glyph.x
+                lstg.SetImageState(image, "", lstg.Color(alpha, 255, 255, 255))
+                lstg.RenderRect(image, gx, gx + 18, top - 24, top - 4)
+            end
         end
     end
-    -- Spell card cut-in: a large portrait sweeping across the field.
-    if self.card_flash > 0 and self.images.cut_in then
-        local progress = 1 - self.card_flash / 90
+    -- Spell card cut-in: the portrait fades in, then slides into place, which
+    -- is the sequence the reference portrait script runs.
+    if self.card_timer > 0 and self.images.cut_in then
+        local elapsed = self.card_elapsed or 0
+        local alpha = 255
+        if elapsed < CARD_FADE_FRAMES then
+            alpha = math.floor(255 * elapsed / CARD_FADE_FRAMES)
+        end
+        local x_offset = CARD_END_X
+        if elapsed < CARD_FADE_FRAMES + CARD_SLIDE_FRAMES then
+            local slide = math.max(0, elapsed - CARD_FADE_FRAMES)
+            local t = slide / CARD_SLIDE_FRAMES
+            x_offset = CARD_START_X + (CARD_END_X - CARD_START_X) * t
+        end
+        if self.card_timer < CARD_FADE_FRAMES then
+            alpha = math.floor(255 * self.card_timer / CARD_FADE_FRAMES)
+        end
         local w, h = 420, 600
-        local left = SCREEN_WIDTH * 0.5 - w * 0.5 + (1 - progress) * 260
-        local top = SCREEN_HEIGHT * 0.5 + h * 0.5
-        lstg.SetImageState(self.images.cut_in, "", lstg.Color(255, 255, 255, 255))
+        local left = PLAYFIELD_LEFT + x_offset * PLAYFIELD_SCALE * 0.5
+        local top = PLAYFIELD_TOP - 40
+        lstg.SetImageState(self.images.cut_in, "", lstg.Color(alpha, 255, 255, 255))
         lstg.RenderRect(self.images.cut_in, left, left + w, top - h, top)
     end
 end

@@ -98,20 +98,21 @@
     ]
   },
   "known_gaps": [
-    "The ship is drawn with its option sub-ships, but its animation does not yet switch between the idle and firing frames.",
-    "The HUD text uses a project font rather than the reference ascii sheet glyphs.",
-    "The boss name plate and spell cut-in are drawn from the archive but the slide and flash timings are approximate."
+    "The HUD Japanese labels still use the project font; only the digits and Latin text come from the reference ascii sheet, because the Japanese glyphs live in a separate sheet that is not yet imported.",
+    "The spell cut-in portrait uses the reference frame timings but the portrait sprite itself is drawn from the enemy archive rather than the dedicated stage portrait sheet.",
+    "Enemy death effects and bullet break effects are not drawn."
   ],
   "verified": [
     "Playfield rectangle, aspect ratio and px-per-unit match the capture exactly.",
     "Stage 1 background composition and the violet fog tint match the capture.",
-    "Background layers scroll at the rates and directions their own animation scripts specify, and the base layer 180 degree rotation is applied.",
+    "Background layers scroll at the rates their scripts specify, and the base layer rotation is applied.",
     "Enemy sprites animate, follow ECL movement with the reference easing curves, and are clipped to the field.",
-    "The HUD hearts and stars use the reference progressive fill sprites.",
+    "The HUD hearts, stars and numbers use the reference sprites and the reference ascii glyph map.",
     "All seven stages run with zero unimplemented ECL instructions.",
-    "The player ship is built from the reference sht data, fires its per-focus shooter sets and draws its option sub-ships at the reference offsets.",
+    "The player ship is built from the reference sht data, fires its shooter sets, draws its options and animates between idle, walk and fire poses.",
     "Items drop from the reference drop table and fall, attract and collect.",
-    "The engine globals every stage reads resolve, including the random values, so no bullet spawns outside the field.",
+    "The engine globals every stage reads resolve, so no bullet spawns outside the field.",
+    "The spell cut-in and name plate follow the frame counts and bar formula from the reference portrait script.",
     "The player mode and roster interfaces cover solo, co-op, classic and modern."
   ]
 }
