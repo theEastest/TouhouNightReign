@@ -1101,6 +1101,38 @@ function MapRenderer:render_replay_result(replay)
     lstg.EndScene()
 end
 
+--- Legacy replay reward screen: the between-stage picks.
+function MapRenderer:render_replay_reward(replay)
+    local lstg = self.lstg
+    local choices = replay and replay.reward_choices or {}
+    lstg.BeginScene()
+    lstg.RenderClear(color(lstg, COLORS.background))
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+    draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 220, self.width - 220, 120, self.height - 120)
+    self:draw_text("选择奖励", self.width * 0.5, self.height - 190, 1.5, COLORS.accent, 1 + 4)
+    self:draw_text(string.format("第 %d 次三选一", replay.reward_round or 1),
+        self.width * 0.5, self.height - 226, 0.76, COLORS.muted, 1 + 4)
+    for index, reward in ipairs(choices) do
+        local top = self.height - 300 - (index - 1) * 96
+        local selected = index == (replay.reward_cursor or 1)
+        draw_rect(lstg, self.white,
+            selected and { 235, 105, 38, 70 } or { 210, 24, 29, 52 },
+            320, self.width - 320, top - 74, top)
+        if selected then
+            draw_line(lstg, self.white, COLORS.accent, 320, top - 74, self.width - 320, top - 74, 2)
+            draw_line(lstg, self.white, COLORS.accent, 320, top, self.width - 320, top, 2)
+        end
+        self:draw_text(selected and ">" or "", 350, top - 44, 0.9, COLORS.accent, 0)
+        self:draw_text(reward.name, 390, top - 36, 1.0,
+            selected and COLORS.text or COLORS.muted, 0)
+        self:draw_text(reward.description or "", 390, top - 62, 0.68, COLORS.muted, 0)
+    end
+    self:draw_text("↑ ↓ 选择　Enter 确认", self.width * 0.5, 150, 0.76, COLORS.muted, 1 + 4)
+    lstg.EndScene()
+end
+
 function MapRenderer:render_music_player(cursor, catalog)
     local lstg = self.lstg
     catalog = catalog or {}
@@ -1266,6 +1298,10 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
     end
     if session.run_state == Constants.run_states.REPLAY_RESULT then
         self:render_replay_result(self.replay)
+        return
+    end
+    if session.run_state == Constants.run_states.REPLAY_REWARD then
+        self:render_replay_reward(self.replay)
         return
     end
     if session.run_state == Constants.run_states.EQUIPMENT_CATALOG then

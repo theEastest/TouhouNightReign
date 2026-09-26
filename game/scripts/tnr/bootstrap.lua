@@ -1461,10 +1461,36 @@ function Bootstrap:update()
             self:leave_replay_stage()
         end
     elseif self.session.run_state == Constants.run_states.REPLAY_RESULT then
-        if player_input.confirm or player_input.cancel then
+        if player_input.confirm then
+            -- A cleared stage with rewards pending moves to the reward picks;
+            -- otherwise the run returns to the stage list.
+            local choices = self.replay:next_reward_round()
+            if choices then
+                self.session.run_state = Constants.run_states.REPLAY_REWARD
+            else
+                self.replay:stop()
+                self.session.run_state = Constants.run_states.REPLAY_SELECT
+                self.replay_field = "stage"
+            end
+        elseif player_input.cancel then
             self.replay:stop()
             self.session.run_state = Constants.run_states.REPLAY_SELECT
             self.replay_field = "stage"
+        end
+    elseif self.session.run_state == Constants.run_states.REPLAY_REWARD then
+        local choices = self.replay.reward_choices or {}
+        local count = math.max(1, #choices)
+        if (player_input.move_y or 0) ~= 0 then
+            self.replay.reward_cursor = ((self.replay.reward_cursor or 1) - 1 - player_input.move_y) % count + 1
+        end
+        if player_input.confirm then
+            self.replay:claim_reward()
+            -- Another round, or back to the stage list.
+            if not self.replay:next_reward_round() then
+                self.replay:stop()
+                self.session.run_state = Constants.run_states.REPLAY_SELECT
+                self.replay_field = "stage"
+            end
         end
     elseif self.session.run_state == Constants.run_states.MUSIC_PLAYER then
         self.music_cursor = self:_scroll_step("music", self.music_cursor, #MusicCatalog, 10, player_input.move_y)

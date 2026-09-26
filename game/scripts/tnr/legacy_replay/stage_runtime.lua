@@ -9,6 +9,7 @@ local Adapter = require("tnr.legacy_replay.adapter")
 local AnmPlayer = require("tnr.legacy_replay.anm_player")
 local BossUi = require("tnr.legacy_replay.boss_ui")
 local HudFont = require("tnr.legacy_replay.hud_font")
+local Effects = require("tnr.legacy_replay.effects")
 local StageBackground = require("tnr.legacy_replay.stage_background")
 local Player = require("tnr.legacy_replay.player")
 local PlayerAnimation = require("tnr.legacy_replay.player_animation")
@@ -177,6 +178,7 @@ function StageRuntime.new(options)
     self.sht = options.sht
     self.players = {}
     self.items = Items.new({})
+    self.effects = Effects.new({ anm = self.anm })
     self:create_players(options.character or "reimu")
     return self
 end
@@ -440,12 +442,14 @@ function StageRuntime:update()
     for _, enemy in ipairs(self.adapter.enemies) do
         if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped then
             enemy.legacy_dropped = true
+            self.effects:spawn(Effects.KIND.ENEMY_DEATH, enemy.x or 0, enemy.y or 0)
             if enemy.legacy_drop and enemy.legacy_drop > 0 then
                 self.items:spawn_drop({ enemy.legacy_drop, 0, 2 }, enemy.x or 0, enemy.y or 0)
             end
         end
     end
     self.items:update()
+    self.effects:update()
     -- Collected items feed the mode, which decides what they are worth, and
     -- score by the point rate the way the reference does.
     for _, item in ipairs(self.items:drain_collected()) do
@@ -517,6 +521,17 @@ function StageRuntime:draw()
             lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
             lstg.RenderRect(image, x - w * 0.5, x + w * 0.5, y - h * 0.5, y + h * 0.5)
         end
+    end
+    -- Effects: the death burst and bullet break animations, drawn under the
+    -- items so the pickups stay readable.
+    for _, effect in ipairs(self.effects.list) do
+        local sprite, alpha = self.effects:sprite_for(effect)
+        local image = image_name("effect", effect.entry, sprite)
+        local x = left + ((effect.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
+        local y = top - (effect.y or 0) * BossUi.PLAYFIELD_SCALE
+        local r = 24 * (effect.scale or 1) * BossUi.PLAYFIELD_SCALE
+        lstg.SetImageState(image, "add+add", lstg.Color(alpha, 255, 255, 255))
+        lstg.RenderRect(image, x - r, x + r, y - r, y + r)
     end
     -- Items.
     for _, item in ipairs(self.items.list) do

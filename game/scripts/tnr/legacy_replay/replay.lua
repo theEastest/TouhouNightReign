@@ -45,6 +45,18 @@ Replay.PLAYER_COUNTS = {
     { key = 2, name = "双人游戏" },
 }
 
+-- The reward choices the modern ruleset offers between stages. These are the
+-- reference style bonuses rather than the roguelike's equipment, so the replay
+-- stays close to the original pacing.
+Replay.REWARDS = {
+    { key = "power", name = "火力提升", description = "火力 +100", apply = function(player) player.power = math.min(400, (player.power or 0) + 100) end },
+    { key = "life", name = "残机增加", description = "残机 +1", apply = function(player) end, team = function(session, id) session.lives_left[id] = (session.lives_left[id] or 0) + 1 end },
+    { key = "bomb", name = "炸弹增加", description = "炸弹 +1", apply = function(player) end, team = function(session, id) session.bombs_left[id] = (session.bombs_left[id] or 0) + 1 end },
+    { key = "graze", name = "擦弹强化", description = "擦弹范围 +2", apply = function(player) player.grazebox = (player.grazebox or 6) + 2 end },
+    { key = "score", name = "得点加成", description = "得分 +100 万", apply = function() end, score = 1000000 },
+    { key = "speed", name = "机动力提升", description = "移速 +0.5", apply = function(player) player.definition = player.definition or {}; player.definition.move_unfocused = (player.definition.move_unfocused or 4.5) + 0.5 end },
+}
+
 -- Selectable rulesets.
 Replay.MODES = {
     { key = "modern", name = "现代模式", description = "每关后两次三选一奖励" },
@@ -181,6 +193,57 @@ function Replay:start_stage()
     self.active_mode = mode.key
     self.active_character = character.key
     self.render_scale = self.render_scale or 1
+    -- Between-stage rewards are pending once the stage clears.
+    self.reward_round = 0
+    self.reward_cursor = 1
+    self.reward_choices = nil
+    return true
+end
+
+--- Build the choices for the next reward round, or nil when there are none.
+-- The modern ruleset offers two rounds of three picks after each stage; the
+-- classic ruleset offers none.
+function Replay:next_reward_round()
+    if not self.last_result or self.last_result.outcome ~= "cleared" then return nil end
+    local rounds = self.runtime and self.runtime.session:reward_rounds() or 0
+    if self.reward_round >= rounds then return nil end
+    self.reward_round = self.reward_round + 1
+    self.reward_cursor = 1
+    -- Pick three distinct rewards, seeded by the stage and round so the same
+    -- run offers the same choices.
+    local pool = {}
+    for index, reward in ipairs(Replay.REWARDS) do pool[index] = reward end
+    local choices = {}
+    local seed = (self.runtime and self.runtime.frames or 0) + self.reward_round * 7
+    for pick = 1, 3 do
+        local index = ((seed * 31 + pick * 17) % #pool) + 1
+        choices[#choices + 1] = table.remove(pool, index)
+    end
+    self.reward_choices = choices
+    return choices
+end
+
+--- Apply the highlighted reward.
+function Replay:claim_reward()
+    local choices = self.reward_choices
+    if not choices then return false end
+    local reward = choices[self.reward_cursor or 1]
+    if not reward then return false end
+    local session = self.runtime and self.runtime.session
+    if session then
+        for _, player_id in ipairs(session.roster:list()) do
+            if reward.team then reward.team(session, player_id) end
+            local player = self.runtime.players[player_id]
+            if player and reward.apply then reward.apply(player) end
+        end
+        if reward.score then
+            local stats = self.runtime.stats or {}
+            self.runtime.stats = stats
+            stats.score = (stats.score or 0) + reward.score
+            session.score = stats.score
+        end
+    end
+    self.reward_choices = nil
     return true
 end
 
