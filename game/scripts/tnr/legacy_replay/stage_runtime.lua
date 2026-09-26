@@ -25,6 +25,8 @@ local STAGE_ARCHIVES = {
     st05 = "st05enm", st06 = "st06enm", st07 = "st07enm",
 }
 
+StageRuntime.SECTIONS = { "MainFront", "MainLatter", "MainLatter2" }
+
 StageRuntime.STAGE_ARCHIVES = STAGE_ARCHIVES
 
 --- Resolve a reference texture path to a loaded image name.
@@ -58,6 +60,11 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
     }
     local loaded = 0
     local texture_status = {}
+    -- A texture's path may repeat across archive entries (the shared dummy face,
+    -- for example) and across archives. Reuse the first texture that loaded a
+    -- path instead of skipping the load and then failing to create sprites from
+    -- a texture name that was never registered.
+    local texture_by_path = {}
     -- Real source texture sizes, published so the background renderer tiles at
     -- the file's own dimensions instead of the anm header's logical size.
     local texture_sizes = options.texture_sizes or {}
@@ -81,12 +88,16 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
         if entries then
             for entry_index, entry in ipairs(entries) do
                 local path = entry.texture
-                local texture = image_name(archive, entry_index, 0)
-                if not texture_status[path] then
+                local registered = texture_by_path[path]
+                if not registered then
+                    local texture = image_name(archive, entry_index, 0)
                     local ok = pcall(lstg.LoadTexture, texture, base .. "/" .. path, false)
-                    texture_status[path] = ok
+                    if ok then
+                        registered = texture
+                        texture_by_path[path] = texture
+                    end
                 end
-                if texture_status[path] then
+                if registered then
                     -- The anm header declares a logical size that can differ
                     -- from the file (a 1024 unit tile backed by a 512 px
                     -- texture, for example). Using the declared size makes the
@@ -94,10 +105,10 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
                     -- real texture size is used instead.
                     local texture_w, texture_h = 0, 0
                     if type(lstg.GetTextureSize) == "function" then
-                        local ok, tw, th = pcall(lstg.GetTextureSize, texture)
+                        local ok, tw, th = pcall(lstg.GetTextureSize, registered)
                         if ok then texture_w, texture_h = tonumber(tw) or 0, tonumber(th) or 0 end
                     end
-                    texture_sizes[path] = { texture_w, texture_h }
+                    texture_sizes[path] = texture_sizes[path] or { texture_w, texture_h }
                     for sprite_index, sprite in ipairs(entry.sprites or {}) do
                         local w, h = sprite.w, sprite.h
                         local x, y = sprite.x, sprite.y
@@ -107,8 +118,10 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
                             if y + h > texture_h then h = texture_h - y end
                         end
                         if w > 0 and h > 0 then
+                            -- A shared texture may already have this sprite, so
+                            -- the create is best effort.
                             pcall(lstg.LoadImage, image_name(archive, entry_index, sprite_index),
-                                texture, x, y, w, h, w * 0.5, h * 0.5)
+                                registered, x, y, w, h, w * 0.5, h * 0.5)
                             loaded = loaded + 1
                         end
                     end
@@ -231,6 +244,91 @@ function StageRuntime:sample_inputs()
 end
 
 --- Start the stage's main timeline.
+--- Resolve enemy bullets and enemy bodies against the players.
+-- A hit costs a life, clears the nearby bullets and briefly invulnerates the
+-- ship, which is the reference behaviour.
+function StageRuntime:resolve_player_hits()
+    local shots = self.adapter.shots
+    if not shots then return end
+    for _, player_id in ipairs(self.session.roster:list()) do
+        local player = self.players[player_id]
+        if player and player.alive and player.invulnerable <= 0 then
+            local hit = false
+            -- Enemy bullets.
+            for index = #shots, 1, -1 do
+                local shot = shots[index]
+                if not shot.player_bullet and player:hits(shot.x or 0, shot.y or 0) then
+                    hit = true
+                    table.remove(shots, index)
+                elseif not shot.player_bullet and player:grazes(shot.x or 0, shot.y or 0) then
+                    -- Grazing is counted but does not cost a life.
+                    player.graze = (player.graze or 0) + 1
+                end
+            end
+            -- Enemy bodies.
+            if not hit then
+                for _, enemy in ipairs(self.adapter.enemies) do
+                    if enemy.hp and enemy.hp > 0 then
+                        local box = enemy.legacy_hurtbox
+                        local radius = 24
+                        if box then
+                            radius = math.max(tonumber(box[1]) or 0, tonumber(box[2]) or 0)
+                        end
+                        if radius <= 0 then radius = 20 end
+                        local dx = (enemy.x or 0) - player.x
+                        local dy = (enemy.y or 0) - player.y
+                        if dx * dx + dy * dy <= radius * radius then hit = true break end
+                    end
+                end
+            end
+            if hit then self:on_player_hit(player_id, player) end
+        end
+    end
+end
+
+--- Apply the consequences of a player being hit.
+function StageRuntime:on_player_hit(player_id, player)
+    player:hit()
+    self.session.mode:on_player_hit(self.session, player_id)
+    self.session:add_life(player_id, -1, "hit")
+    -- Clear the bullets around the player so respawning is survivable.
+    local kept = {}
+    for _, shot in ipairs(self.adapter.shots or {}) do
+        if shot.player_bullet then
+            kept[#kept + 1] = shot
+        else
+            local dx = (shot.x or 0) - player.x
+            local dy = (shot.y or 0) - player.y
+            if dx * dx + dy * dy > 200 * 200 then kept[#kept + 1] = shot end
+        end
+    end
+    self.adapter.shots = kept
+    -- Put the ship back in play shortly after the hit.
+    self.pending_respawn = self.pending_respawn or {}
+    self.pending_respawn[#self.pending_respawn + 1] = { player_id = player_id, frames = 40 }
+    self.on_player_death = true
+end
+
+--- Bring any pending respawns back into play.
+function StageRuntime:advance_respawns()
+    local pending = self.pending_respawn
+    if not pending or #pending == 0 then return end
+    local remaining = {}
+    for _, entry in ipairs(pending) do
+        entry.frames = entry.frames - 1
+        if entry.frames <= 0 then
+            local player = self.players[entry.player_id]
+            if player then
+                player:respawn(0, 300)
+                player.graze = player.graze or 0
+            end
+        else
+            remaining[#remaining + 1] = entry
+        end
+    end
+    self.pending_respawn = remaining
+end
+
 --- Resolve player shot hits against enemies.
 -- A shot is consumed on contact and applies its damage. The mode is notified so
 -- a classic run can award power on each hit.
@@ -268,13 +366,52 @@ function StageRuntime:resolve_player_damage()
     self.adapter.shots = kept
 end
 
+--- Start the stage's opening timeline.
 function StageRuntime:start()
-    local routine = self.stage_key .. ".MainFront"
+    self.section_index = 0
+    self.timeline_done = false
+    return self:advance_section()
+end
+
+--- Start the next timeline section. Returns false when there are none left.
+-- The reference engine chains the sections: the opening waves, then the
+-- mid-boss section, then the boss section. Each starts once the previous one
+-- returns, which is how the mid-boss and boss enter the stage.
+function StageRuntime:advance_section()
+    local index = (self.section_index or 0) + 1
+    local name = StageRuntime.SECTIONS[index]
+    if not name then
+        self.timeline_done = true
+        return false
+    end
+    local routine = self.stage_key .. "." .. name
     local thread = self.adapter.runtime:spawn(routine)
-    if not thread then return false end
+    if not thread or not self.adapter.runtime.chunks[thread.routine] then
+        -- A stage without this section simply moves on.
+        self.section_index = index
+        return self:advance_section()
+    end
     self.adapter.runtime.threads[#self.adapter.runtime.threads + 1] = thread
-    self.main_thread = thread
+    self.section_index = index
+    self.section_thread = thread
+    self.section_name = name
+    -- Remember when the section started so a stalled section can be detected.
+    self.section_started = self.frames or 0
     return true
+end
+
+--- Chain the next section once the current one finishes.
+function StageRuntime:_advance_timeline()
+    if self.timeline_done then return end
+    local thread = self.section_thread
+    if not thread then return end
+    if thread.state ~= "finished" then return end
+    if self.section_name ~= StageRuntime.SECTIONS[self.section_index] then return end
+    self.section_thread = nil
+    if not self:advance_section() then
+        self.timeline_done = true
+        self.on_clear = true
+    end
 end
 
 function StageRuntime:update()
@@ -283,10 +420,15 @@ function StageRuntime:update()
     self.adapter:update()
     self.boss_ui:update()
     self.background:update()
+    -- Chain to the next timeline section once the current one returns.
+    self:_advance_timeline()
     -- Player shots damage enemies they touch, which is what makes drops and
     -- scoring happen. This runs before the drop check so an enemy killed this
     -- frame drops on the same frame.
     self:resolve_player_damage()
+    -- Enemy bullets hit the player, which costs a life.
+    self:resolve_player_hits()
+    self:advance_respawns()
     -- An enemy that dies drops its reference drop table.
     for _, enemy in ipairs(self.adapter.enemies) do
         if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped then

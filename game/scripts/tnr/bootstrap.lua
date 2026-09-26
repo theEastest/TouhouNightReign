@@ -1451,9 +1451,18 @@ function Bootstrap:update()
     elseif self.session.run_state == Constants.run_states.REPLAY_STAGE then
         -- The replay owns its input through the shared provider, so only the
         -- leave and pause buttons are handled here.
-        self.replay:update()
-        if player_input.cancel then
+        local outcome = self.replay:update()
+        if outcome ~= "playing" then
+            self.replay:finish_stage(outcome)
+            self.session.run_state = Constants.run_states.REPLAY_RESULT
+        elseif player_input.cancel then
             self:leave_replay_stage()
+        end
+    elseif self.session.run_state == Constants.run_states.REPLAY_RESULT then
+        if player_input.confirm or player_input.cancel then
+            self.replay:stop()
+            self.session.run_state = Constants.run_states.REPLAY_SELECT
+            self.replay_field = "stage"
         end
     elseif self.session.run_state == Constants.run_states.MUSIC_PLAYER then
         self.music_cursor = self:_scroll_step("music", self.music_cursor, #MusicCatalog, 10, player_input.move_y)

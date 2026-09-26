@@ -363,7 +363,34 @@ function Adapter:build_instructions()
         if self_ref.boss_ui then self_ref.boss_ui:set_health(value, self_ref.boss_ui.health_max) end
     end
     instructions.dialogWait = function() end
-    instructions.bossWait = function() end
+    instructions.bossWait = function(thread, runtime)
+        -- Block until the boss this section spawned has been defeated. The
+        -- reference uses this to hold the stage timeline while a mid-boss or
+        -- boss fights, so the sections and the stage clear depend on the fight.
+        --
+        -- The boss is created asynchronously, so the first few frames may run
+        -- before it exists. Wait for it to appear before waiting for it to die,
+        -- otherwise the timeline would run straight past the fight.
+        local boss = self_ref.boss_object
+        if not boss then
+            self_ref.boss_expected = true
+            self_ref.boss_wait_frames = (self_ref.boss_wait_frames or 0) + 1
+            -- Give the asynchronous spawn a generous window to arrive; if no
+            -- boss ever appears, do not stall the stage forever.
+            if self_ref.boss_wait_frames > 600 then
+                self_ref.boss_wait_frames = 0
+                return
+            end
+            thread.pc = thread.pc - 1
+            thread.wait = 1
+            return
+        end
+        self_ref.boss_wait_frames = 0
+        if (boss.hp or 0) > 0 then
+            thread.pc = thread.pc - 1
+            thread.wait = 1
+        end
+    end
     instructions.playSound = function() end
 
     -- --- conditions --------------------------------------------------------
@@ -996,8 +1023,6 @@ function Adapter:current_boss()
 end
 
 --- Check each enemy's health against its registered interrupts.
--- The reference fires a boss subroutine the moment the health crosses the
--- registered threshold, which is what advances nonspell -> spell.
 function Adapter:advance_interrupts()
     for _, enemy in ipairs(self.enemies) do
         local interrupts = enemy.legacy_interrupts

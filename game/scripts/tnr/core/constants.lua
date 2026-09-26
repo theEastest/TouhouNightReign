@@ -20,6 +20,7 @@ local Constants = {
         -- Legacy replay: the stage and ruleset select screen, then the stage.
         REPLAY_SELECT = "REPLAY_SELECT",
         REPLAY_STAGE = "REPLAY_STAGE",
+        REPLAY_RESULT = "REPLAY_RESULT",
         EQUIPMENT_CATALOG = "EQUIPMENT_CATALOG",
         CARD_TRAINING = "CARD_TRAINING",
         CARD_TRAINING_FAILED = "CARD_TRAINING_FAILED",

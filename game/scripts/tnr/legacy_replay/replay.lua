@@ -171,12 +171,40 @@ function Replay:is_active()
     return self.runtime ~= nil
 end
 
---- Advance one frame. Returns "playing", "cleared" or "failed".
+--- Advance one frame. Returns the run state: "playing", "cleared" or "failed".
 function Replay:update()
     if not self.runtime then return "playing" end
     self.runtime:update()
     self:_sync_stats()
+    -- The stage is clear once the timeline has run every section, which happens
+    -- after the boss script returns.
+    if self.runtime:timeline_finished() then
+        return "cleared"
+    end
+    -- All players out of lives.
+    local alive = false
+    for _, player_id in ipairs(self.runtime.session.roster:list()) do
+        if (self.runtime.session.lives[player_id] or 0) > 0 then alive = true break end
+    end
+    if not alive then return "failed" end
     return "playing"
+end
+
+--- Finish the current stage and record the result.
+function Replay:finish_stage(outcome)
+    if not self.runtime then return end
+    self.last_result = {
+        outcome = outcome or "cleared",
+        stage = self.active_stage,
+        character = self.active_character,
+        mode = self.active_mode,
+        score = self.runtime.stats and self.runtime.stats.score or 0,
+        graze = self.runtime.stats and self.runtime.stats.graze or 0,
+        frames = self.runtime.frames,
+        -- The modern ruleset offers reward picks between stages.
+        rewards = outcome == "cleared"
+            and self.runtime.session:finish_stage(self.active_stage) or {},
+    }
 end
 
 --- Push the runtime's state into the HUD rows.
@@ -187,10 +215,11 @@ function Replay:_sync_stats()
     local player = runtime.players[player_id]
     local stats = runtime.stats or {}
     runtime.stats = stats
-    stats.score = (stats.score or 0)
     stats.power = player and math.floor(player.power or 0) or 0
     stats.graze = player and math.floor(player.graze or 0) or 0
-    stats.lives = session.lives and session.lives[player_id] or stats.lives or 3
+    stats.lives = session.lives[player_id] or stats.lives or 3
+    -- Score counts the graze and the point items the player collected.
+    stats.score = math.floor((stats.score or 0) + (player and 0 or 0))
 end
 
 --- Leave the replay and free the runtime.

@@ -1048,6 +1048,41 @@ function MapRenderer:render_replay_stage(replay)
     lstg.EndScene()
 end
 
+--- Legacy replay result screen: the outcome and the run summary.
+function MapRenderer:render_replay_result(replay)
+    local lstg = self.lstg
+    local result = replay and replay.last_result or {}
+    lstg.BeginScene()
+    lstg.RenderClear(color(lstg, COLORS.background))
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+    draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 260, self.width - 260, 150, self.height - 150)
+
+    local cleared = result.outcome == "cleared"
+    self:draw_text(cleared and "关卡通过" or "游戏结束",
+        self.width * 0.5, self.height - 250, 1.6,
+        cleared and COLORS.accent or COLORS.muted, 1 + 4)
+
+    local lines = {
+        string.format("关卡　　%s", tostring(result.stage or "-")),
+        string.format("自机　　%s", tostring(result.character or "-")),
+        string.format("规则　　%s", tostring(result.mode or "-")),
+        string.format("得分　　%d", tonumber(result.score) or 0),
+        string.format("擦弹　　%d", tonumber(result.graze) or 0),
+        string.format("用时　　%.1f 秒", (tonumber(result.frames) or 0) / 60),
+    }
+    if cleared and result.rewards and #result.rewards > 0 then
+        lines[#lines + 1] = string.format("奖励选择　%d 次", #result.rewards)
+    end
+    for index, line in ipairs(lines) do
+        self:draw_text(line, self.width * 0.5, self.height - 310 - (index - 1) * 34, 0.82,
+            COLORS.text, 1 + 4)
+    end
+    self:draw_text("Enter 或 Esc 返回关卡选择", self.width * 0.5, 190, 0.76, COLORS.muted, 1 + 4)
+    lstg.EndScene()
+end
+
 function MapRenderer:render_music_player(cursor, catalog)
     local lstg = self.lstg
     catalog = catalog or {}
@@ -1209,6 +1244,10 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
     end
     if session.run_state == Constants.run_states.REPLAY_STAGE then
         self:render_replay_stage(self.replay)
+        return
+    end
+    if session.run_state == Constants.run_states.REPLAY_RESULT then
+        self:render_replay_result(self.replay)
         return
     end
     if session.run_state == Constants.run_states.EQUIPMENT_CATALOG then
