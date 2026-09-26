@@ -516,8 +516,13 @@ function StageRuntime:draw()
                 if image then
                     local x = left + ((enemy.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
                     local y = top - (enemy.y or 0) * BossUi.PLAYFIELD_SCALE
-                    local w = sprite.w * BossUi.PLAYFIELD_SCALE
-                    local h = sprite.h * BossUi.PLAYFIELD_SCALE
+                    -- The animation script scales the sprite. Enemies draw at
+                    -- their script scale, which is what keeps a small fairy
+                    -- from filling the screen.
+                    local scale_x = player.scale_x or 1
+                    local scale_y = player.scale_y or scale_x
+                    local w = sprite.w * BossUi.PLAYFIELD_SCALE * scale_x
+                    local h = sprite.h * BossUi.PLAYFIELD_SCALE * scale_y
                     local alpha = player.alpha or 255
                     local colour = player.color or { 255, 255, 255 }
                     lstg.SetImageState(image, "",

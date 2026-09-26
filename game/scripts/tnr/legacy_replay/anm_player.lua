@@ -14,12 +14,16 @@ local AnmPlayer = {}
 AnmPlayer.__index = AnmPlayer
 
 -- Opcodes used by the stage 1 enemy and bullet scripts.
+-- The numbers are the anm version 8 script opcodes as thanm dumps them. They
+-- are read straight from the dump: a bullet script that starts 300 1 then
+-- 402 3.0 3.0 is naming sprite 1 and then scaling it to three times size, so
+-- 300 is the sprite and 402 is the scale.
 local OP = {
     SET_ACTIVE_SPRITE = 300,
     JUMP = 200,
     STOP = 1,
     EXIT = 0,
-    SET_SCALE = 2,
+    SET_SCALE = 402,
     SET_ALPHA = 3,
     SET_COLOR = 4,
     FLIP_X = 7,
@@ -31,7 +35,6 @@ local OP = {
     SET_BLEND_ADD = 13,
     SET_BLEND_DEFAULT = 14,
     SET_VISIBILITY = 29,
-    ANM_SET_SPRITE = 304,
     ANM_PLAY = 300,
     ANM_SET_MAIN = 306,
     ANM_PLAY_ABS = 308,
@@ -147,7 +150,7 @@ function AnmPlayer:execute(instruction)
         self.additive = false
     elseif id == OP.SET_VISIBILITY then
         self.visible = (instruction[1] or 0) ~= 0
-    elseif id == OP.ANM_SET_SPRITE then
+    elseif id == OP.ANM_SET_SPRITE_ALT then
         -- Alternative sprite-set form used by some archives.
         local sprite = instruction[1]
         if sprite ~= nil then self.sprite = sprite + 1 end

@@ -262,10 +262,24 @@ function Adapter:build_instructions()
             -- Velocity form: the reference stores half the path in moveInterp
             -- and integrates it with the easing curve, so the destination is
             -- the direction and distance travelled over the move.
-            local resolved = resolve_angle(angle, object.legacy_angle)
+            --
+            -- The angle argument is often the -999999 sentinel. That is not a
+            -- direction: it selects the variant that travels along the angle
+            -- the enemy already has, at the speed it already has. Stage one
+            -- enemies use it as `moveVel(angle, speed)` followed by
+            -- `moveVelTime(80, 1, -999999, 0)`, which means "keep gliding
+            -- along the angle just set". Treating the trailing value as a
+            -- replacement speed stopped them dead on arrival, which is why a
+            -- wave piled up at one point instead of flying through.
+            local raw_angle = tonumber(angle)
+            local keep_heading = raw_angle == nil or raw_angle <= SENTINEL
+            local resolved = keep_heading and (object.legacy_angle or 0) or raw_angle
             object.legacy_angle = resolved
-            object.legacy_speed = tonumber(speed) or 0
-            local distance = object.legacy_speed * math.max(1, frames) * 0.5
+            if not keep_heading then
+                object.legacy_speed = tonumber(speed) or 0
+            end
+            local current_speed = object.legacy_speed or 0
+            local distance = current_speed * math.max(1, frames) * 0.5
             end_x = start_x + math.cos(resolved) * distance
             end_y = start_y + math.sin(resolved) * distance
         end
