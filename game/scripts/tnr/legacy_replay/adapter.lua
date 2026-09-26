@@ -37,9 +37,34 @@ function Adapter.new(options)
     }, Adapter)
     self.difficulty = options.difficulty or EclRuntime.DIFFICULTY.NORMAL
     self.instructions = self:build_instructions()
+    -- Engine globals the ECL reads: the player position, the difficulty id and
+    -- the difficulty flags. Publishing them here means expressions such as
+    -- `%PLAYER_X2` resolve instead of collapsing to zero.
+    local host_ref = self
+    local function globals_provider()
+        local player = host_ref.lstg and host_ref.lstg.player
+        local difficulty = host_ref.difficulty or EclRuntime.DIFFICULTY.NORMAL
+        return {
+            PLAYER_X = player and player.x or 0,
+            PLAYER_Y = player and player.y or 0,
+            PLAYER_X2 = player and player.x or 0,
+            PLAYER_Y2 = player and player.y or 0,
+            DIFF = difficulty,
+            EASY = difficulty == 0 and 1 or 0,
+            NORMAL = difficulty == 1 and 1 or 0,
+            HARD = difficulty == 2 and 1 or 0,
+            LUNATIC = difficulty == 3 and 1 or 0,
+            RANK = 32,
+            TRUE = 1,
+        }
+    end
     self.runtime = EclRuntime.new(options.chunks or {}, {
         instructions = self.instructions,
         difficulty = self.difficulty,
+        -- The runtime calls this for any global a script reads.
+        globals = setmetatable({}, {
+            __index = function(_, name) return globals_provider()[name] end,
+        }),
     })
     -- Publish the difficulty on the runtime itself for operand resolution.
     self.runtime.difficulty = self.difficulty
@@ -294,7 +319,10 @@ function Adapter:build_instructions()
     end
     instructions.etOffset = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.offset = { tonumber(args and args[1]) or 0, tonumber(args and args[2]) or 0 }
+            thread.bullet.offset = {
+                EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0")),
+                EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0")),
+            }
         end
     end
     instructions.etEx = function(thread, runtime, args)
@@ -313,8 +341,25 @@ function Adapter:build_instructions()
     instructions.etCopy = function() end
     instructions.etSound = function() end
     instructions.etDist = function() end
-    instructions.etOffsetAbs = function() end
-    instructions.etOffsetRad = function() end
+    instructions.etOffsetAbs = function(thread, runtime, args)
+        -- Offset the group to an absolute field position.
+        if thread.bullet then
+            thread.bullet.offset_abs = {
+                EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0")),
+                EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0")),
+            }
+        end
+    end
+    instructions.etOffsetRad = function(thread, runtime, args)
+        -- Offset the group by a distance along an angle.
+        if thread.bullet then
+            local angle = EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0"))
+            local distance = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
+            thread.bullet.offset = {
+                math.cos(angle) * distance, math.sin(angle) * distance,
+            }
+        end
+    end
     instructions.etSpeedD = instructions.etSpeed
     instructions.etCountD = instructions.etCount
 
