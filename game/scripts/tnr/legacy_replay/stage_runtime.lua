@@ -42,6 +42,23 @@ end
 
 StageRuntime.image_name = image_name
 
+--- Read the sprite an animation instruction names, or nil when it names none.
+-- Opcodes 300 and 304 name a frame, and 500 names a sprite index outright.
+-- A negative argument means "keep the current sprite", so it is not a frame.
+local function sprite_from_instruction(instruction)
+    local id = instruction.id
+    local value = instruction[1]
+    if id == 500 then
+        local index = tonumber(value)
+        if index and index >= 0 then return index + 1 end
+        return nil
+    end
+    if id ~= 300 and id ~= 304 then return nil end
+    local index = tonumber(value)
+    if not index or index < 0 then return nil end
+    return index + 1
+end
+
 --- Load every texture and sprite rect the stage needs into the engine.
 -- Returns the number of images registered.
 function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
@@ -562,8 +579,11 @@ function StageRuntime:draw()
             local left_x = left + ((player.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
             local top_y = top - (player.y or 0) * BossUi.PLAYFIELD_SCALE
             -- Option sub-ships sit at the positions the sht data gives for the
-            -- current focus state and power level.
-            local option_image = image_name(self.primary_player_archive or "pl00", 1, 34)
+            -- current focus state and power level. The orb art is the blue
+            -- yin-yang unfocused and the red one focused; the previous index
+            -- pointed at a laser segment, which drew as a red bar.
+            local option_sprite = player.focus and 42 or 41
+            local option_image = image_name(self.primary_player_archive or "pl00", 1, option_sprite)
             for _, offset in ipairs(player:option_positions()) do
                 local ox = left_x + (offset[1] or 0) * BossUi.PLAYFIELD_SCALE
                 local oy = top_y - (offset[2] or 0) * BossUi.PLAYFIELD_SCALE
@@ -717,10 +737,43 @@ function StageRuntime:bullet_anim_info(anim)
     return result
 end
 
+--- Resolve a player shot's image from the shared bullet sheet.
+-- Player shots do not use the ship sheet. The reference fires them with a
+-- bullet script offset by 32 from the shooter's animation id, and the scripts
+-- live alongside the enemy bullets. Drawing them from the ship sheet, or
+-- without the offset, produced the oversized red beams.
+function StageRuntime:player_bullet_image(shot)
+    local entries = self.anm.bullet
+    if not entries then return nil end
+    local script_index = (shot.anim or 0) + 32
+    local info = self:bullet_anim_info(script_index)
+    local entry_index, script = nil, nil
+    if info then entry_index, script = info.entry_index, info.script end
+    local sprite = nil
+    if script then
+        -- A shot does not cycle its art on screen, so the first frame the
+        -- script names is the one to draw.
+        for _, instruction in ipairs(script) do
+            sprite = sprite_from_instruction(instruction)
+            if sprite then break end
+        end
+    end
+    if not sprite then return nil end
+    local entry = entries[entry_index or 1]
+    local rect = entry and entry.sprites and entry.sprites[sprite]
+    if not rect then return nil end
+    return image_name("bullet", entry_index or 1, sprite), rect.w, rect.h
+end
+
 --- Resolve the bullet image for a shot at a point in its life.
 -- The animation script is a frame timeline: walk it once to find the sprite due
 -- at `frame`, which lets a bullet cycle through its frames like the reference.
 function StageRuntime:bullet_image(shot)
+    -- Player shots live in the ship's own sheet, alongside the ship and the
+    -- options. Enemy shots live in the shared bullet sheet. Drawing a player
+    -- shot from the enemy sheet is what produced the oversized red beams, whose
+    -- sprite happened to be a 64 pixel laser segment.
+    if shot.player_bullet then return self:player_bullet_image(shot) end
     local entries = self.anm.bullet
     if not entries then return nil end
     -- The sprite family selects which sheet script to play; the colour index
@@ -737,9 +790,10 @@ function StageRuntime:bullet_image(shot)
     local sprite = nil
     if script then
         for _, instruction in ipairs(script) do
-            if (instruction.id == 300 or instruction.id == 304) and instruction[1] then
+            local candidate = sprite_from_instruction(instruction)
+            if candidate then
                 if (instruction.time or 0) <= frame then
-                    sprite = (tonumber(instruction[1]) or 0) + 1
+                    sprite = candidate
                 else
                     break
                 end
@@ -748,10 +802,8 @@ function StageRuntime:bullet_image(shot)
         -- A script that only names one sprite keeps it for the whole life.
         if not sprite then
             for _, instruction in ipairs(script) do
-                if (instruction.id == 300 or instruction.id == 304) and instruction[1] then
-                    sprite = (tonumber(instruction[1]) or 0) + 1
-                    break
-                end
+                sprite = sprite_from_instruction(instruction)
+                if sprite then break end
             end
         end
     end
