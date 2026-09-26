@@ -1,0 +1,100 @@
+{
+  "source": "Touhou 15 Legacy of Lunatic Kingdom, th15.exe 1.00b",
+  "captured_window": {
+    "width": 1600,
+    "height": 1200
+  },
+  "logical_resolution": {
+    "width": 1280,
+    "height": 960
+  },
+  "window_scale": 1.25,
+  "playfield": {
+    "reference_units": {
+      "width": 384,
+      "height": 448
+    },
+    "window_px": {
+      "left": 62,
+      "right": 832,
+      "top": 30,
+      "bottom": 928
+    },
+    "logical_px": {
+      "left": 49.6,
+      "right": 665.6,
+      "top": 24.0,
+      "bottom": 742.4
+    },
+    "logical_size": {
+      "width": 616.0,
+      "height": 718.4
+    },
+    "scale_px_per_unit": 1.6041666666666667,
+    "note": "The playfield aspect ratio is exactly 384:448 (0.857). Coordinates inside the field are centred on x and measured up from the bottom for objects."
+  },
+  "hud": {
+    "region_window_px": {
+      "left": 820,
+      "right": 1300
+    },
+    "rows_window_px": {
+      "hiscore": 100,
+      "score": 140,
+      "lives": 200,
+      "spellcard": 285,
+      "power": 380,
+      "max_point": 425,
+      "graze": 460
+    },
+    "value_column_window_px": 430,
+    "labels": {
+      "hiscore": "ハイスコア",
+      "score": "スコア",
+      "lives": "残り人数",
+      "spellcard": "スペルカード",
+      "power": "霊力",
+      "max_point": "最大得点",
+      "graze": "グレイズ"
+    }
+  },
+  "stage01": {
+    "background": "purple violet mossy cliff, three moons at the top left",
+    "enemies": "small blue and green fairies",
+    "bullets": "green and yellow square seals, yellow ring bullets",
+    "reference_frames": [
+      "reference/stage01_gameplay.png",
+      "reference/stage01_start.png"
+    ]
+  },
+  "render_fidelity": {
+    "canvas": {
+      "width": 1280,
+      "height": 720
+    },
+    "canvas_scale_from_reference_logical": 0.75,
+    "playfield_canvas_px": {
+      "left": 37.2,
+      "right": 499.2,
+      "bottom": 17.8,
+      "top": 556.8
+    },
+    "px_per_game_unit": 1.203125,
+    "background": "green forest canopy (st01a) plus scrolling cloud layers (st01d), with a per-stage coloured fog overlay",
+    "stage01_fog": {
+      "rgb": [
+        203,
+        78,
+        199
+      ],
+      "alpha": 115,
+      "derivation": "solved so raw forest RGB(82,137,80) matches the captured RGB(137,111,134)"
+    },
+    "known_gaps": [
+      "The HUD draws the reference labels but not the heart and star icons.",
+      "Bullets use the correct sheet sprite but the per-bullet animation is not played.",
+      "Background layers scroll uniformly instead of following their own ANM command lists.",
+      "Enemy motion follows the ECL velocity but not the full accel/decel easing curves."
+    ]
+  }
+}

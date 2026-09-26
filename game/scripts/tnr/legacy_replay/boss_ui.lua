@@ -13,24 +13,30 @@ local BossUi = {}
 
 BossUi.__index = BossUi
 
--- Playfield: the reference renders a 384x448 region. The project canvas is
--- 1280x720, and the battle field is centred with the standard aspect.
+-- Playfield geometry, measured from a live capture of the original game.
+--
+-- A capture of th15.exe 1.00b puts the field border at window px
+-- (62,30)-(832,928) inside a 1600x1200 window. The game's logical canvas is
+-- 1280x960 and the project's is 1280x720, so every reference coordinate is
+-- scaled by 0.75 here. The field is exactly 384x448 units, which fixes the
+-- px-per-unit factor below; all enemy, bullet, background and HUD layers use
+-- these constants so the presentation lines up with the original.
 local PLAYFIELD_WIDTH = 384
 local PLAYFIELD_HEIGHT = 448
-local SCREEN_WIDTH = 1280
-local SCREEN_HEIGHT = 720
--- The reference playfield is drawn slightly above centre, leaving room for the
--- bottom-left HUD. 0.5 keeps it centred for now.
-local PLAYFIELD_SCALE = SCREEN_HEIGHT / PLAYFIELD_HEIGHT
-local PLAYFIELD_LEFT = SCREEN_WIDTH * 0.5 - PLAYFIELD_WIDTH * PLAYFIELD_SCALE * 0.5
-local PLAYFIELD_TOP = SCREEN_HEIGHT
+local CANVAS_SCALE = 720 / 960
+local PLAYFIELD_SCALE = 616.0 / PLAYFIELD_WIDTH * CANVAS_SCALE
+local PLAYFIELD_LEFT = 49.6 * CANVAS_SCALE
+local PLAYFIELD_TOP = 742.4 * CANVAS_SCALE
 
 BossUi.PLAYFIELD_SCALE = PLAYFIELD_SCALE
 BossUi.PLAYFIELD_LEFT = PLAYFIELD_LEFT
 BossUi.PLAYFIELD_TOP = PLAYFIELD_TOP
+BossUi.PLAYFIELD_RIGHT = PLAYFIELD_LEFT + PLAYFIELD_WIDTH * PLAYFIELD_SCALE
+BossUi.PLAYFIELD_BOTTOM = PLAYFIELD_TOP - PLAYFIELD_HEIGHT * PLAYFIELD_SCALE
 
 --- Map a reference playfield coordinate to screen space.
--- Reference x is centred on the playfield, y grows downward from the top.
+-- Reference x is centred on the playfield, y grows downward from the top of
+-- the field, matching the ECL coordinate system.
 function BossUi.project(x, y)
     return PLAYFIELD_LEFT + (x + PLAYFIELD_WIDTH * 0.5) * PLAYFIELD_SCALE,
            PLAYFIELD_TOP - y * PLAYFIELD_SCALE
@@ -42,10 +48,12 @@ function BossUi.new(options)
         lstg = options.lstg,
         images = options.images or {},
         -- Bar geometry: full playfield width, a few pixels tall, near the top.
+        -- The reference draws the boss bar just under the top edge of the
+        -- playfield, spanning the full field width.
         bar_left = PLAYFIELD_LEFT,
         bar_right = PLAYFIELD_LEFT + PLAYFIELD_WIDTH * PLAYFIELD_SCALE,
-        bar_top = SCREEN_HEIGHT - 18,
-        bar_height = 6,
+        bar_top = PLAYFIELD_TOP - 6,
+        bar_height = 8,
         health = 1,
         health_max = 1,
         health_layers = {},

@@ -51,9 +51,13 @@ local OP = {
 AnmPlayer.OP = OP
 
 ---@param archive table one compiled archive entry (texture, sprites, scripts)
-function AnmPlayer.new(archive)
+---@param archive_name string? the archive key the entry belongs to
+---@param entry_index number? the entry position inside that archive
+function AnmPlayer.new(archive, archive_name, entry_index)
     return setmetatable({
         archive = archive,
+        archive_name = archive_name,
+        entry_index = entry_index or 1,
         sprites = archive and archive.sprites or {},
         scripts = archive and archive.scripts or {},
         script = nil,

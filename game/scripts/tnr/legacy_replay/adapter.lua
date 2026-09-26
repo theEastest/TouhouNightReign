@@ -66,10 +66,10 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
     if object then
         object.x, object.y = x, y
         object.legacy_ecl = routine
-        -- Attach the animation player for the enemy archive.
-        local archive = self.anm.st01enm
-        if archive and archive[1] then
-            object.legacy_anm = AnmPlayer.new(archive[1])
+        -- Attach the animation player for the stage's enemy archive.
+        local archive, archive_name, entry_index = self:enemy_archive()
+        if archive then
+            object.legacy_anm = AnmPlayer.new(archive, archive_name, entry_index)
         end
         self.enemies[#self.enemies + 1] = object
     end
@@ -84,9 +84,12 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
 end
 
 --- Resolve the ANM archive entry that holds the enemy sprites.
+-- The adapter picks the archive for the stage it is running; the stage runtime
+-- publishes it through `enemy_archive`.
 function Adapter:enemy_archive()
-    local archive = self.anm.st01enm
-    return archive and archive[1] or nil
+    local archive_name = self.enemy_archive_name or "st01enm"
+    local archive = self.anm[archive_name]
+    return archive and archive[1] or nil, archive_name, 1
 end
 
 --- Build the instruction table the interpreter dispatches into.
@@ -259,7 +262,13 @@ function Adapter:build_instructions()
     end
     instructions.etSprite = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.sprite = tonumber(args and args[3]) or tonumber(args and args[1]) or 0
+            -- etSprite(group, anim, sprite): the second argument selects a
+            -- bullet animation script and the third the variant within it. The
+            -- drawn sprite comes from the script, not the raw number, so both
+            -- are recorded and resolved when the bullet spawns.
+            thread.bullet.anim = tonumber(args and args[2]) or 0
+            thread.bullet.variant = tonumber(args and args[3]) or 0
+            thread.bullet.sprite = thread.bullet.variant
         end
     end
     instructions.etAngle = function(thread, runtime, args)
