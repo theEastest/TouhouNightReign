@@ -780,18 +780,19 @@ function Adapter:fire_bullet_group(thread)
         local speed_step = speed + index * (group.speed_spec or 0)
         local x = object.x + (group.offset and group.offset[1] or 0)
         local y = object.y + (group.offset and group.offset[2] or 0)
-        self:spawn_bullet(bullet_class, x, y, speed_step, angle, group.sprite)
+        self:spawn_bullet(bullet_class, x, y, speed_step, angle, group.sprite, group.anim)
     end
 end
 
 --- Spawn one bullet. Falls back to recording when the style is unavailable.
-function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite)
+function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim)
     -- Record the shot so a host without a live bullet object can still draw and
-    -- test the pattern.
+    -- test the pattern. The animation id selects the bullet's sprite sheet.
     self.shots = self.shots or {}
     if #self.shots < 4096 then
         self.shots[#self.shots + 1] = {
             x = x, y = y, speed = speed, angle = angle, sprite = sprite,
+            anim = anim,
             vx = math.cos(angle) * speed, vy = math.sin(angle) * speed,
         }
     end
