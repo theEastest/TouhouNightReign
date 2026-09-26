@@ -341,6 +341,9 @@ local function step(thread, runtime)
             return false
         elseif op == "call" then
             runtime:call(thread, instruction[2], instruction[3])
+            -- A synchronous call parks the caller. Stop stepping it now; the
+            -- scheduler resumes it once the callee has returned.
+            if thread.pending_call then return true end
         else
             runtime.unhandled = runtime.unhandled or {}
             runtime.unhandled[op] = (runtime.unhandled[op] or 0) + 1
@@ -434,23 +437,27 @@ function EclRuntime:call(caller, routine_name, async)
         self.threads[#self.threads + 1] = thread
         return thread
     end
-    -- Synchronous call: run the callee to completion immediately, preserving
-    -- ordering exactly like the reference call instruction.
+    -- A synchronous call suspends the caller until the callee finishes, even
+    -- when the callee waits. Running the callee only until its first wait and
+    -- then resuming the caller is not the same thing: an enemy that starts a
+    -- shared behaviour and then deletes itself would delete on the spot, which
+    -- is why a wave vanished before it flew anywhere. Park the caller on the
+    -- callee so it resumes only once the callee has actually returned.
+    caller.pending_call = thread
     local guard = 0
     while thread.state ~= STATE_FINISHED and guard < 100000 do
         guard = guard + 1
         local before = thread.pc
         step(thread, self)
-        if thread.pc == before and thread.state ~= STATE_FINISHED and thread.wait == 0 then
-            -- No progress possible (e.g. a blocking wait inside a plain call).
-            -- Hand the remainder to the scheduler so frames still advance.
-            self.threads[#self.threads + 1] = thread
-            return thread
-        end
-        if thread.wait > 0 then
-            self.threads[#self.threads + 1] = thread
-            return thread
-        end
+        if thread.wait > 0 then break end
+        if thread.pc == before and thread.state ~= STATE_FINISHED then break end
+    end
+    -- The callee still has work to do, so it joins the scheduler and the caller
+    -- stays parked behind it.
+    if thread.state ~= STATE_FINISHED then
+        self.threads[#self.threads + 1] = thread
+    else
+        caller.pending_call = nil
     end
     return thread
 end
@@ -460,7 +467,21 @@ function EclRuntime:update()
     local index = 1
     while index <= #self.threads do
         local thread = self.threads[index]
-        step(thread, self)
+        local pending = thread.pending_call
+        local waiting = false
+        if pending then
+            if pending.state == STATE_FINISHED then
+                -- The callee returned, so the caller may run again.
+                thread.pending_call = nil
+            else
+                -- A caller parked behind a synchronous call does not advance
+                -- until the callee it is waiting on has finished.
+                waiting = true
+            end
+        end
+        if not waiting then
+            step(thread, self)
+        end
         if thread.state == STATE_FINISHED then
             table.remove(self.threads, index)
         else
