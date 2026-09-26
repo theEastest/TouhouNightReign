@@ -57,7 +57,16 @@ def split_args(text):
             current += ch
     if current.strip():
         args.append(current.strip())
-    return args
+    # The decl renderer escapes a string operand as \"Name\". Strip the wrapper
+    # so the runtime receives a plain name.
+    cleaned = []
+    for arg in args:
+        if len(arg) >= 2 and arg.startswith('\\"') and arg.endswith('\\"'):
+            arg = arg[2:-2]
+        elif len(arg) >= 2 and arg.startswith('"') and arg.endswith('"'):
+            arg = arg[1:-1]
+        cleaned.append(arg)
+    return cleaned
 
 
 def compile_file(path):
@@ -113,6 +122,44 @@ def compile_body(body):
     # Non-instruction statements we still want to keep so the runtime can
     # reproduce control flow exactly.
     instructions = []
+    # Difficulty values declared by the most recent !E/!N/!H/!LO block, in
+    # branch order. An instruction operand written as [-1] or [-1.0f] is a
+    # back-reference into this list (-1 = the last branch, -2 = the one before).
+    diff_values = []
+    pending_diff_key = None
+    pending_diff_values = {}
+
+    def flush_diff():
+        nonlocal diff_values
+        if pending_diff_values:
+            ordered = []
+            for key in ("E", "N", "H", "LO", "O"):
+                if key in pending_diff_values:
+                    ordered.append(pending_diff_values[key])
+            if ordered:
+                diff_values = ordered
+        pending_diff_values.clear()
+
+    def resolve_placeholders(operands):
+        """Replace [-N] operands with a per-difficulty branch list.
+
+        The runtime picks the entry for the active difficulty, so one compiled
+        routine works on every mode. The list is emitted as {"E", "N", ...} in
+        branch order (easy, normal, hard, lunatic/overdrive) with missing modes
+        filled from the closest lighter branch.
+        """
+        resolved = []
+        for operand in operands:
+            match = re.match(r"^\[\s*(-\d+)(\.\d+)?f?\s*\]$", operand)
+            if match and diff_values:
+                distance = int(match.group(1))
+                index = len(diff_values) + distance
+                if 0 <= index < len(diff_values):
+                    resolved.append({"__branches__": list(diff_values)})
+                    continue
+            resolved.append(operand)
+        return resolved
+
     for raw in lines:
         line = raw.strip()
         if not line:
@@ -130,13 +177,26 @@ def compile_body(body):
         if line.startswith("!"):
             key = line[1:].strip()
             if key == "*":
+                flush_diff()
                 instructions.append(("diff_end",))
             else:
-                instructions.append(("diff", key))
+                pending_diff_key = key
+                # A combined marker such as !NHL declares one value for several
+                # difficulties at once; it is flushed when the block ends.
             continue
         # Bare timed values inside a difficulty block, e.g. "90;" or "1.5f;".
         bare = re.match(r"^([-\d][\w\.]*)f?;$", line)
         if bare:
+            if pending_diff_key:
+                # Record the value for each difficulty named in the marker.
+                for single in pending_diff_key:
+                    if single in ("E", "N", "H", "L", "O"):
+                        pending_diff_values["LO" if single == "L" else single] = line[:-1]
+                    elif single == "O":
+                        pending_diff_values["O"] = line[:-1]
+                # !LO means lunatic and overdrive share the value.
+                if pending_diff_key == "LO":
+                    pending_diff_values["LO"] = line[:-1]
             instructions.append(("value", line[:-1]))
             continue
         # if / unless conditional jumps.
@@ -162,7 +222,8 @@ def compile_body(body):
         # Plain instruction call: name(args);
         call_instr = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\((.*)\);$", line)
         if call_instr:
-            instructions.append(("ins", call_instr.group(1), split_args(call_instr.group(2))))
+            operands = resolve_placeholders(split_args(call_instr.group(2)))
+            instructions.append(("ins", call_instr.group(1), operands))
             continue
         # Routine return.
         if line == "return;":
@@ -217,10 +278,6 @@ def main():
             parts = ['"%s"' % inst[0]]
             for value in inst[1:]:
                 if isinstance(value, str):
-                    # The decl dump escapes quotes as \" inside spell names. Lua
-                    # treats a backslash before a non-escape character as an
-                    # error, so keep only the quote marker and drop the
-                    # backslash, then re-escape for a Lua string literal.
                     cleaned = value.replace('\\"', '"')
                     cleaned = cleaned.replace("\\", "")
                     cleaned = cleaned.replace('"', '\\"').replace("\n", "\\n")
@@ -228,13 +285,16 @@ def main():
                 elif isinstance(value, bool):
                     parts.append("true" if value else "false")
                 elif isinstance(value, list):
-                    cleaned_args = []
+                    rendered = []
                     for item in value:
+                        if isinstance(item, dict) and "__branches__" in item:
+                            inner = ", ".join('"%s"' % v for v in item["__branches__"])
+                            rendered.append("{" + inner + "}")
+                            continue
                         token = str(item).replace('\\"', '"')
                         token = token.replace("\\", "")
-                        cleaned_args.append(token.replace('"', '\\"'))
-                    inner = ", ".join('"%s"' % v for v in cleaned_args)
-                    parts.append("{" + inner + "}")
+                        rendered.append('"%s"' % token.replace('"', '\\"'))
+                    parts.append("{" + ", ".join(rendered) + "}")
                 else:
                     parts.append(str(value))
             lines.append("        {" + ", ".join(parts) + "},")

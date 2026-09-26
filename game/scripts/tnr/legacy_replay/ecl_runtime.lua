@@ -73,6 +73,13 @@ end
 
 --- Resolve an operand against the thread's variable frames.
 local function resolve(thread, token)
+    -- A per-difficulty branch list: pick the entry for the active difficulty.
+    if type(token) == "table" then
+        local difficulty = (thread.runtime and thread.runtime.difficulty)
+            or (thread.host and thread.host.difficulty) or 1
+        local index = math.max(1, math.min(#token, difficulty + 1))
+        return resolve(thread, token[index])
+    end
     local literal = parse_literal(token)
     if literal ~= nil then return literal end
     if type(token) ~= "string" then return 0 end
@@ -262,6 +269,10 @@ local function step(thread, runtime)
             end
         elseif op == "assign" then
             apply_assignment(thread, instruction[2], instruction[3], instruction[4])
+        elseif op == "ret" then
+            -- Routine return: the thread ends here.
+            thread.state = STATE_FINISHED
+            return false
         elseif op == "call" then
             runtime:call(thread, instruction[2], instruction[3])
         else
@@ -273,22 +284,51 @@ end
 
 EclRuntime.step = step
 
+--- Resolve a routine name against the compiled catalog.
+-- Compiled entries are namespaced by source stage (for example
+-- "st01.MainSub00") because every stage defines routines with the same bare
+-- names. A call inside "st01.X" that names "MainSub00" must therefore resolve
+-- to "st01.MainSub00" first.
+function EclRuntime:resolve_routine(name, caller)
+    if self.chunks[name] then return name end
+    local namespace = caller and caller.routine and caller.routine:match("^([^%.]+)%.")
+    if namespace then
+        local qualified = namespace .. "." .. name
+        if self.chunks[qualified] then return qualified end
+    end
+    -- Fall back to any namespace that defines the bare name. Stage-local
+    -- routines are usually called from within the same stage, but an enemy can
+    -- also be created by a shared helper, where no caller context exists.
+    local suffix = "." .. name
+    for candidate in pairs(self.chunks) do
+        if candidate:sub(-#suffix) == suffix then return candidate end
+    end
+    return name
+end
+
 --- Create a thread for a routine.
 function EclRuntime:spawn(routine_name, parent)
     local thread = {
-        routine = routine_name,
+        routine = self:resolve_routine(routine_name, parent),
         pc = 0,
         wait = 0,
         state = STATE_RUNNING,
         ints = {},
         floats = {},
         parent = parent,
+        -- The active runtime is kept on the thread so operand resolution can
+        -- consult the difficulty without threading it through every call.
+        runtime = self,
     }
     -- ECL integer/float slots are shared per enemy in the reference; inherit
     -- the parent frame so a subroutine sees the caller's variables.
     if parent then
         thread.ints = parent.ints
         thread.floats = parent.floats
+        -- Subroutines act on the same enemy object as their caller, so the
+        -- child thread inherits it. Without this an async attack routine has no
+        -- object to spawn bullets from.
+        thread.object = parent.object
     end
     return thread
 end
