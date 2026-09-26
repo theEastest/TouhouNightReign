@@ -82,6 +82,29 @@ function AnmPlayer.new(archive, archive_name, entry_index)
 end
 
 --- Start a script from its first instruction.
+--- Switch the sheet this player draws from.
+-- A reference enemy picks its sheet with anmSelect before it sets a sprite,
+-- so the sprite index that follows only means anything relative to the sheet
+-- that was selected. Re-selecting restarts the animation state the way the
+-- reference does.
+---@param archive table the compiled archive entry to switch to
+---@param archive_name string? the archive key the entry belongs to
+---@param entry_index number? the entry position inside that archive
+function AnmPlayer:set_archive(archive, archive_name, entry_index)
+    if not archive then return false end
+    self.archive = archive
+    self.archive_name = archive_name or self.archive_name
+    self.entry_index = entry_index or 1
+    self.sprites = archive.sprites or {}
+    self.scripts = archive.scripts or {}
+    self.script = nil
+    self.pc = 1
+    self.frame = 0
+    self.finished = false
+    self.loops = {}
+    return true
+end
+
 function AnmPlayer:play(script_id)
     if not self.scripts[script_id] then
         self.unhandled["script:" .. tostring(script_id)] =

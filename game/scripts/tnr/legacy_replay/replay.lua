@@ -73,6 +73,9 @@ function Replay.new(options)
         sht = options.sht,
         session = options.session,
         audio = options.audio,
+        -- The live input provider. Without it the roster falls back to the
+        -- scripted stub and the ship cannot be steered at all.
+        input_provider = options.input_provider,
         -- Selection cursors.
         stage_cursor = 1,
         mode_cursor = 1,

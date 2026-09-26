@@ -94,6 +94,7 @@ function Adapter.new(options)
         enemies = {},
         boss_ui = options.boss_ui,
         random = options.random,
+        stage_key = options.stage_key,
     }, Adapter)
     self.difficulty = options.difficulty or EclRuntime.DIFFICULTY.NORMAL
     self.instructions = self:build_instructions()
@@ -197,6 +198,39 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
     return object, thread
 end
 
+--- Resolve an anmSelect index to a sheet.
+-- The reference numbers the sheets the stage loaded rather than the entries
+-- inside one archive: 1 is the shared default sheet, 2 is the enemy sheet, and
+-- 3 upwards are the boss sheets. Only the ones actually collected are offered,
+-- and an unrecognised index falls back to the enemy sheet so an enemy still
+-- draws something instead of vanishing.
+function Adapter:select_archive(selection)
+    local stage = self.stage_key or (self.enemy_archive_name or "st01enm"):match("^(st%d%d)") or "st01"
+    if selection == 1 then
+        -- The default sheet holds generic effects. Fall back to the enemy
+        -- sheet when it was not collected.
+        if self.anm["enemy"] then return "enemy", 1 end
+        return self.enemy_archive_name, 1
+    end
+    if selection >= 3 then
+        -- Boss sheets are the stage number plus bs. st07 has extra sheets for
+        -- its two final forms.
+        local boss_candidates = { stage .. "bs", stage .. "bs2", stage .. "mbs" }
+        if selection == 4 and self.anm[stage .. "mbs2"] then
+            return stage .. "mbs2", 1
+        end
+        if selection == 5 and self.anm[stage .. "bs2"] then
+            return stage .. "bs2", 1
+        end
+        for _, name in ipairs(boss_candidates) do
+            if self.anm[name] then return name, 1 end
+        end
+    end
+    -- The enemy sheet is the default for stage enemies.
+    if self.anm["enemy"] then return "enemy", 1 end
+    return self.enemy_archive_name, 1
+end
+
 --- Resolve the ANM archive entry that holds the enemy sprites.
 -- The adapter picks the archive for the stage it is running; the stage runtime
 -- publishes it through `enemy_archive`.
@@ -213,29 +247,73 @@ function Adapter:build_instructions()
 
     -- --- enemy setup -------------------------------------------------------
     instructions.anmSelect = function(thread, runtime, args)
-        -- Selects an animation archive; stage 1 enemies all use one archive.
-        thread.anm_id = tonumber(args and args[1]) or 0
+        -- anmSelect picks the sheet the enemy draws from. The index is not an
+        -- entry position: it names one of the sheets the stage loaded. The
+        -- reference uses 1 for the shared default sheet, 2 for the enemy sheet
+        -- and 3 and up for the boss sheets. Stage enemies all select 2, so
+        -- reading the value as an entry index drew every fairy from a portrait
+        -- sheet and produced the wrong sprites entirely.
+        local selection = tonumber(args and args[1]) or 2
+        thread.anm_selection = selection
+        local object = thread.object
+        if not object or not object.legacy_anm then return end
+        local archive_name, entry_index = self_ref:select_archive(selection)
+        local archive = archive_name and self_ref.anm[archive_name]
+        local entry = archive and (archive[entry_index] or archive[1])
+        if entry then
+            object.legacy_anm:set_archive(entry, archive_name, entry_index)
+            object.legacy_archive = archive_name
+        end
     end
     instructions.anmSetMain = function(thread, runtime, args)
+        -- anmSetMain(slot, scriptId): slot zero is the body, so it plays the
+        -- script. The higher slots are overlays and are recorded rather than
+        -- taking over the body animation.
         local player = thread.object and thread.object.legacy_anm
-        if player then player:play(tonumber(args and args[1]) or 0) end
+        if not player then return end
+        local slot = resolve_arg(thread, args and args[1], 0) or 0
+        if slot ~= 0 then return end
+        player:play(resolve_arg(thread, args and args[2], 0) or 0)
     end
     instructions.anmSetSprite = function(thread, runtime, args)
+        -- anmSetSprite(slot, spriteId): the first argument names the animation
+        -- slot and the second the sprite within the selected sheet. Slot zero is
+        -- the body; the higher slots draw a second picture over it (an aura, a
+        -- charge effect). Only the body drives the enemy's own sprite here, or a
+        -- later slot would overwrite the animation the body just started.
         local player = thread.object and thread.object.legacy_anm
-        if player then player.sprite = (tonumber(args and args[1]) or 0) + 1 end
+        if not player then return end
+        local slot = resolve_arg(thread, args and args[1], 0) or 0
+        if slot ~= 0 then
+            thread.anm_slot_sprites = thread.anm_slot_sprites or {}
+            thread.anm_slot_sprites[slot] = resolve_arg(thread, args and args[2], nil)
+            return
+        end
+        local sprite = resolve_arg(thread, args and args[2], nil)
+        if sprite == nil then sprite = resolve_arg(thread, args and args[1], 0) end
+        player.sprite = (tonumber(sprite) or 0) + 1
     end
     instructions.anmPlay = function(thread, runtime, args)
         local player = thread.object and thread.object.legacy_anm
-        if player then player:play(tonumber(args and args[1]) or 0) end
+        if player then player:play(resolve_arg(thread, args and args[2], 0) or 0) end
     end
     instructions.setHitbox = function(thread, runtime, args)
         if thread.object then
-            thread.object.legacy_hitbox = { tonumber(args[1]) or 0, tonumber(args[2]) or 0 }
+            thread.object.legacy_hitbox = {
+                resolve_arg(thread, args and args[1], 0),
+                resolve_arg(thread, args and args[2], 0),
+            }
         end
     end
     instructions.setHurtbox = function(thread, runtime, args)
         if thread.object then
-            thread.object.legacy_hurtbox = { tonumber(args[1]) or 0, tonumber(args[2]) or 0 }
+            -- The sizes arrive as ECL literals such as `24.0f`, which are not
+            -- Lua numbers. Reading them with tonumber left every hurtbox at
+            -- zero and every collision at the fallback radius.
+            thread.object.legacy_hurtbox = {
+                resolve_arg(thread, args and args[1], 0),
+                resolve_arg(thread, args and args[2], 0),
+            }
         end
     end
 
@@ -259,27 +337,24 @@ function Adapter:build_instructions()
         local start_y = object.y or 0
         local end_x, end_y = target_x, target_y
         if end_x == nil then
-            -- Velocity form: the reference stores half the path in moveInterp
-            -- and integrates it with the easing curve, so the destination is
-            -- the direction and distance travelled over the move.
+            -- Velocity form. The reference stores half the path in moveInterp and
+            -- integrates it with the easing curve, so the destination is the
+            -- direction and distance travelled over the move:
             --
-            -- The angle argument is often the -999999 sentinel. That is not a
-            -- direction: it selects the variant that travels along the angle
-            -- the enemy already has, at the speed it already has. Stage one
-            -- enemies use it as `moveVel(angle, speed)` followed by
-            -- `moveVelTime(80, 1, -999999, 0)`, which means "keep gliding
-            -- along the angle just set". Treating the trailing value as a
-            -- replacement speed stopped them dead on arrival, which is why a
-            -- wave piled up at one point instead of flying through.
+            --     moveInterp = cos(angle) * speed * res / 2
+            --
+            -- The four arguments are (time, ease, angle, speed). The angle is
+            -- frequently the -999999 sentinel, which means "keep the heading the
+            -- enemy already has" rather than a real direction; the speed is a
+            -- real value either way. An earlier reading of the sentinel as
+            -- "keep the speed too" left a wave that had been told to decelerate
+            -- to zero unable to move again.
             local raw_angle = tonumber(angle)
             local keep_heading = raw_angle == nil or raw_angle <= SENTINEL
             local resolved = keep_heading and (object.legacy_angle or 0) or raw_angle
             object.legacy_angle = resolved
-            if not keep_heading then
-                object.legacy_speed = tonumber(speed) or 0
-            end
-            local current_speed = object.legacy_speed or 0
-            local distance = current_speed * math.max(1, frames) * 0.5
+            object.legacy_speed = tonumber(speed) or object.legacy_speed or 0
+            local distance = object.legacy_speed * math.max(1, frames) * 0.5
             end_x = start_x + math.cos(resolved) * distance
             end_y = start_y + math.sin(resolved) * distance
         end

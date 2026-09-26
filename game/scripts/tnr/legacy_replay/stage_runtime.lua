@@ -187,6 +187,7 @@ function StageRuntime.new(options)
         chunks = options.chunks,
         difficulty = options.difficulty,
         boss_ui = self.boss_ui,
+        stage_key = self.stage_key,
     })
     -- The adapter resolves enemy sprites from the stage's own archive.
     self.adapter.enemy_archive_name = STAGE_ARCHIVES[self.stage_key] or "st01enm"
