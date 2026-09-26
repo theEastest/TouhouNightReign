@@ -209,11 +209,23 @@ end
 Interfaces.modern_mode = function()
     return Interfaces.mode({
         id = "modern",
+        -- Even under the roguelike ruleset the replay is a replay: collecting a
+        -- power item still raises 霊力, because that is part of what the stage
+        -- does. Only the reward picks on top of the stage are new.
+        power_per_large = CLASSIC_POWER_PER_LARGE,
+        power_per_small = CLASSIC_POWER_PER_SMALL,
         starting_resources = function()
             return { lives = 3, bombs = 3, power = 0 }
         end,
         rewards_per_stage = function() return 2 end,
         reward_choice_count = function() return 3 end,
+        on_item_collected = function(self, session, player_id, item)
+            if item and item.kind == "power_large" then
+                session:add_power(player_id, self.power_per_large)
+            elseif item and item.kind == "power" then
+                session:add_power(player_id, self.power_per_small)
+            end
+        end,
     })
 end
 
@@ -293,10 +305,6 @@ end
 
 function ReplaySession:choice_count()
     return self.mode:reward_choice_count() or 3
-end
-
-function ReplaySession:add_power(player_id, amount)
-    self.power[player_id] = (self.power[player_id] or 0) + (tonumber(amount) or 0)
 end
 
 --- Called at a stage boundary. The mode decides whether rewards follow.

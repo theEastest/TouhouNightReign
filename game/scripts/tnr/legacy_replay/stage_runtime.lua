@@ -484,6 +484,20 @@ function StageRuntime:update()
     end
     -- Score extends: the classic ruleset grants a life at each threshold.
     local stats = self.stats
+    -- The HUD reads power and the maximum point value from the stats table, but
+    -- the mode records them on the session. Copy them across so the 霊力 and
+    -- 最大得点 rows show what the player has actually collected instead of a
+    -- permanent zero.
+    if stats then
+        local primary = self.session.roster:list()[1]
+        if primary and self.session.get_power then
+            stats.power = self.session:get_power(primary)
+        end
+        if stats.max_point == nil then stats.max_point = 0 end
+        -- The reference's maximum point value is the point rate the next point
+        -- item is worth, which is what the pickup raises.
+        stats.max_point = self.point_rate or stats.max_point or 0
+    end
     if stats and self.session.mode.on_score_changed then
         for _, player_id in ipairs(self.session.roster:list()) do
             self.session.mode:on_score_changed(self.session, player_id, stats.score or 0)
