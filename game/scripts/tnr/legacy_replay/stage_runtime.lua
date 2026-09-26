@@ -10,6 +10,7 @@ local AnmPlayer = require("tnr.legacy_replay.anm_player")
 local BossUi = require("tnr.legacy_replay.boss_ui")
 local HudFont = require("tnr.legacy_replay.hud_font")
 local Effects = require("tnr.legacy_replay.effects")
+local Palette = require("tnr.legacy_replay.palette")
 local StageBackground = require("tnr.legacy_replay.stage_background")
 local Player = require("tnr.legacy_replay.player")
 local PlayerAnimation = require("tnr.legacy_replay.player_animation")
@@ -518,7 +519,17 @@ function StageRuntime:draw()
             -- Draw at the sprite's own size scaled into the field.
             local w = (width or 16) * BossUi.PLAYFIELD_SCALE
             local h = (height or 16) * BossUi.PLAYFIELD_SCALE
-            lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
+            -- The colour index tints the sprite. Player shots are drawn without
+            -- a tint so they keep their own colours.
+            local tint
+            if shot.player_bullet then
+                tint = lstg.Color(255, 255, 255, 255)
+            else
+                local c = Palette.unpack(Palette.tint(shot.color_index or 27, true))
+                tint = lstg.Color(c.a, c.r, c.g, c.b)
+            end
+            local blend = shot.blend or ""
+            lstg.SetImageState(image, blend, tint)
             lstg.RenderRect(image, x - w * 0.5, x + w * 0.5, y - h * 0.5, y + h * 0.5)
         end
     end
@@ -712,6 +723,8 @@ end
 function StageRuntime:bullet_image(shot)
     local entries = self.anm.bullet
     if not entries then return nil end
+    -- The sprite family selects which sheet script to play; the colour index
+    -- only tints the shape.
     local anim = shot.anim or 0
     local info = self:bullet_anim_info(anim)
     local entry_index, script

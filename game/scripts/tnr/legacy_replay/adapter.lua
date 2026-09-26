@@ -23,6 +23,23 @@ local COLOR = {
     DEEP_GRAY = 15, GRAY = 16,
 }
 
+-- Reference sentinel: an angle or coordinate of -999999 means "keep the
+-- current value". The ECL compiler emits it wherever the original script wrote
+-- the current angle, so resolving it to a real number is what makes an enemy
+-- fly along the direction it is already facing instead of along a garbage
+-- angle like cos(-999999).
+local SENTINEL = -999999
+
+--- Apply the reference sentinel to an angle.
+-- A value at or below the sentinel keeps the object's current heading.
+local function resolve_angle(value, current)
+    local angle = tonumber(value)
+    if angle == nil or angle <= SENTINEL then return current or 0 end
+    return angle
+end
+
+Adapter.resolve_angle = resolve_angle
+
 -- Reference movement easing curves.
 -- These are the exact factors the original applies while interpolating a move
 -- over a fixed number of frames, taken from the game's movement update:
@@ -214,8 +231,10 @@ function Adapter:build_instructions()
     -- `moveVelTime(time, mode, angle, speed)` both select an easing curve from
     -- their second argument.
     local function start_velocity_move(object, angle, speed)
-        object.legacy_vx = math.cos(angle) * speed
-        object.legacy_vy = math.sin(angle) * speed
+        object.legacy_angle = resolve_angle(angle, object.legacy_angle)
+        object.legacy_speed = tonumber(speed) or 0
+        object.legacy_vx = math.cos(object.legacy_angle) * object.legacy_speed
+        object.legacy_vy = math.sin(object.legacy_angle) * object.legacy_speed
         object.legacy_move = nil
     end
 
@@ -225,11 +244,15 @@ function Adapter:build_instructions()
         local start_y = object.y or 0
         local end_x, end_y = target_x, target_y
         if end_x == nil then
-            -- Velocity form: the destination comes from the direction and the
-            -- distance travelled over the move. The reference halves the path
-            -- because the eased interpolation integrates symmetrically.
-            end_x = start_x + math.cos(angle or 0) * (speed or 0) * frames * 0.5
-            end_y = start_y + math.sin(angle or 0) * (speed or 0) * frames * 0.5
+            -- Velocity form: the reference stores half the path in moveInterp
+            -- and integrates it with the easing curve, so the destination is
+            -- the direction and distance travelled over the move.
+            local resolved = resolve_angle(angle, object.legacy_angle)
+            object.legacy_angle = resolved
+            object.legacy_speed = tonumber(speed) or 0
+            local distance = object.legacy_speed * math.max(1, frames) * 0.5
+            end_x = start_x + math.cos(resolved) * distance
+            end_y = start_y + math.sin(resolved) * distance
         end
         object.legacy_move = {
             mode = mode,
@@ -334,8 +357,14 @@ function Adapter:build_instructions()
 
     -- --- lifecycle ---------------------------------------------------------
     instructions.delete = function(thread, runtime)
-        if thread.object and self_ref.lstg.Del then
-            pcall(self_ref.lstg.Del, thread.object)
+        -- delete() destroys the enemy. It must leave the enemy list, or a wave
+        -- that has flown off the bottom would stay on screen forever and the
+        -- field would fill with ghosts.
+        local object = thread.object
+        if object then
+            object.legacy_deleted = true
+            object.hp = 0
+            if self_ref.lstg.Del then pcall(self_ref.lstg.Del, object) end
         end
         thread.state = "finished"
     end
@@ -345,6 +374,7 @@ function Adapter:build_instructions()
         local value = tonumber(args and args[1]) or 0
         if value >= 0 and thread.object then
             self_ref:set_boss_object(thread.object)
+            thread.object.legacy_is_boss = true
             if self_ref.boss_ui then self_ref.boss_ui:begin(100, {}) end
         elseif value < 0 then
             self_ref.boss_object = nil
@@ -425,14 +455,21 @@ function Adapter:build_instructions()
             -- drawn sprite comes from the script, not the raw number, so both
             -- are recorded and resolved when the bullet spawns.
             thread.bullet.anim = tonumber(args and args[2]) or 0
+            -- The third argument is the colour index into the reference palette.
             thread.bullet.variant = tonumber(args and args[3]) or 0
+            thread.bullet.color_index = thread.bullet.variant
+            thread.bullet.sprite_family = thread.bullet.anim
             thread.bullet.sprite = thread.bullet.variant
         end
     end
     instructions.etAngle = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.angle = tonumber(args and args[2]) or 0
-            thread.bullet.angle_spec = tonumber(args and args[3])
+            -- The angle is the base direction for the volley; a sentinel keeps
+            -- the current one, and the second value is the per-bullet spread.
+            local raw = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
+            thread.bullet.angle = resolve_angle(raw, thread.bullet.angle)
+            local spec = EclRuntime.evaluate_expression(thread, tostring(args and args[3] or "0"))
+            thread.bullet.angle_spec = spec
         end
     end
     instructions.etSpeed = function(thread, runtime, args)
@@ -448,7 +485,11 @@ function Adapter:build_instructions()
         end
     end
     instructions.etAim = function(thread, runtime, args)
-        if thread.bullet then thread.bullet.aim = tonumber(args and args[2]) or 0 end
+        if thread.bullet then
+            -- etAim(group, mode): a non-negative mode aims the volley at the
+            -- player, which the reference uses for its aimed shots.
+            thread.bullet.aim = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
+        end
     end
     instructions.etOffset = function(thread, runtime, args)
         if thread.bullet then
@@ -958,19 +999,20 @@ function Adapter:fire_bullet_group(thread)
         local speed_step = speed + index * (group.speed_spec or 0)
         local x = object.x + (group.offset and group.offset[1] or 0)
         local y = object.y + (group.offset and group.offset[2] or 0)
-        self:spawn_bullet(bullet_class, x, y, speed_step, angle, group.sprite, group.anim)
+        self:spawn_bullet(bullet_class, x, y, speed_step, angle, group.sprite, group.anim, false, group.color_index)
     end
 end
 
 --- Spawn one bullet. Falls back to recording when the style is unavailable.
 -- Player shots are marked so the renderer can draw them differently and so
 -- culling can treat them separately.
-function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is_player)
+function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is_player, color_index)
     self.shots = self.shots or {}
     if #self.shots < 8192 then
         self.shots[#self.shots + 1] = {
             x = x, y = y, speed = speed, angle = angle, sprite = sprite,
             anim = anim,
+            color_index = color_index or 27,
             vx = math.cos(angle) * speed, vy = math.sin(angle) * speed,
             player_bullet = is_player == true,
         }
@@ -1079,10 +1121,33 @@ function Adapter:update()
     self.runtime:update()
     self:advance_shots()
     self:advance_interrupts()
+    -- Prune enemies the scripts deleted or that have left the field. The
+    -- reference removes an enemy when it flies far enough outside the playfield,
+    -- which is what keeps a scrolling wave from accumulating on screen.
+    local kept = {}
     for _, enemy in ipairs(self.enemies) do
-        if enemy.legacy_anm then enemy.legacy_anm:update() end
-        self:advance_enemy_movement(enemy)
+        local alive = not enemy.legacy_deleted and (enemy.hp or 1) > 0
+        if alive then
+            -- Enemies are created with auto_delete on, which in the reference
+            -- means they leave once well outside the field. The boss is created
+            -- without it and stays put until its script ends.
+            local x, y = enemy.x or 0, enemy.y or 0
+            if not enemy.legacy_is_boss then
+                if y > 620 or y < -320 or x < -400 or x > 400 then alive = false end
+            end
+        end
+        if not alive then
+            -- A boss leaving play clears the tracking so the next section waits
+            -- for its own boss.
+            if self.boss_object == enemy then self.boss_object = nil end
+        end
+        if alive then
+            if enemy.legacy_anm then enemy.legacy_anm:update() end
+            self:advance_enemy_movement(enemy)
+            kept[#kept + 1] = enemy
+        end
     end
+    self.enemies = kept
 end
 
 --- Coverage report for the current run.
