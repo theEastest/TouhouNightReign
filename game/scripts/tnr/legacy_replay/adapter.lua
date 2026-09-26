@@ -32,6 +32,8 @@ function Adapter.new(options)
         anm = options.anm or {},
         audit = {},
         enemies = {},
+        boss_ui = options.boss_ui,
+        random = options.random,
     }, Adapter)
     self.difficulty = options.difficulty or EclRuntime.DIFFICULTY.NORMAL
     self.instructions = self:build_instructions()
@@ -76,6 +78,7 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
     local thread = self.runtime:spawn(routine, caller_thread or nil)
     thread.object = object
     thread.runtime = self.runtime
+    if object then object.legacy_thread = thread end
     self.runtime.threads[#self.runtime.threads + 1] = thread
     return object, thread
 end
@@ -317,7 +320,411 @@ function Adapter:build_instructions()
     instructions.enmAlive = function() end
     instructions.setDeath = function() end
 
+    -- --- boss presentation -------------------------------------------------
+    -- The reference drives its HUD from these. The adapter forwards them to
+    -- the boss UI so the bar, marker row and name plate match the original.
+    instructions.setBoss = function(thread, runtime, args)
+        -- setBoss(0) starts the fight, setBoss(-1) ends it.
+        local value = tonumber(args and args[1]) or 0
+        if value >= 0 then
+            if self_ref.boss_ui then self_ref.boss_ui:begin(100, {}) end
+        else
+            if self_ref.boss_ui then self_ref.boss_ui.visible = false end
+        end
+    end
+    instructions.lifeSet = function(thread, runtime, args)
+        local value = tonumber(args and args[1]) or 0
+        if thread.object then thread.object.hp = value end
+        if self_ref.boss_ui then
+            self_ref.boss_ui:set_health(value, self_ref.boss_ui.health_max)
+        end
+    end
+    instructions.lifeHide = function() end
+    instructions.lifeMarker = function(thread, runtime, args)
+        -- lifeMarker(index, value, colour) adds a bar segment for a spell card.
+        if self_ref.boss_ui then
+            local count = self_ref.boss_ui.marker_count + 1
+            self_ref.boss_ui.marker_count = count
+            self_ref.boss_ui.health_layers[count] = {
+                value = tonumber(args and args[2]) or 0,
+                colour = tonumber(args and args[3]) or 0xFFFFFFFF,
+            }
+        end
+    end
+    instructions.setInterrupt = function(thread, runtime, args)
+        -- setInterrupt(id, start, finish, "label") registers the subroutine that
+        -- runs when the boss health crosses the start threshold. The reference
+        -- stores it per enemy and triggers it from the manager, which is what
+        -- advances nonspell -> spell -> nonspell.
+        if not thread.object then return end
+        thread.object.legacy_interrupts = thread.object.legacy_interrupts or {}
+        local id = tonumber(args and args[1]) or 0
+        thread.object.legacy_interrupts[id] = {
+            start = tonumber(args and args[2]) or 0,
+            finish = tonumber(args and args[3]) or 0,
+            routine = tostring(args and args[4] or ""),
+            fired = false,
+        }
+    end
+    instructions.spell = function(thread, runtime, args)
+        self_ref:begin_spell(thread, args)
+    end
+    instructions.spell3 = function(thread, runtime, args)
+        self_ref:begin_spell(thread, args)
+    end
+    instructions.spellEnd = function()
+        if self_ref.boss_ui then self_ref.boss_ui.card_flash = 0 end
+    end
+    -- 527 / 554 / 536 are declaration helpers with no presentation of their own.
+    instructions.stageLogo = function() end
+    instructions.ins_569 = function() end
+    instructions.ins_570 = function() end
+    instructions.nop = function() end
+    instructions.debug22 = function() end
+    instructions.timerReset = function() end
+    instructions.dialogRead = function() end
+    instructions.funcSet = function() end
+    instructions.funcCall = function() end
+    instructions.spec1 = function() end
+    instructions.spec2 = function() end
+    instructions.callSTD = function() end
+    instructions.diffWait = function() end
+    instructions.anm316 = function(thread, runtime, args)
+        -- anm316(index, sprite) sets a secondary animation sprite.
+        local player = thread.object and thread.object.legacy_anm
+        if player and args and args[2] ~= nil then
+            player.sprite = (tonumber(args[2]) or 0) + 1
+        end
+    end
+    instructions.anmPlayAbs = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then player:play(tonumber(args and args[1]) or 0) end
+    end
+    instructions.anmSelectedPlay = instructions.anmPlayAbs
+    instructions.diffF = function(thread, runtime, args)
+        -- diffF(%A, easy, normal, hard, lunatic, extra): assign the float slot
+        -- for the active difficulty.
+        local slot = tostring(args[1] or ""):gsub("^[$%%]", "")
+        local by_difficulty = { [0] = 2, [1] = 3, [2] = 4, [3] = 5, [4] = 6 }
+        local index = by_difficulty[self_ref.difficulty] or 3
+        local value = tonumber(args[index])
+        if not value then value = tonumber(args[index - 1]) or 1 end
+        thread.floats[slot] = value
+    end
+    -- etEx2 / etExSet2 are the two-argument forms of the bullet extras; the
+    -- group configuration is the same, only the argument count differs.
+    instructions.etEx2 = function(thread, runtime, args)
+        if thread.bullet then
+            thread.bullet.ex = {}
+            for index = 1, #args do thread.bullet.ex[index] = tonumber(args[index]) end
+        end
+    end
+    instructions.etExSet2 = instructions.etEx2
+
+    -- --- boss movement and effects -----------------------------------------
+    instructions.moveRand = function(thread, runtime, args)
+        local object = thread.object
+        if not object then return end
+        -- moveRand(duration, distance, speed): pick a random nearby target.
+        local distance = tonumber(args and args[2]) or 0
+        local speed = tonumber(args and args[3]) or 1
+        local angle = (self_ref.random and self_ref.random() or math.random()) * math.pi * 2
+        object.legacy_move_target = {
+            x = (object.x or 0) + math.cos(angle) * distance,
+            y = (object.y or 0) + math.sin(angle) * distance,
+        }
+        object.legacy_move_speed = speed
+        thread.move_timer = { remaining = tonumber(args and args[1]) or 60 }
+    end
+    instructions.movePos = function(thread, runtime, args)
+        local object = thread.object
+        if not object then return end
+        object.legacy_move_target = {
+            x = tonumber(args and args[1]) or 0,
+            y = tonumber(args and args[2]) or 0,
+        }
+    end
+    instructions.moveLimit = function(thread, runtime, args)
+        -- Clamp movement to a box around the current position.
+        local object = thread.object
+        if object then
+            object.legacy_move_limit = {
+                left = tonumber(args and args[1]) or 0,
+                right = tonumber(args and args[2]) or 0,
+                top = tonumber(args and args[3]) or 0,
+                bottom = tonumber(args and args[4]) or 0,
+            }
+        end
+    end
+    instructions.moveLimitReset = function(thread, runtime)
+        if thread.object then thread.object.legacy_move_limit = nil end
+    end
+    instructions.moveSetMirror = function(thread, runtime, args)
+        if thread.object then thread.object.legacy_mirror = (tonumber(args and args[1]) or 0) ~= 0 end
+    end
+    instructions.setScreenShake = function(thread, runtime, args)
+        self_ref.screen_shake = {
+            time = tonumber(args and args[1]) or 0,
+            amount = tonumber(args and args[2]) or 0,
+        }
+    end
+    instructions.fog = function(thread, runtime, args)
+        -- fog(alpha, colour) tints the field.
+        self_ref.fog = { alpha = tonumber(args and args[1]) or 0, colour = tonumber(args and args[2]) or 0 }
+    end
+    instructions.fogTime = function(thread, runtime, args)
+        self_ref.fog = {
+            alpha = tonumber(args and args[4]) or 0,
+            colour = tonumber(args and args[3]) or 0,
+            time = tonumber(args and args[1]) or 0,
+        }
+    end
+    instructions.stars = function() end
+    instructions.laserCancel = function() end
+    instructions.killAllAsync = function() end
+
+    -- --- item drops ---------------------------------------------------------
+    instructions.dropItems = function() end
+    instructions.dropClear = function() end
+    instructions.dropArea = function() end
+    instructions.etProtectRange = function() end
+    instructions.flagExtDmg = function() end
+    instructions.validRad = function() end
+    instructions.bombShield = function() end
+
+    -- --- lasers -------------------------------------------------------------
+    -- The reference keeps a laser handle table per enemy. The adapter records
+    -- the configuration so a host that draws lasers can render them; the
+    -- pattern logic itself lives in the ECL.
+    instructions.laserNew = function(thread, runtime, args)
+        thread.lasers = thread.lasers or {}
+        local index = tonumber(args and args[1]) or 0
+        thread.lasers[index] = {
+            angle = tonumber(args and args[2]) or 0,
+            speed = tonumber(args and args[3]) or 0,
+            length = tonumber(args and args[4]) or 0,
+            width = tonumber(args and args[5]) or 16,
+        }
+    end
+    instructions.laserOn = function(thread, runtime, args)
+        local index = tonumber(args and args[1]) or 0
+        local laser = thread.lasers and thread.lasers[index]
+        if laser and thread.object then
+            self_ref.shots = self_ref.shots or {}
+            -- A laser is drawn as a stretched bullet along its angle.
+            self_ref.shots[#self_ref.shots + 1] = {
+                x = thread.object.x, y = thread.object.y,
+                speed = 0, angle = laser.angle, sprite = 0,
+                vx = 0, vy = 0, laser = true,
+                length = laser.length, width = laser.width,
+            }
+        end
+    end
+    instructions.laserTiming = function() end
+    instructions.laserCuOn = function(thread, runtime, args)
+        instructions.laserOn(thread, runtime, args)
+    end
+    instructions.laserStOn = function(thread, runtime, args)
+        instructions.laserOn(thread, runtime, args)
+    end
+    instructions.laserOffset = function() end
+    instructions.laserTrajectory = function() end
+    instructions.laserStLength = function() end
+    instructions.laserStWidth = function() end
+
+    -- --- movement -----------------------------------------------------------
+    instructions.movePosRel = function(thread, runtime, args)
+        local object = thread.object
+        if not object then return end
+        object.legacy_move_target = {
+            x = (object.x or 0) + EclRuntime.evaluate_expression(thread, tostring(args[1] or "0")),
+            y = (object.y or 0) + EclRuntime.evaluate_expression(thread, tostring(args[2] or "0")),
+        }
+    end
+    instructions.movePosRelTime = function(thread, runtime, args)
+        instructions.movePosRel(thread, runtime, { args[3], args[4] })
+        thread.move_timer = { remaining = tonumber(args and args[1]) or 0 }
+    end
+    instructions.moveCircleRel = function(thread, runtime, args)
+        instructions.moveCircle(thread, runtime, args)
+    end
+    instructions.moveCircleRelTime = function(thread, runtime, args)
+        instructions.moveCircleTime(thread, runtime, args)
+    end
+    instructions.moveSpeed = function(thread, runtime, args)
+        if thread.object then thread.object.legacy_speed = tonumber(args and args[1]) or 0 end
+    end
+    instructions.circlePos = function(thread, runtime, args)
+        local object = thread.object
+        if not object then return end
+        -- circlePos(angle, x, y, radius): place at a point on a circle.
+        local angle = EclRuntime.evaluate_expression(thread, tostring(args[1] or "0"))
+        local radius = tonumber(args and args[4]) or 0
+        object.x = (tonumber(args and args[2]) or 0) + math.cos(angle) * radius
+        object.y = (tonumber(args and args[3]) or 0) + math.sin(angle) * radius
+    end
+
+    -- --- arithmetic and registers ------------------------------------------
+    -- addf / setf operate on the float accumulator the reference exposes
+    -- through the F0..F7 globals.
+    instructions.addf = function(thread, runtime, args)
+        thread.float_acc = (thread.float_acc or 0) + (tonumber(args and args[1]) or 0)
+    end
+    instructions.setf = function(thread, runtime, args)
+        thread.float_acc = EclRuntime.evaluate_expression(thread, tostring(args and args[1] or "0"))
+    end
+    instructions.getAngle = function(thread, runtime, args)
+        local slot = tostring(args and args[1] or ""):gsub("^[$%%]", "")
+        local x1 = EclRuntime.evaluate_expression(thread, tostring(args[2] or "0"))
+        local y1 = EclRuntime.evaluate_expression(thread, tostring(args[3] or "0"))
+        local x2 = EclRuntime.evaluate_expression(thread, tostring(args[4] or "0"))
+        local y2 = EclRuntime.evaluate_expression(thread, tostring(args[5] or "0"))
+        thread.floats[slot] = angle_between(x1, y1, x2, y2)
+    end
+
+    -- --- misc ---------------------------------------------------------------
+    instructions.bombShield = function() end
+    instructions.enmCall = function(thread, runtime, args)
+        -- enmCall(id, "Routine") runs a routine on an existing enemy.
+        local routine = tostring(args and args[2] or "")
+        local target = nil
+        local wanted = tonumber(args and args[1]) or 0
+        for index, enemy in ipairs(self_ref.enemies) do
+            if index == wanted then target = enemy break end
+        end
+        target = target or thread.object
+        local child = self_ref.runtime:spawn(routine, thread)
+        child.object = target or thread.object
+        child.runtime = self_ref.runtime
+        self_ref.runtime.threads[#self_ref.runtime.threads + 1] = child
+    end
+    instructions.enmCreateMF = instructions.enmCreate
+    instructions.enmMapleEnemy = instructions.enmCreate
+    instructions.enm322 = function(thread, runtime, args)
+        -- enm322(mode, value) synchronises a boss's position with its anim
+        -- group. The mode the reference selects in the stage 6 loop only
+        -- anchors the sprite, so the adapter keeps the object where the
+        -- movement instructions placed it.
+    end
+    instructions.gameSpeed = function() end
+    instructions.floatTime = function() end
+    instructions.spellEx = function(thread, runtime, args)
+        self_ref:begin_spell(thread, args)
+    end
+    instructions.spellMode = function() end
+    instructions.spellTimeout = function() end
+    instructions.anmSwitch = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then player:play(tonumber(args and args[1]) or 0) end
+    end
+    instructions.anmPlayPos = function() end
+    -- Unassigned reference slots that are pure no-ops.
+    instructions.ins_30 = function() end
+    instructions.ins_544 = function() end
+    instructions.ins_549 = function() end
+    instructions.ins_571 = function() end
+    instructions.debug901 = function() end
+    instructions.debug902 = function() end
+    instructions.etExSub = function() end
+    instructions.etExSubtract = function() end
+    instructions.killAsync = function(thread, runtime, args)
+        -- Cancel a named async thread. The reference passes an index; the
+        -- adapter cancels the oldest live child thread of this object.
+        local children = thread.children
+        if children and #children > 0 then
+            local victim = table.remove(children, 1)
+            victim.state = "finished"
+        end
+    end
+    instructions.moveCircle = function(thread, runtime, args)
+        -- moveCircle(angle, angular speed, radius x, radius y): orbit motion.
+        local object = thread.object
+        if not object then return end
+        object.legacy_circle = {
+            angle = tonumber(args and args[1]) or 0,
+            angular = tonumber(args and args[2]) or 0,
+            radius_x = tonumber(args and args[3]) or 0,
+            radius_y = tonumber(args and args[4]) or 0,
+            origin_x = object.x or 0,
+            origin_y = object.y or 0,
+        }
+    end
+    instructions.moveCircleTime = function(thread, runtime, args)
+        instructions.moveCircle(thread, runtime, { args[2], args[3], args[4], args[5] })
+        thread.move_timer = { remaining = tonumber(args and args[1]) or 0 }
+    end
+
+    -- --- per-animation state -----------------------------------------------
+    instructions.anmLayer = function(thread, runtime, args)
+        if thread.object then thread.object.legacy_layer = tonumber(args and args[2]) or 0 end
+    end
+    instructions.anmColor = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then
+            player.color = {
+                tonumber(args and args[2]) or 255,
+                tonumber(args and args[3]) or 255,
+                tonumber(args and args[4]) or 255,
+            }
+        end
+    end
+    instructions.anmAlpha = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then player.alpha = tonumber(args and args[2]) or 255 end
+    end
+    instructions.anmAlphaTime = function(thread, runtime, args)
+        -- anmAlphaTime(index, duration, from, to): fade over the duration.
+        local player = thread.object and thread.object.legacy_anm
+        if player then
+            player.fade = {
+                remaining = tonumber(args and args[2]) or 0,
+                duration = tonumber(args and args[2]) or 1,
+                from = tonumber(args and args[3]) or 0,
+                to = tonumber(args and args[4]) or 255,
+            }
+            player.alpha = player.fade.from
+        end
+    end
+    instructions.anmScale = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then
+            player.scale_x = tonumber(args and args[2]) or 1
+            player.scale_y = tonumber(args and args[3]) or player.scale_x
+        end
+    end
+    instructions.anmScaleTime = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then
+            player.scale_time = {
+                remaining = tonumber(args and args[2]) or 0,
+                duration = tonumber(args and args[2]) or 1,
+                to_x = tonumber(args and args[4]) or 1,
+                to_y = tonumber(args and args[5]) or 1,
+            }
+        end
+    end
+    instructions.anmRotate = function(thread, runtime, args)
+        local player = thread.object and thread.object.legacy_anm
+        if player then
+            player.rotation = EclRuntime.evaluate_expression(thread, tostring(args and args[2] or "0"))
+        end
+    end
+
     return instructions
+end
+
+--- Start a spell card: show the cut-in and set up the bar segment.
+function Adapter:begin_spell(thread, args)
+    -- spell(layer, duration, score, name)
+    local name = tostring(args and args[4] or "")
+    if self.boss_ui then
+        self.boss_ui:show_card(name)
+        self.boss_ui:show_name(name)
+    end
+    if thread.object then
+        thread.object.legacy_spell = name
+        thread.spell_timer = tonumber(args and args[2]) or 0
+    end
 end
 
 --- Spawn an enemy from an enmCreate-family call.
@@ -396,10 +803,49 @@ function Adapter:advance_shots()
     end
 end
 
+--- Apply damage to an enemy. The reference reduces health directly and the
+-- manager observes the change, so the adapter keeps the same model.
+function Adapter:damage_enemy(enemy, amount)
+    if not enemy then return end
+    enemy.hp = math.max(0, (enemy.hp or 0) - (tonumber(amount) or 0))
+    if self.boss_ui then self.boss_ui:set_health(enemy.hp, self.boss_ui.health_max) end
+end
+
+--- The first live enemy, which is the boss once it spawns.
+function Adapter:current_boss()
+    for _, enemy in ipairs(self.enemies) do
+        if enemy.legacy_interrupts then return enemy end
+    end
+    return nil
+end
+
+--- Check each enemy's health against its registered interrupts.
+-- The reference fires a boss subroutine the moment the health crosses the
+-- registered threshold, which is what advances nonspell -> spell.
+function Adapter:advance_interrupts()
+    for _, enemy in ipairs(self.enemies) do
+        local interrupts = enemy.legacy_interrupts
+        if interrupts then
+            local hp = enemy.hp or 0
+            for _, entry in pairs(interrupts) do
+                if not entry.fired and hp <= entry.start and entry.routine ~= "" then
+                    entry.fired = true
+                    -- Run the subroutine on the enemy's own thread context.
+                    local thread = self.runtime:spawn(entry.routine, enemy.legacy_thread)
+                    thread.object = enemy
+                    thread.runtime = self.runtime
+                    self.runtime.threads[#self.runtime.threads + 1] = thread
+                end
+            end
+        end
+    end
+end
+
 --- Advance every enemy animation and the ECL threads by one frame.
 function Adapter:update()
     self.runtime:update()
     self:advance_shots()
+    self:advance_interrupts()
     for _, enemy in ipairs(self.enemies) do
         if enemy.legacy_anm then enemy.legacy_anm:update() end
         -- Apply the movement the script set.

@@ -72,6 +72,28 @@ local function parse_literal(token)
 end
 
 --- Resolve an operand against the thread's variable frames.
+-- Defaults for engine globals the host does not override. DIFF matches the
+-- active difficulty (0 easy .. 3 lunatic); the difficulty flag slots are 1 for
+-- the active mode and 0 otherwise, exactly like the reference.
+local GLOBAL_DEFAULT = {
+    DIFF = 1,
+    EASY = 0, NORMAL = 1, HARD = 0, LUNATIC = 0,
+    RANK = 32,
+    TIME = 0,
+    TIMEOUT = 0,
+    CAPTURE = 1,
+    -- A normal full-stage run has no single spell selected, so SPELL_ID stays
+    -- negative and the boss plays its complete sequence.
+    SPELL_ID = -1,
+    LIFE = 3,
+    BOMB_COUNT = 3,
+    MISS_COUNT = 0,
+    POWER = 0,
+    TRUE = 1,
+}
+
+EclRuntime.GLOBAL_DEFAULT = GLOBAL_DEFAULT
+
 local function resolve(thread, token)
     -- A per-difficulty branch list: pick the entry for the active difficulty.
     if type(token) == "table" then
@@ -85,9 +107,24 @@ local function resolve(thread, token)
     if type(token) ~= "string" then return 0 end
     local kind, name = token:match("^([$%%])([A-Za-z_][A-Za-z0-9_]*)$")
     if kind == "$" then
-        return thread.ints[name] or 0
+        local value = thread.ints[name]
+        if value ~= nil then return value end
+        -- Engine globals are supplied by the host when available.
+        local runtime = thread.runtime
+        if runtime and runtime.host and runtime.host.globals then
+            local provided = runtime.host.globals[name]
+            if provided ~= nil then return provided end
+        end
+        return GLOBAL_DEFAULT[name] or 0
     elseif kind == "%" then
-        return thread.floats[name] or 0
+        local value = thread.floats[name]
+        if value ~= nil then return value end
+        local runtime = thread.runtime
+        if runtime and runtime.host and runtime.host.globals then
+            local provided = runtime.host.globals[name]
+            if provided ~= nil then return provided end
+        end
+        return 0
     end
     -- Unresolved names fall back to zero, matching an uninitialised ECL slot.
     return 0
@@ -225,6 +262,19 @@ local function step(thread, runtime)
             thread.wait = thread.wait - 1
             return true
         end
+        -- Fire any deferred async calls whose delay has elapsed.
+        if thread.deferred then
+            local pending = {}
+            for _, entry in ipairs(thread.deferred) do
+                entry.remaining = entry.remaining - 1
+                if entry.remaining <= 0 then
+                    runtime:call(thread, entry.routine, true)
+                else
+                    pending[#pending + 1] = entry
+                end
+            end
+            thread.deferred = pending
+        end
         if budget <= 0 then
             -- Yield to the next frame; the thread keeps its program counter.
             return true
@@ -269,6 +319,22 @@ local function step(thread, runtime)
             end
         elseif op == "assign" then
             apply_assignment(thread, instruction[2], instruction[3], instruction[4])
+        elseif op == "call_after" then
+            -- Deferred async call: wait N frames, then start the routine.
+            local delay = math.max(0, math.floor(tonumber(instruction[3]) or 0))
+            if delay > 0 then
+                thread.deferred = thread.deferred or {}
+                thread.deferred[#thread.deferred + 1] = {
+                    remaining = delay,
+                    routine = instruction[2],
+                    args = instruction[4],
+                }
+            else
+                runtime:call(thread, instruction[2], true)
+            end
+        elseif op == "label_offset" then
+            -- Positional branch labels (`+1:`) mark the start of a delay slot;
+            -- they carry no runtime behaviour of their own.
         elseif op == "ret" then
             -- Routine return: the thread ends here.
             thread.state = STATE_FINISHED
@@ -305,6 +371,30 @@ function EclRuntime:resolve_routine(name, caller)
     end
     return name
 end
+
+--- Build the table of engine provided global ECL variables.
+-- The reference exposes read-only values such as the player position, the
+-- difficulty id and the spell id under negative slot numbers. They are
+-- addressed through the same `$NAME` syntax as ordinary slots.
+local GLOBAL_VALUES = {
+    RAND = -10000, RANDF = -9999, RANDRAD = -9998,
+    FINAL_X = -9997, FINAL_Y = -9996, ABS_X = -9995, ABS_Y = -9994,
+    REL_X = -9993, REL_Y = -9992, PLAYER_X = -9991, PLAYER_Y = -9990,
+    ANGLE_PLAYER = -9989, TIME = -9988, RANDF2 = -9987, TIMEOUT = -9986,
+    I0 = -9985, I1 = -9984, I2 = -9983, I3 = -9982,
+    F0 = -9981, F1 = -9980, F2 = -9979, F3 = -9978,
+    ABS_ANGLE = -9971, REL_ANGLE = -9970, ABS_SPEED = -9969, REL_SPEED = -9968,
+    BOSS_X = -9963, BOSS_Y = -9962, ANM_ID = -9961, RANK = -9960, DIFF = -9959,
+    TRUE = -9957, LIFE = -9954, EASY = -9953, NORMAL = -9952,
+    HARD = -9951, LUNATIC = -9950, MISS_COUNT = -9949, BOMB_COUNT = -9948,
+    CAPTURE = -9947, ENM_CNT_REAL = -9946, SHOTTYPE = -9945, DIST_PLAYER = -9944,
+    POWER = -9930, LAST_ENM_ID = -9931,
+    -- th15 extra mode exposes SPELL_ID for the spell selection branch.
+    SPELL_ID = -9907,
+}
+
+EclRuntime.GLOBAL_VALUES = GLOBAL_VALUES
+
 
 --- Create a thread for a routine.
 function EclRuntime:spawn(routine_name, parent)
