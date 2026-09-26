@@ -1073,6 +1073,7 @@ function Bootstrap:open_replay_select()
     self.replay.stage_cursor = 1
     self.replay.mode_cursor = 1
     self.replay.character_cursor = 1
+    self.replay.player_count_cursor = 1
     self.replay.message = nil
     -- Load the shared data up front so the select screen can show a clear
     -- message instead of failing when a stage starts.
@@ -1107,7 +1108,7 @@ end
 --- Drive the replay select screen input.
 function Bootstrap:_update_replay_select(player_input)
     local replay = self.replay
-    local fields = { "stage", "mode", "character" }
+    local fields = { "stage", "player_count", "mode", "character" }
     if (player_input.move_x or 0) ~= 0 then
         local index = 1
         for position, name in ipairs(fields) do
@@ -1120,6 +1121,7 @@ function Bootstrap:_update_replay_select(player_input)
         local field = self.replay_field or "stage"
         local counts = {
             stage = #replay:stage_list(),
+            player_count = #replay.PLAYER_COUNTS,
             mode = #replay.MODES,
             character = #replay.CHARACTERS,
         }

@@ -188,6 +188,10 @@ Interfaces.classic_mode = function()
         on_score_changed = function(self, session, player_id, score)
             -- Grant an extra life each time the threshold is crossed.
             if not self.extend_score then return end
+            -- A session without player state (a bare harness) has nothing to
+            -- grant to, so skip instead of erroring.
+            if not session.players or not session.get_player then return end
+            if not session:get_player(player_id) then return end
             while score >= self.next_extend do
                 session:add_life(player_id, 1, "score_extend")
                 self.next_extend = self.next_extend + self.extend_score
@@ -224,15 +228,49 @@ ReplaySession.__index = ReplaySession
 ---@param options table { roster, mode, stage, on_reward }
 function ReplaySession.new(options)
     options = options or {}
-    return setmetatable({
-        roster = options.roster or PlayerRoster.new({ player_ids = { 1 } }),
-        mode = options.mode or Interfaces.modern_mode(),
+    local mode = options.mode or Interfaces.modern_mode()
+    local roster = options.roster or PlayerRoster.new({ player_ids = { 1 } })
+    local session = setmetatable({
+        roster = roster,
+        mode = mode,
         stage = options.stage,
         on_reward = options.on_reward,
         power = {},
         stage_index = 0,
         pending_rewards = {},
+        -- Team lives and bombs, seeded from the ruleset. The replay reduces these
+        -- directly because it runs outside the roguelike's player profiles.
+        lives_left = {},
+        bombs_left = {},
+        score = 0,
     }, ReplaySession)
+    local resources = mode:starting_resources()
+    for _, player_id in ipairs(roster:list()) do
+        session.lives_left[player_id] = resources.lives or 3
+        session.bombs_left[player_id] = resources.bombs or 3
+        session.power[player_id] = resources.power or 0
+    end
+    return session
+end
+
+function ReplaySession:life_count(player_id)
+    return self.lives_left[player_id] or 0
+end
+
+--- Reduce a player's lives. Returns false when they have none left.
+function ReplaySession:lose_life(player_id)
+    local current = self.lives_left[player_id] or 0
+    if current <= 0 then return false end
+    self.lives_left[player_id] = current - 1
+    return true
+end
+
+function ReplaySession:add_power(player_id, amount)
+    self.power[player_id] = (self.power[player_id] or 0) + (tonumber(amount) or 0)
+end
+
+function ReplaySession:get_power(player_id)
+    return self.power[player_id] or 0
 end
 
 function ReplaySession:is_coop()
@@ -259,10 +297,6 @@ end
 
 function ReplaySession:add_power(player_id, amount)
     self.power[player_id] = (self.power[player_id] or 0) + (tonumber(amount) or 0)
-end
-
-function ReplaySession:get_power(player_id)
-    return self.power[player_id] or 0
 end
 
 --- Called at a stage boundary. The mode decides whether rewards follow.

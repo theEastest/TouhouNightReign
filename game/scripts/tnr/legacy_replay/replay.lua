@@ -38,6 +38,13 @@ Replay.CHARACTERS = {
     { key = "reisen", name = "铃仙·优昙华院·因幡", sheet = "pl03" },
 }
 
+-- How many players a run can have. Co-op uses the project's existing two
+-- player ids.
+Replay.PLAYER_COUNTS = {
+    { key = 1, name = "单人游戏" },
+    { key = 2, name = "双人游戏" },
+}
+
 -- Selectable rulesets.
 Replay.MODES = {
     { key = "modern", name = "现代模式", description = "每关后两次三选一奖励" },
@@ -58,6 +65,7 @@ function Replay.new(options)
         stage_cursor = 1,
         mode_cursor = 1,
         character_cursor = 1,
+        player_count_cursor = 1,
         -- Active run.
         runtime = nil,
         active_stage = nil,
@@ -101,6 +109,10 @@ function Replay:selected_character()
     return Replay.CHARACTERS[self.character_cursor] or Replay.CHARACTERS[1]
 end
 
+function Replay:selected_player_count()
+    return Replay.PLAYER_COUNTS[self.player_count_cursor] or Replay.PLAYER_COUNTS[1]
+end
+
 --- Move a selection cursor with wraparound.
 function Replay:move_cursor(name, delta, count)
     if delta == 0 then return end
@@ -124,17 +136,22 @@ function Replay:start_stage()
     StageRuntime.load_stage_assets(self.lstg, stage.key, self.anm,
         { texture_sizes = self.texture_sizes })
 
-    -- Build the ruleset and the session that pairs it with the roster.
+    -- Build the ruleset and the session that pairs it with the roster. In
+    -- co-op both players share the stage, which the existing team life and
+    -- revive logic covers.
     local ruleset = mode.key == "classic"
         and Interfaces.classic_mode() or Interfaces.modern_mode()
-    local roster = Interfaces.PlayerRoster.new({ player_ids = { 1 } })
-    -- The live keyboard drives the ship through the existing input provider.
-    if self.input_provider then
-        roster:set_input(1, InputBridge.keyboard(self.input_provider, 1))
-    else
-        roster:set_input(1, InputBridge.scripted(function()
-            return self.keyboard_input or {}
-        end))
+    local player_count = self:selected_player_count().key
+    local player_ids = player_count > 1 and { 1, 2 } or { 1 }
+    local roster = Interfaces.PlayerRoster.new({ player_ids = player_ids })
+    for _, player_id in ipairs(player_ids) do
+        if self.input_provider then
+            roster:set_input(player_id, InputBridge.keyboard(self.input_provider, player_id))
+        else
+            roster:set_input(player_id, InputBridge.scripted(function()
+                return self.keyboard_input or {}
+            end))
+        end
     end
     local session = Interfaces.ReplaySession.new({ roster = roster, mode = ruleset })
 
@@ -182,9 +199,12 @@ function Replay:update()
         return "cleared"
     end
     -- All players out of lives.
-    local alive = false
+    -- The replay session tracks lives itself: it starts from the ruleset and is
+    -- reduced on every hit. A run with no lives left is a failure.
+    local lives = self.runtime.session.lives_left or {}
+    local alive = #self.runtime.session.roster:list() == 0
     for _, player_id in ipairs(self.runtime.session.roster:list()) do
-        if (self.runtime.session.lives[player_id] or 0) > 0 then alive = true break end
+        if (lives[player_id] or 0) > 0 then alive = true break end
     end
     if not alive then return "failed" end
     return "playing"
@@ -217,7 +237,7 @@ function Replay:_sync_stats()
     runtime.stats = stats
     stats.power = player and math.floor(player.power or 0) or 0
     stats.graze = player and math.floor(player.graze or 0) or 0
-    stats.lives = session.lives[player_id] or stats.lives or 3
+    stats.lives = session:life_count(player_id)
     -- Score counts the graze and the point items the player collected.
     stats.score = math.floor((stats.score or 0) + (player and 0 or 0))
 end

@@ -991,11 +991,29 @@ function MapRenderer:render_replay_select(replay, cursor_field)
             selected and COLORS.text or COLORS.muted, 0)
     end
 
+    -- Player count column.
+    local players_left = 540
+    local players_top = stage_top - 150
+    self:draw_text("人数", players_left, players_top + 26, 0.85, COLORS.accent, 0)
+    for index, entry in ipairs(replay.PLAYER_COUNTS) do
+        local y = players_top - (index - 1) * 40
+        local selected = index == (replay.player_count_cursor or 1)
+        local focused = cursor_field == "player_count"
+        if selected and focused then
+            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, players_left - 8, players_left + 300, y - 14, y + 20)
+        end
+        local marker = selected and (focused and ">" or "·") or " "
+        self:draw_text(marker, players_left, y, 0.8, COLORS.accent, 0)
+        self:draw_text(entry.name, players_left + 26, y, selected and 0.86 or 0.8,
+            selected and COLORS.text or COLORS.muted, 0)
+    end
+
     -- Mode column.
     local mode_left = 540
-    self:draw_text("规则", mode_left, stage_top + 26, 0.85, COLORS.accent, 0)
+    local mode_top = players_top - 110
+    self:draw_text("规则", mode_left, mode_top + 26, 0.85, COLORS.accent, 0)
     for index, entry in ipairs(modes) do
-        local y = stage_top - (index - 1) * 40
+        local y = mode_top - (index - 1) * 40
         local selected = index == (replay.mode_cursor or 1)
         local focused = cursor_field == "mode"
         if selected and focused then

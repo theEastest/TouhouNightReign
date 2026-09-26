@@ -290,7 +290,7 @@ end
 function StageRuntime:on_player_hit(player_id, player)
     player:hit()
     self.session.mode:on_player_hit(self.session, player_id)
-    self.session:add_life(player_id, -1, "hit")
+    self.session:lose_life(player_id)
     -- Clear the bullets around the player so respawning is survivable.
     local kept = {}
     for _, shot in ipairs(self.adapter.shots or {}) do
@@ -373,6 +373,13 @@ function StageRuntime:start()
     return self:advance_section()
 end
 
+--- True when the stage's timeline has finished every section.
+-- The reference treats the stage as clear once the last section returns,
+-- which happens after the boss script completes.
+function StageRuntime:timeline_finished()
+    return self.timeline_done == true
+end
+
 --- Start the next timeline section. Returns false when there are none left.
 -- The reference engine chains the sections: the opening waves, then the
 -- mid-boss section, then the boss section. Each starts once the previous one
@@ -439,11 +446,25 @@ function StageRuntime:update()
         end
     end
     self.items:update()
-    -- Collected items feed the mode, which decides what they are worth.
+    -- Collected items feed the mode, which decides what they are worth, and
+    -- score by the point rate the way the reference does.
     for _, item in ipairs(self.items:drain_collected()) do
         local owner = self.items.player
         if owner then
             self.session.mode:on_item_collected(self.session, owner.player_id, item)
+            if item.kind == "point" then
+                local stats = self.stats or {}
+                self.stats = stats
+                stats.score = (stats.score or 0) + (self.point_rate or 10000)
+                self.point_rate = math.min(100000, (self.point_rate or 10000) + 10)
+            end
+        end
+    end
+    -- Score extends: the classic ruleset grants a life at each threshold.
+    local stats = self.stats
+    if stats and self.session.mode.on_score_changed then
+        for _, player_id in ipairs(self.session.roster:list()) do
+            self.session.mode:on_score_changed(self.session, player_id, stats.score or 0)
         end
     end
 end
