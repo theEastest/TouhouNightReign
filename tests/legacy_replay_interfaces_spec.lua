@@ -88,4 +88,39 @@ return function(assert_equal, assert_true)
         assert_true(math.abs(Adapter.ease_fraction(mode, 0) - 1.0) < 1e-6,
             "easing mode " .. mode .. " completes the move")
     end
+
+    -- Input bridge: every source shape looks the same to the roster.
+    local InputBridge = require("tnr.legacy_replay.input_bridge")
+    local scripted_roster = Interfaces.PlayerRoster.new({ player_ids = { 1 } })
+    scripted_roster:set_input(1, InputBridge.scripted({ move_x = 1, shoot = true }))
+    local scripted_sample = scripted_roster:sample(1)
+    assert_equal(scripted_sample.move_x, 1, "a scripted source carries its axis")
+    assert_true(scripted_sample.shoot, "a scripted source carries its buttons")
+
+    -- A function source is called once per sample.
+    local calls = 0
+    local function_roster = Interfaces.PlayerRoster.new({ player_ids = { 1 } })
+    function_roster:set_input(1, InputBridge.scripted(function()
+        calls = calls + 1
+        return { move_y = calls }
+    end))
+    assert_equal(function_roster:sample(1).move_y, 1, "a function source is polled")
+    assert_equal(function_roster:sample(1).move_y, 2, "and polled again next frame")
+
+    -- A recorder captures a run and plays it back frame for frame.
+    local recorder = InputBridge.recorder(1)
+    recorder:record({ move_x = 1, shoot = true })
+    recorder:record({ move_x = -1, focus = true })
+    local playback_roster = Interfaces.PlayerRoster.new({ player_ids = { 1 } })
+    playback_roster:set_input(1, recorder:playback())
+    local first = playback_roster:sample(1)
+    local second = playback_roster:sample(1)
+    assert_equal(first.move_x, 1, "playback reproduces the first frame")
+    assert_true(first.shoot, "playback reproduces the first frame buttons")
+    assert_equal(second.move_x, -1, "playback reproduces the second frame")
+    assert_true(second.focus, "playback reproduces the second frame buttons")
+    -- Past the end the input is neutral rather than the last frame repeating.
+    local past_end = playback_roster:sample(1)
+    assert_equal(past_end.move_x, 0, "playback ends neutral")
+    assert_true(not past_end.shoot, "playback ends without buttons held")
 end
