@@ -199,12 +199,19 @@ function StageBackground:draw()
                     local right = math.min(FIELD_RIGHT, x + tile_w)
                     if right > left then
                         local y = FIELD_TOP - tile_h + offset
+                        local flipped = layer.rotation and math.abs(layer.rotation - math.pi) < 0.01
                         while y > FIELD_BOTTOM - tile_h - 0.5 do
                             local bottom = math.max(FIELD_BOTTOM, y)
                             local top = math.min(FIELD_TOP, y + tile_h)
                             if top > bottom then
                                 lstg.SetImageState(image, "", lstg.Color(layer.alpha or 255, 255, 255, 255))
-                                lstg.RenderRect(image, left, right, bottom, top)
+                                if flipped then
+                                    -- The reference rotates the base layer 180
+                                    -- degrees, which swaps the vertex order.
+                                    lstg.RenderRect(image, right, left, top, bottom)
+                                else
+                                    lstg.RenderRect(image, left, right, bottom, top)
+                                end
                             end
                             y = y - tile_h
                         end

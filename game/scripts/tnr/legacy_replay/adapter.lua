@@ -69,14 +69,38 @@ function Adapter.new(options)
     -- the difficulty flags. Publishing them here means expressions such as
     -- `%PLAYER_X2` resolve instead of collapsing to zero.
     local host_ref = self
+    -- Random globals are drawn once per access, matching the reference where
+    -- %RANDF is a fresh value each time a script reads it.
+    local function random_float(minimum, maximum)
+        if host_ref.random then return host_ref.random(minimum, maximum) end
+        return minimum + math.random() * (maximum - minimum)
+    end
+    local function angle_to_player()
+        local player = host_ref.lstg and host_ref.lstg.player
+        local boss = host_ref.boss_object
+        if not player or not boss then return 0 end
+        return math.atan(player.y - (boss.y or 0), player.x - (boss.x or 0))
+    end
     local function globals_provider()
         local player = host_ref.lstg and host_ref.lstg.player
+        local boss = host_ref.boss_object
         local difficulty = host_ref.difficulty or EclRuntime.DIFFICULTY.NORMAL
         return {
             PLAYER_X = player and player.x or 0,
             PLAYER_Y = player and player.y or 0,
             PLAYER_X2 = player and player.x or 0,
             PLAYER_Y2 = player and player.y or 0,
+            BOSS_X = boss and boss.x or 0,
+            BOSS_Y = boss and boss.y or 0,
+            ANGLE_PLAYER = angle_to_player(),
+            ABS_ANGLE_PLAYER = angle_to_player(),
+            DIST_PLAYER = (player and boss)
+                and math.sqrt((player.x - (boss.x or 0)) ^ 2 + (player.y - (boss.y or 0)) ^ 2) or 0,
+            -- Random values: a fraction for RANDF, a signed fraction for
+            -- RANDF2 and a full turn for RANDRAD.
+            RANDF = random_float(0, 1),
+            RANDF2 = random_float(-1, 1),
+            RANDRAD = random_float(0, math.pi * 2),
             DIFF = difficulty,
             EASY = difficulty == 0 and 1 or 0,
             NORMAL = difficulty == 1 and 1 or 0,
@@ -316,7 +340,17 @@ function Adapter:build_instructions()
         thread.state = "finished"
     end
     instructions.ins_569 = function() end
-    instructions.setBoss = function() end
+    instructions.setBoss = function(thread, runtime, args)
+        -- Track the boss so scripts that read BOSS_X and BOSS_Y resolve.
+        local value = tonumber(args and args[1]) or 0
+        if value >= 0 and thread.object then
+            self_ref:set_boss_object(thread.object)
+            if self_ref.boss_ui then self_ref.boss_ui:begin(100, {}) end
+        elseif value < 0 then
+            self_ref.boss_object = nil
+            if self_ref.boss_ui then self_ref.boss_ui.visible = false end
+        end
+    end
     instructions.setInvuln = function() end
     instructions.flagSet = function() end
     instructions.flagClear = function() end
@@ -324,7 +358,9 @@ function Adapter:build_instructions()
     instructions.setTimeout = function() end
     instructions.setChapter = function() end
     instructions.lifeSet = function(thread, runtime, args)
-        if thread.object then thread.object.hp = tonumber(args and args[1]) or thread.object.hp end
+        local value = tonumber(args and args[1]) or 0
+        if thread.object then thread.object.hp = value end
+        if self_ref.boss_ui then self_ref.boss_ui:set_health(value, self_ref.boss_ui.health_max) end
     end
     instructions.dialogWait = function() end
     instructions.bossWait = function() end
@@ -944,6 +980,11 @@ function Adapter:damage_enemy(enemy, amount)
     if not enemy then return end
     enemy.hp = math.max(0, (enemy.hp or 0) - (tonumber(amount) or 0))
     if self.boss_ui then self.boss_ui:set_health(enemy.hp, self.boss_ui.health_max) end
+end
+
+--- Track the boss so scripts that read BOSS_X and BOSS_Y resolve.
+function Adapter:set_boss_object(enemy)
+    self.boss_object = enemy
 end
 
 --- The first live enemy, which is the boss once it spawns.

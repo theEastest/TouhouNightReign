@@ -177,6 +177,10 @@ function StageRuntime:create_players(character)
         definition = { hitbox = 2, grazebox = 6, itembox = 28,
             move_unfocused = 4.5, move_focused = 2.0, power_levels = 4 }
     end
+    -- Remember which player sheet to draw this ship and its options from.
+    local character_index = { reimu = 0, marisa = 1, sanae = 2, reisen = 3 }
+    local index = character_index[character] or 0
+    self.primary_player_archive = string.format("pl%02d", index)
     for _, player_id in ipairs(self.session.roster:list()) do
         local player = Player.new({
             definition = definition,
@@ -360,14 +364,24 @@ function StageRuntime:draw()
     for _, player_id in ipairs(self.session.roster:list()) do
         local player = self.players[player_id]
         if player and player.alive then
+            local left_x = left + ((player.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
+            local top_y = top - (player.y or 0) * BossUi.PLAYFIELD_SCALE
+            -- Option sub-ships sit at the positions the sht data gives for the
+            -- current focus state and power level.
+            local option_image = image_name(self.primary_player_archive or "pl00", 1, 34)
+            for _, offset in ipairs(player:option_positions()) do
+                local ox = left_x + (offset[1] or 0) * BossUi.PLAYFIELD_SCALE
+                local oy = top_y - (offset[2] or 0) * BossUi.PLAYFIELD_SCALE
+                local r = 8 * BossUi.PLAYFIELD_SCALE
+                lstg.SetImageState(option_image, "", lstg.Color(255, 255, 255, 255))
+                lstg.RenderRect(option_image, ox - r, ox + r, oy - r, oy + r)
+            end
             local image = self:player_image(player)
             if image then
-                local x = left + ((player.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
-                local y = top - (player.y or 0) * BossUi.PLAYFIELD_SCALE
                 local w = 32 * BossUi.PLAYFIELD_SCALE
                 local h = 48 * BossUi.PLAYFIELD_SCALE
                 lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
-                lstg.RenderRect(image, x - w * 0.5, x + w * 0.5, y - h, y)
+                lstg.RenderRect(image, left_x - w * 0.5, left_x + w * 0.5, top_y - h, top_y)
             end
         end
     end

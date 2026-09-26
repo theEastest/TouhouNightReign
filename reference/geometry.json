@@ -98,20 +98,20 @@
     ]
   },
   "known_gaps": [
-    "The player ship fires and damages enemies and items drop and are collected, but the ship steering is driven by the harness input rather than the live keyboard, and the option sub-ships are not drawn.",
-    "A few bullet patterns still place shots outside the field where an offset argument depends on a global that is not yet provided.",
-    "The base background layer 180 degree rotation from its animation script is read but not applied when drawing.",
-    "The HUD text uses a project font rather than the reference ascii sheet glyphs, and the boss bar name plate and spell cut-in are drawn from the archive but not yet composited exactly like the reference."
+    "The ship is drawn with its option sub-ships, but its animation does not yet switch between the idle and firing frames.",
+    "The HUD text uses a project font rather than the reference ascii sheet glyphs.",
+    "The boss name plate and spell cut-in are drawn from the archive but the slide and flash timings are approximate."
   ],
   "verified": [
     "Playfield rectangle, aspect ratio and px-per-unit match the capture exactly.",
     "Stage 1 background composition and the violet fog tint match the capture.",
-    "Background layers scroll at the rates and directions their own animation scripts specify.",
+    "Background layers scroll at the rates and directions their own animation scripts specify, and the base layer 180 degree rotation is applied.",
     "Enemy sprites animate, follow ECL movement with the reference easing curves, and are clipped to the field.",
     "The HUD hearts and stars use the reference progressive fill sprites.",
     "All seven stages run with zero unimplemented ECL instructions.",
-    "The player ship is built from the reference sht data: exact hit, graze and item boxes, both movement speeds, the four power levels and the per-focus shooter sets.",
+    "The player ship is built from the reference sht data, fires its per-focus shooter sets and draws its option sub-ships at the reference offsets.",
     "Items drop from the reference drop table and fall, attract and collect.",
+    "The engine globals every stage reads resolve, including the random values, so no bullet spawns outside the field.",
     "The player mode and roster interfaces cover solo, co-op, classic and modern."
   ]
 }
