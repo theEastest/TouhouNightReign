@@ -67,6 +67,7 @@ local LEGACY_REPLAY_SPECS = {
     "legacy_replay_interfaces_spec", "legacy_replay_player_spec",
     "legacy_replay_hud_spec", "legacy_replay_bullet_pattern_spec",
     "legacy_replay_controller_spec", "legacy_replay_select_quit_spec",
+    "bullet_effects_spec",
 }
 
 local function assert_equal(left, right, message)

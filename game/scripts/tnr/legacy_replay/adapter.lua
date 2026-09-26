@@ -536,8 +536,17 @@ function Adapter:build_instructions()
     end
     instructions.etEx = function(thread, runtime, args)
         if thread.bullet then
-            thread.bullet.ex = {}
-            for index = 1, #args do thread.bullet.ex[index] = tonumber(args[index]) end
+            -- etEx(group, ?, flags, int1, int2, float1, float2). The reference
+            -- reads this as an effects block: the flags choose the behaviour
+            -- and the remaining fields parameterise it. The arguments are ECL
+            -- expressions, so resolve them rather than reading literals.
+            thread.bullet.ex = {
+                flags = resolve_arg(thread, args and args[3], 0) or 0,
+                int1 = resolve_arg(thread, args and args[4], -999999),
+                int2 = resolve_arg(thread, args and args[5], -999999),
+                float1 = resolve_arg(thread, args and args[6], -999999),
+                float2 = resolve_arg(thread, args and args[7], -999999),
+            }
         end
     end
     instructions.etExSet = instructions.etEx
@@ -1048,14 +1057,14 @@ function Adapter:fire_bullet_group(thread)
     local oy = object.y + (group.offset and group.offset[2] or 0)
     for _, bullet in ipairs(expanded) do
         self:spawn_bullet(bullet_class, ox, oy, bullet.speed, bullet.angle,
-            group.sprite, group.anim, false, group.color_index)
+            group.sprite, group.anim, false, group.color_index, group.ex)
     end
 end
 
 --- Spawn one bullet. Falls back to recording when the style is unavailable.
 -- Player shots are marked so the renderer can draw them differently and so
 -- culling can treat them separately.
-function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is_player, color_index)
+function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is_player, color_index, ex)
     self.shots = self.shots or {}
     if #self.shots < 8192 then
         self.shots[#self.shots + 1] = {
@@ -1064,6 +1073,10 @@ function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is
             color_index = color_index or 27,
             vx = math.cos(angle) * speed, vy = math.sin(angle) * speed,
             player_bullet = is_player == true,
+            -- The effects block travels with the bullet so the per-frame
+            -- behaviour can be applied as it flies.
+            ex = ex,
+            ex_timer = 0,
         }
     end
     if type(self.lstg.New) == "function" and bullet_class then
@@ -1075,12 +1088,76 @@ function Adapter:spawn_bullet(bullet_class, x, y, speed, angle, sprite, anim, is
     end
 end
 
+--- Heading of a velocity vector, in radians.
+-- Lua 5.4 has no math.atan2, and the engine's global atan2 is absent in the
+-- test runner, so the two-argument form is derived from the one-argument one.
+local function bullet_heading(vx, vy)
+    if type(atan2) == "function" then return atan2(vy, vx) end
+    if vx > 0 then return math.atan(vy / vx) end
+    if vx < 0 then return math.atan(vy / vx) + (vy >= 0 and math.pi or -math.pi) end
+    return vy >= 0 and math.pi * 0.5 or -math.pi * 0.5
+end
+
+--- Apply a bullet's etEx effects block for one frame.
+-- The reference stores an effects block on each bullet. The flags choose the
+-- behaviour and the remaining fields parameterise it. The two behaviours worth
+-- reproducing are the ones the stage data actually asks for: accelerating
+-- along a direction, and reversing direction on an interval. A flag of zero,
+-- or a block whose values are all the -999999 sentinel, leaves the bullet on
+-- the straight path it was fired with.
+local function apply_bullet_effects(shot)
+    local ex = shot.ex
+    if not ex or not ex.flags or ex.flags == 0 then return end
+    shot.ex_timer = (shot.ex_timer or 0) + 1
+    local flags = ex.flags
+    local speed = shot.speed or 0
+    -- Acceleration: the reference treats 0x10 as "accelerate each frame", with
+    -- the first float as the rate and the second as the angle to accelerate
+    -- along (the bullet's own heading when the field is the sentinel).
+    if flags % 0x20 >= 0x10 and flags < 0x20 then
+        local rate = tonumber(ex.float1)
+        local angle = tonumber(ex.float2)
+        if rate and rate > -999 then
+            if not angle or angle <= -999 then angle = shot.angle or 0 end
+            shot.vx = (shot.vx or 0) + math.cos(angle) * rate
+            shot.vy = (shot.vy or 0) + math.sin(angle) * rate
+            shot.speed = math.sqrt(shot.vx * shot.vx + shot.vy * shot.vy)
+            shot.angle = bullet_heading(shot.vx, shot.vy)
+        end
+        return
+    end
+    -- Direction change: the bullet turns by a fixed rotation every interval
+    -- frames, up to a maximum number of times. This is what makes a stream of
+    -- bullets bend into a curve partway across the screen.
+    local turn_flags = flags % 0x400
+    if turn_flags >= 0x40 and turn_flags < 0x200 then
+        local rotation = tonumber(ex.float1) or 0
+        local interval = math.max(1, math.floor(tonumber(ex.int1) or 1))
+        local max_times = math.floor(tonumber(ex.int2) or -1)
+        if max_times < 0 then max_times = math.huge end
+        local turns = math.floor((shot.ex_timer - 1) / interval)
+        -- The first turn happens on the very first frame, so "no turn yet"
+        -- cannot be recorded as zero. Track the last applied count instead.
+        if turns > (shot.ex_turns or -1) and turns <= max_times then
+            shot.ex_turns = turns
+            local step = (turn_flags >= 0x100) and -rotation or rotation
+            local angle = (shot.angle or 0) + step
+            local speed = shot.speed or 0
+            shot.angle = angle
+            shot.vx = math.cos(angle) * speed
+            shot.vy = math.sin(angle) * speed
+        end
+        return
+    end
+end
+
 --- Advance recorded shots so a host-drawn pattern moves like the reference.
 -- Player shots are culled once they leave the field so the list cannot grow
 -- without bound; enemy bullets persist while inside the field.
 function Adapter:advance_shots()
     local kept = {}
     for _, shot in ipairs(self.shots or {}) do
+        apply_bullet_effects(shot)
         shot.x = shot.x + (shot.vx or 0)
         shot.y = shot.y + (shot.vy or 0)
         shot.anim_frame = (shot.anim_frame or 0) + 1
