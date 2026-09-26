@@ -1128,7 +1128,10 @@ function Bootstrap:_update_replay_select(player_input)
         replay:move_cursor(field, -player_input.move_y, counts[field] or 1)
     end
     if player_input.confirm then
-        if self:start_replay_stage() then return true end
+        -- Starting a stage is not the menu's quit signal. The main menu uses a
+        -- true return to end the game, so the replay must never propagate the
+        -- start result outward or pressing Enter would close the game.
+        self:start_replay_stage()
     elseif player_input.cancel then
         self:close_replay_select()
     end
@@ -1197,7 +1200,12 @@ function Bootstrap:_update_ui_mouse()
         return
     end
     local x, y = self.input:get_mouse_position()
-    self.ui_mouse_moved = x ~= self.ui_mouse_x or y ~= self.ui_mouse_y
+    -- A one-pixel jitter should not yank the selection away from the keyboard.
+    -- The pointer only takes over the cursor once it has actually travelled, or
+    -- the moment it is clicked.
+    local dx = (x or 0) - (self.ui_mouse_x or x or 0)
+    local dy = (y or 0) - (self.ui_mouse_y or y or 0)
+    self.ui_mouse_moved = (dx * dx + dy * dy) >= 16
     self.ui_mouse_x, self.ui_mouse_y = x, y
 end
 
