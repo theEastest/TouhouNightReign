@@ -96,5 +96,19 @@
       "Background layers scroll uniformly instead of following their own ANM command lists.",
       "Enemy motion follows the ECL velocity but not the full accel/decel easing curves."
     ]
-  }
+  },
+  "known_gaps": [
+    "The HUD draws the reference Japanese labels but not the heart and star icons; those live in a HUD sheet that is not yet wired in.",
+    "Background layers scroll at uniform rates rather than following each layer's own ANM command list (opcodes 401/407/200), so the parallax speed does not match exactly.",
+    "Enemy motion applies the ECL velocity but not the accel and decel easing of moveVelTime, so paths drift from the original over long moves.",
+    "Bullet positions are correct at spawn but a few patterns place shots far outside the field (an unresolved global used as an offset argument), and the per-bullet animation frames are not advanced.",
+    "The player, items, and scoring HUD are not yet part of the replay; only enemies, bullets, background and the boss bar render."
+  ],
+  "verified": [
+    "Playfield rectangle, aspect ratio and px-per-unit match the capture exactly.",
+    "Stage 1 background composition (forest base plus cloud layers) and the violet fog tint match the capture.",
+    "Enemy sprites animate and are clipped to the field.",
+    "Boss health bar, marker row and spell cut-in render through the reference sprite sizes.",
+    "All seven stages run with zero unimplemented ECL instructions."
+  ]
 }
