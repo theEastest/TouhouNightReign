@@ -17,6 +17,9 @@ local Constants = {
         NON_SPELL_SELECT = "NON_SPELL_SELECT",
         ENEMY_SELECT = "ENEMY_SELECT",
         MUSIC_PLAYER = "MUSIC_PLAYER",
+        -- Legacy replay: the stage and ruleset select screen, then the stage.
+        REPLAY_SELECT = "REPLAY_SELECT",
+        REPLAY_STAGE = "REPLAY_STAGE",
         EQUIPMENT_CATALOG = "EQUIPMENT_CATALOG",
         CARD_TRAINING = "CARD_TRAINING",
         CARD_TRAINING_FAILED = "CARD_TRAINING_FAILED",

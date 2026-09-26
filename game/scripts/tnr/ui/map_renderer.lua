@@ -642,23 +642,23 @@ function MapRenderer:menu_hit_test(x, y)
     if not x or not y then
         return nil
     end
-    -- Three by three icon grid anchored to the bottom-left, matching
+    -- Three by four icon grid anchored to the bottom-left, matching
     -- render_menu. Cell geometry is mirrored here so mouse picking stays exact.
     local cell = 104
     local gap = 6
     local grid_left = 44
     local grid_bottom = 36
     local grid_right = grid_left + 3 * cell + 2 * gap
-    local grid_top = grid_bottom + 3 * cell + 2 * gap
+    local grid_top = grid_bottom + 4 * cell + 3 * gap
     if x < grid_left or x > grid_right or y < grid_bottom or y > grid_top then
         return nil
     end
     local column = math.floor((x - grid_left) / (cell + gap))
     local row_from_bottom = math.floor((y - grid_bottom) / (cell + gap))
-    if column < 0 or column > 2 or row_from_bottom < 0 or row_from_bottom > 2 then
+    if column < 0 or column > 2 or row_from_bottom < 0 or row_from_bottom > 3 then
         return nil
     end
-    local row = 2 - row_from_bottom
+    local row = 3 - row_from_bottom
     return row * 3 + column + 1
 end
 
@@ -908,16 +908,18 @@ function MapRenderer:render_menu(menu_cursor, session)
         self:draw_image("tnr-title-logo", logo_left, logo_left + logo_w, logo_top - logo_h, logo_top)
     end
 
-    -- Menu: a three by three grid of icon buttons in the bottom-left corner.
+    -- Menu: a three by four grid in the bottom-left corner. The ninth cell is
+    -- the legacy replay entry, whose dedicated icon is still a placeholder.
     local cell = 104
     local gap = 6
     local grid_left = 44
     local grid_bottom = 36
-    for index = 1, 9 do
+    local REPLAY_INDEX = 10
+    for index = 1, 12 do
         local column = (index - 1) % 3
         local row = math.floor((index - 1) / 3)
         local left = grid_left + column * (cell + gap)
-        local bottom = grid_bottom + (2 - row) * (cell + gap)
+        local bottom = grid_bottom + (3 - row) * (cell + gap)
         local selected = index == (menu_cursor or 1)
         local grow = selected and 5 or 0
         local image_name = "tnr-title-icon-" .. index
@@ -940,10 +942,109 @@ function MapRenderer:render_menu(menu_cursor, session)
             local draw_left = left + (cell - draw_w) * 0.5
             local draw_bottom = bottom + (cell - draw_h) * 0.5
             self:draw_image(image_name, draw_left, draw_left + draw_w, draw_bottom, draw_bottom + draw_h)
+        elseif index == REPLAY_INDEX then
+            -- Placeholder for the legacy replay entry until its art arrives.
+            draw_rect(lstg, self.white, { 210, 30, 36, 50 }, left, left + cell, bottom, bottom + cell)
+            self:draw_text("旧作\n重演", left + cell * 0.5, bottom + cell * 0.5, 0.8,
+                selected and COLORS.text or COLORS.muted, 1 + 4)
         else
             draw_rect(lstg, self.white, { 200, 30, 36, 50 }, left, left + cell, bottom, bottom + cell)
         end
     end
+    lstg.EndScene()
+end
+
+--- Legacy replay selection screen.
+-- Three columns: stage, ruleset and character, with the current pick highlighted.
+-- The icons for these entries are still placeholders drawn from text, which the
+-- owner will replace with art.
+function MapRenderer:render_replay_select(replay, cursor_field)
+    local lstg = self.lstg
+    lstg.BeginScene()
+    lstg.RenderClear(color(lstg, COLORS.background))
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+
+    draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 30, self.width - 30, 30, self.height - 30)
+    self:draw_text("旧作重演", self.width * 0.5, self.height - 62, 1.5, COLORS.accent, 1 + 4)
+    self:draw_text("按原作数据重演东方绀珠传", self.width * 0.5, self.height - 96, 0.72, COLORS.muted, 1 + 4)
+
+    local stages = replay:stage_list()
+    local modes = replay.MODES
+    local characters = replay.CHARACTERS
+
+    -- Stage column.
+    local stage_left = 70
+    local stage_top = self.height - 150
+    self:draw_text("关卡", stage_left, stage_top + 26, 0.85, COLORS.accent, 0)
+    for index, entry in ipairs(stages) do
+        local y = stage_top - (index - 1) * 40
+        local selected = index == (replay.stage_cursor or 1)
+        local focused = cursor_field == "stage"
+        if selected and focused then
+            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, stage_left - 8, stage_left + 430, y - 14, y + 20)
+        end
+        local marker = selected and (focused and ">" or "·") or " "
+        self:draw_text(marker, stage_left, y, 0.8, COLORS.accent, 0)
+        self:draw_text(entry.name, stage_left + 26, y, selected and 0.86 or 0.8,
+            selected and COLORS.text or COLORS.muted, 0)
+    end
+
+    -- Mode column.
+    local mode_left = 540
+    self:draw_text("规则", mode_left, stage_top + 26, 0.85, COLORS.accent, 0)
+    for index, entry in ipairs(modes) do
+        local y = stage_top - (index - 1) * 40
+        local selected = index == (replay.mode_cursor or 1)
+        local focused = cursor_field == "mode"
+        if selected and focused then
+            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, mode_left - 8, mode_left + 300, y - 14, y + 20)
+        end
+        local marker = selected and (focused and ">" or "·") or " "
+        self:draw_text(marker, mode_left, y, 0.8, COLORS.accent, 0)
+        self:draw_text(entry.name, mode_left + 26, y, selected and 0.86 or 0.8,
+            selected and COLORS.text or COLORS.muted, 0)
+        if selected then
+            self:draw_text(entry.description, mode_left + 26, y - 20, 0.62, COLORS.muted, 0)
+        end
+    end
+
+    -- Character column.
+    local character_left = 900
+    self:draw_text("自机", character_left, stage_top + 26, 0.85, COLORS.accent, 0)
+    for index, entry in ipairs(characters) do
+        local y = stage_top - (index - 1) * 40
+        local selected = index == (replay.character_cursor or 1)
+        local focused = cursor_field == "character"
+        if selected and focused then
+            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, character_left - 8, character_left + 340, y - 14, y + 20)
+        end
+        local marker = selected and (focused and ">" or "·") or " "
+        self:draw_text(marker, character_left, y, 0.8, COLORS.accent, 0)
+        self:draw_text(entry.name, character_left + 26, y, selected and 0.86 or 0.8,
+            selected and COLORS.text or COLORS.muted, 0)
+    end
+
+    self:draw_text("← → 切换栏目　↑ ↓ 选择　Enter 开始　Esc 返回主菜单",
+        self.width * 0.5, 56, 0.72, COLORS.muted, 1 + 4)
+    if replay.message then
+        self:draw_text(replay.message, self.width * 0.5, 92, 0.78, COLORS.accent, 1 + 4)
+    end
+    lstg.EndScene()
+end
+
+--- Legacy replay: draw the active stage through the replay runtime.
+function MapRenderer:render_replay_stage(replay)
+    local lstg = self.lstg
+    if not lstg or not replay or not replay.runtime then return end
+    lstg.BeginScene()
+    lstg.RenderClear(color(lstg, COLORS.background))
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+    -- The replay draws at its own canvas size, which matches the project canvas.
+    replay.runtime:draw()
     lstg.EndScene()
 end
 
@@ -1100,6 +1201,14 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
     end
     if session.run_state == Constants.run_states.MUSIC_PLAYER then
         self:render_music_player(music_cursor, music_catalog)
+        return
+    end
+    if session.run_state == Constants.run_states.REPLAY_SELECT then
+        self:render_replay_select(self.replay, self.replay_field)
+        return
+    end
+    if session.run_state == Constants.run_states.REPLAY_STAGE then
+        self:render_replay_stage(self.replay)
         return
     end
     if session.run_state == Constants.run_states.EQUIPMENT_CATALOG then

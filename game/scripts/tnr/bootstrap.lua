@@ -10,6 +10,7 @@ local StageAdapter = require("tnr.battle.stage_adapter")
 local DebugConsole = require("tnr.debug.console")
 local Event = require("tnr.core.event")
 local AudioManager = require("tnr.audio.audio_manager")
+local Replay = require("tnr.legacy_replay.replay")
 local MusicCatalog = require("tnr.audio.music_catalog")
 local TrainingCatalog = require("tnr.training.card_training_catalog")
 local NonSpellCatalog = require("tnr.training.nonspell_training_catalog")
@@ -84,6 +85,14 @@ function Bootstrap.create(options)
     local map_scene = MapScene.new(session)
     local renderer = options.lstg and MapRenderer.new(options.lstg, options.width or 1280, options.height or 720) or nil
     local audio = AudioManager.new(options.lstg)
+    local replay = Replay.new({
+        lstg = options.lstg,
+        session = session,
+        audio = audio,
+        -- The keyboard drives the replay through the same provider the rest of
+        -- the game uses, so the bindings match automatically.
+        input_provider = input,
+    })
     local stage_adapter = StageAdapter.new(session, options.stage, options.lstg, audio)
     local battle_sync = BattleSync.new(transport, {
         role = options.network_role,
@@ -135,6 +144,7 @@ function Bootstrap.create(options)
         input = input,
         map_scene = map_scene,
         renderer = renderer,
+        replay = replay,
         stage_adapter = stage_adapter,
         battle_sync = battle_sync,
         debug_console = debug_console,
@@ -261,6 +271,10 @@ function Bootstrap:init()
         return
     end
     self.initialized = true
+    -- The renderer draws the replay screens, so it needs the controller.
+    if self.renderer then
+        self.renderer.replay = self.replay
+    end
 end
 
 function Bootstrap:open_music_player()
@@ -1046,6 +1060,75 @@ function Bootstrap:_activate_main_menu(index)
         self:open_equipment_catalog()
     elseif index == 9 then
         return true
+    elseif index == 10 then
+        self:open_replay_select()
+    end
+    return false
+end
+
+--- Open the legacy replay stage and ruleset select screen.
+function Bootstrap:open_replay_select()
+    self.session.run_state = Constants.run_states.REPLAY_SELECT
+    self.replay_field = "stage"
+    self.replay.stage_cursor = 1
+    self.replay.mode_cursor = 1
+    self.replay.character_cursor = 1
+    self.replay.message = nil
+    -- Load the shared data up front so the select screen can show a clear
+    -- message instead of failing when a stage starts.
+    if not self.replay:ensure_data() then
+        self.replay.message = self.replay.message or "重演数据缺失"
+    end
+end
+
+function Bootstrap:close_replay_select()
+    self.session.run_state = Constants.run_states.MENU
+    self.menu_cursor = 1
+    self.scroll_states["menu"] = nil
+    if self.audio then self.audio:play_music("menu") end
+end
+
+--- Begin the selected stage.
+function Bootstrap:start_replay_stage()
+    if not self.replay:ensure_data() then return false end
+    local ok = self.replay:start_stage()
+    if not ok then return false end
+    self.session.run_state = Constants.run_states.REPLAY_STAGE
+    return true
+end
+
+function Bootstrap:leave_replay_stage()
+    self.replay:stop()
+    self.session.run_state = Constants.run_states.REPLAY_SELECT
+    self.replay_field = "stage"
+    if self.audio then self.audio:play_music("menu") end
+end
+
+--- Drive the replay select screen input.
+function Bootstrap:_update_replay_select(player_input)
+    local replay = self.replay
+    local fields = { "stage", "mode", "character" }
+    if (player_input.move_x or 0) ~= 0 then
+        local index = 1
+        for position, name in ipairs(fields) do
+            if name == self.replay_field then index = position break end
+        end
+        index = ((index - 1 + player_input.move_x) % #fields) + 1
+        self.replay_field = fields[index]
+    end
+    if (player_input.move_y or 0) ~= 0 then
+        local field = self.replay_field or "stage"
+        local counts = {
+            stage = #replay:stage_list(),
+            mode = #replay.MODES,
+            character = #replay.CHARACTERS,
+        }
+        replay:move_cursor(field, -player_input.move_y, counts[field] or 1)
+    end
+    if player_input.confirm then
+        if self:start_replay_stage() then return true end
+    elseif player_input.cancel then
+        self:close_replay_select()
     end
     return false
 end
@@ -1363,7 +1446,16 @@ function Bootstrap:update()
     if network_battle and not native_network_battle then
         battle_inputs = self.battle_sync:before_update(inputs, self.stage_adapter)
     end
-    if self.session.run_state == Constants.run_states.MUSIC_PLAYER then
+    if self.session.run_state == Constants.run_states.REPLAY_SELECT then
+        if self:_update_replay_select(player_input) then return true end
+    elseif self.session.run_state == Constants.run_states.REPLAY_STAGE then
+        -- The replay owns its input through the shared provider, so only the
+        -- leave and pause buttons are handled here.
+        self.replay:update()
+        if player_input.cancel then
+            self:leave_replay_stage()
+        end
+    elseif self.session.run_state == Constants.run_states.MUSIC_PLAYER then
         self.music_cursor = self:_scroll_step("music", self.music_cursor, #MusicCatalog, 10, player_input.move_y)
         if player_input.confirm then
             local entry = MusicCatalog[self.music_cursor]
@@ -1410,10 +1502,10 @@ function Bootstrap:update()
         if self.network_menu:is_open() then
             self:_update_network_menu(player_input)
         else
-            -- The main menu is a three by three icon grid: vertical input moves
+            -- The main menu is a three by four icon grid: vertical input moves
             -- by a row and horizontal input moves inside the row.
             local GRID_COLUMNS = 3
-            local GRID_ROWS = 3
+            local GRID_ROWS = 4
             local menu_cursor = self.menu_cursor or 1
             local column = (menu_cursor - 1) % GRID_COLUMNS
             local row = math.floor((menu_cursor - 1) / GRID_COLUMNS)
