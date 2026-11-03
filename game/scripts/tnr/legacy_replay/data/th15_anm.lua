@@ -3,6 +3,7 @@
 return {
     ["ascii"] = {
         { texture = "ascii/ascii.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 14, h = 14 },
             { x = 14, y = 0, w = 14, h = 14 },
@@ -722,6 +723,7 @@ return {
             },
           } },
         { texture = "ascii/loading.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 1, y = 1, w = 254, h = 62 },
             { x = 1, y = 65, w = 254, h = 62 },
@@ -884,6 +886,7 @@ return {
     },
     ["bullet"] = {
         { texture = "bullet/bullet1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 240, w = 8, h = 8 },
             { x = 8, y = 240, w = 8, h = 8 },
@@ -2820,6 +2823,7 @@ return {
             },
           } },
         { texture = "bullet/bullet2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 32, w = 32, h = 32 },
             { x = 32, y = 32, w = 32, h = 32 },
@@ -3324,6 +3328,7 @@ return {
             },
           } },
         { texture = "bullet/bullet3.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
             { x = 32, y = 0, w = 32, h = 32 },
@@ -4258,6 +4263,7 @@ return {
             },
           } },
         { texture = "bullet/item.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 192, y = 0, w = 16, h = 16 },
             { x = 192, y = 16, w = 16, h = 16 },
@@ -4511,6 +4517,7 @@ return {
             },
           } },
         { texture = "bullet/laser1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 16 },
             { x = 0, y = 16, w = 256, h = 16 },
@@ -4642,6 +4649,7 @@ return {
             },
           } },
         { texture = "effect/etbreak.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 64 },
             { x = 64, y = 0, w = 64, h = 64 },
@@ -7879,6 +7887,7 @@ return {
             },
           } },
         { texture = "bullet/bullet4.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 64 },
             { x = 64, y = 0, w = 64, h = 64 },
@@ -7949,6 +7958,7 @@ return {
             },
           } },
         { texture = "bullet/bullet5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
             { x = 32, y = 0, w = 32, h = 32 },
@@ -8202,6 +8212,7 @@ return {
             },
           } },
         { texture = "bullet/laser2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 32 },
             { x = 0, y = 32, w = 256, h = 32 },
@@ -8238,6 +8249,7 @@ return {
     },
     ["effect"] = {
         { texture = "effect/eff_switch.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 1, w = 128, h = 128 },
           },
@@ -8368,6 +8380,7 @@ return {
             },
           } },
         { texture = "effect/eff_line.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 65, y = 0, w = 14, h = 128 },
             { x = 81, y = 0, w = 14, h = 128 },
@@ -8528,6 +8541,7 @@ return {
             },
           } },
         { texture = "effect/eff_base.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 16, h = 16 },
             { x = 16, y = 0, w = 16, h = 16 },
@@ -8626,6 +8640,7 @@ return {
             },
           } },
         { texture = "effect/eff_sloweffect.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 64 },
             { x = 64, y = 0, w = 64, h = 64 },
@@ -8679,6 +8694,7 @@ return {
             },
           } },
         { texture = "effect/eff_deadcircle.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 64 },
             { x = 0, y = 64, w = 64, h = 64 },
@@ -9358,6 +9374,7 @@ return {
             },
           } },
         { texture = "effect/eff_maple.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 30, h = 30 },
             { x = 33, y = 1, w = 30, h = 30 },
@@ -10073,6 +10090,7 @@ return {
             },
           } },
         { texture = "effect/eff_magicsquare.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -10110,6 +10128,7 @@ return {
             },
           } },
         { texture = "effect/eff_aura.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 48, h = 48 },
             { x = 48, y = 0, w = 48, h = 48 },
@@ -10667,6 +10686,7 @@ return {
             },
           } },
         { texture = "effect/efflinegoast.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 16 },
           },
@@ -10679,6 +10699,7 @@ return {
             },
           } },
         { texture = "effect/eff_breakwave2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 160, h = 80 },
             { x = 160, y = 0, w = 160, h = 80 },
@@ -10878,6 +10899,7 @@ return {
             },
           } },
         { texture = "effect/eff_splash.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 96, h = 16 },
             { x = 0, y = 16, w = 96, h = 16 },
@@ -10909,6 +10931,7 @@ return {
             },
           } },
         { texture = "effect/eff_charge.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
           },
@@ -11338,6 +11361,7 @@ return {
             },
           } },
         { texture = "effect/eff_switchbg.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1280, h = 960 },
           },
@@ -11357,6 +11381,7 @@ return {
     },
     ["enemy"] = {
         { texture = "enemy/enemy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 320, w = 32, h = 32 },
             { x = 32, y = 320, w = 32, h = 32 },
@@ -12356,6 +12381,7 @@ return {
             },
           } },
         { texture = "enemy/enemy2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
             { x = 32, y = 0, w = 32, h = 32 },
@@ -12897,6 +12923,7 @@ return {
             },
           } },
         { texture = "enemy/enemy_aura.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 48, h = 48 },
             { x = 48, y = 0, w = 48, h = 48 },
@@ -13648,6 +13675,7 @@ return {
             },
           } },
         { texture = "enemy/enemy5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
             { x = 32, y = 0, w = 32, h = 32 },
@@ -14005,6 +14033,7 @@ return {
     },
     ["front"] = {
         { texture = "front/front00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 64, h = 960 },
             { x = 64, y = 0, w = 448, h = 960 },
@@ -16639,6 +16668,7 @@ return {
             },
           } },
         { texture = "front/demoplay.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -16661,6 +16691,7 @@ return {
             },
           } },
         { texture = "front/front01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 512, h = 256 },
             { x = 192, y = 32, w = 512, h = 896 },
@@ -16693,6 +16724,7 @@ return {
             },
           } },
         { texture = "ascii/pause.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 512, h = 64 },
             { x = 0, y = 64, w = 512, h = 64 },
@@ -18783,6 +18815,7 @@ return {
             },
           } },
         { texture = "ascii/pause_title.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 192, h = 64 },
             { x = 0, y = 64, w = 192, h = 64 },
@@ -18792,12 +18825,14 @@ return {
           scripts = {
           } },
         { texture = "ascii/pause_back.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 96, h = 448 },
           },
           scripts = {
           } },
         { texture = "front/ename.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 32 },
             { x = 0, y = 32, w = 256, h = 32 },
@@ -19139,6 +19174,7 @@ return {
             },
           } },
         { texture = "face/balloon_1024.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 32, h = 96 },
             { x = 0, y = 96, w = 32, h = 128 },
@@ -19688,6 +19724,7 @@ return {
             },
           } },
         { texture = "face/balloon_1024.png",
+          offset_x = 32, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 32, h = 96 },
             { x = 0, y = 96, w = 64, h = 128 },
@@ -20821,6 +20858,7 @@ return {
             },
           } },
         { texture = "front/lifebar.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 8, h = 32 },
             { x = 12, y = 0, w = 4, h = 32 },
@@ -20903,6 +20941,7 @@ return {
             },
           } },
         { texture = "front/front02.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 192, h = 32 },
             { x = 0, y = 32, w = 192, h = 32 },
@@ -21029,6 +21068,7 @@ return {
             },
           } },
         { texture = "front/front03.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 192, h = 64 },
             { x = 0, y = 64, w = 128, h = 64 },
@@ -21097,6 +21137,7 @@ return {
     },
     ["pl00"] = {
         { texture = "player/pl00/pl00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 30, h = 46 },
             { x = 33, y = 1, w = 30, h = 46 },
@@ -21367,6 +21408,7 @@ return {
             },
           } },
         { texture = "player/pl00/pl00f.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 64 },
             { x = 0, y = 64, w = 192, h = 192 },
@@ -21454,6 +21496,7 @@ return {
             },
           } },
         { texture = "player/pl00/pl00b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -21659,60 +21702,70 @@ return {
             },
           } },
         { texture = "face/pl00/face_pl00no.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00n2.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00hp.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00an.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00sw.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00dp.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00pr.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00sp.png",
+          offset_x = 340, offset_y = 54, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 236, h = 208 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/pl00/face_pl00bs.png",
+          offset_x = 160, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 590, h = 660 },
             { x = 0, y = 0, w = 0, h = 0 },
@@ -21864,6 +21917,7 @@ return {
     },
     ["pl01"] = {
         { texture = "player/pl01/pl01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 30, h = 46 },
             { x = 33, y = 1, w = 30, h = 46 },
@@ -22203,6 +22257,7 @@ return {
             },
           } },
         { texture = "player/pl01/pl01b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 254, h = 126 },
           },
@@ -22369,12 +22424,14 @@ return {
             },
           } },
         { texture = "player/pl01/pl01b2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 94, h = 254 },
           },
           scripts = {
           } },
         { texture = "player/pl01/pl01g.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 126, h = 126 },
           },
@@ -22484,60 +22541,70 @@ return {
             },
           } },
         { texture = "face/pl01/face_pl01no.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01n2.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01hp.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01an.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01sw.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01dp.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01pr.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01sp.png",
+          offset_x = 236, offset_y = 40, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 280, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/pl01/face_pl01bs.png",
+          offset_x = 120, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 580, h = 660 },
             { x = 0, y = 0, w = 0, h = 0 },
@@ -22689,6 +22756,7 @@ return {
     },
     ["pl02"] = {
         { texture = "player/pl02/pl02.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 30, h = 46 },
             { x = 33, y = 1, w = 30, h = 46 },
@@ -22975,6 +23043,7 @@ return {
             },
           } },
         { texture = "player/pl02/pl02b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 192, y = 0, w = 384, h = 448 },
             { x = 0, y = 0, w = 256, h = 300 },
@@ -23104,60 +23173,70 @@ return {
             },
           } },
         { texture = "face/pl02/face_pl02no.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02n2.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02hp.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02an.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02sw.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02dp.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02pr.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02sp.png",
+          offset_x = 42, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 276, h = 244 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/pl02/face_pl02bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 380, h = 630 },
             { x = 0, y = 0, w = 0, h = 0 },
@@ -23309,6 +23388,7 @@ return {
     },
     ["pl03"] = {
         { texture = "player/pl03/pl03.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 30, h = 46 },
             { x = 33, y = 1, w = 30, h = 46 },
@@ -23701,60 +23781,70 @@ return {
             },
           } },
         { texture = "face/pl03/face_pl03no.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03n2.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03hp.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03an.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03sw.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03dp.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03pr.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03sp.png",
+          offset_x = 112, offset_y = 162, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 272, h = 200 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/pl03/face_pl03bs.png",
+          offset_x = 40, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 380, h = 750 },
             { x = 0, y = 0, w = 0, h = 0 },
@@ -23906,6 +23996,7 @@ return {
     },
     ["st01enm"] = {
         { texture = "stgenm/stage01/enm1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -24066,60 +24157,70 @@ return {
             },
           } },
         { texture = "face/enemy1/face01no.png",
+          offset_x = 180, offset_y = 112, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 222, h = 212 },
           },
           scripts = {
           } },
         { texture = "face/enemy1/face01n2.png",
+          offset_x = 180, offset_y = 112, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 222, h = 212 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy1/face01an.png",
+          offset_x = 180, offset_y = 112, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 222, h = 212 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy1/face01sp.png",
+          offset_x = 180, offset_y = 112, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 222, h = 212 },
           },
           scripts = {
           } },
         { texture = "face/enemy1/face01lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 520, h = 740 },
           },
           scripts = {
           } },
         { texture = "face/enemy1/face01bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 520, h = 740 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -24269,6 +24370,7 @@ return {
             },
           } },
         { texture = "stgenm/stage01/cardbg0.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
             { x = 64, y = 128, w = 384, h = 448 },
@@ -24294,6 +24396,7 @@ return {
             },
           } },
         { texture = "stgenm/stage01/cardbg1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
             { x = 0, y = 128, w = 384, h = 448 },
@@ -24324,6 +24427,7 @@ return {
             },
           } },
         { texture = "face/enemy1/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -24362,6 +24466,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -24387,6 +24492,7 @@ return {
             },
           } },
         { texture = "face/enemy1/face01ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 303, h = 480 },
           },
@@ -24409,6 +24515,7 @@ return {
     },
     ["st01logo"] = {
         { texture = "front/logo/st01logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 384, h = 64 },
             { x = 0, y = 64, w = 256, h = 48 },
@@ -24507,6 +24614,7 @@ return {
             },
           } },
         { texture = "front/logo/st01logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -24516,6 +24624,7 @@ return {
     },
     ["st01wl"] = {
         { texture = "background/stage01/st01a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -24530,6 +24639,7 @@ return {
             },
           } },
         { texture = "background/stage01/st01d.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -24638,6 +24748,7 @@ return {
     },
     ["st02enm"] = {
         { texture = "stgenm/stage02/enm2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 80 },
             { x = 64, y = 0, w = 64, h = 80 },
@@ -24827,60 +24938,70 @@ return {
             },
           } },
         { texture = "face/enemy2/face02no.png",
+          offset_x = 26, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 262, h = 186 },
           },
           scripts = {
           } },
         { texture = "face/enemy2/face02n2.png",
+          offset_x = 26, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 262, h = 186 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy2/face02dp.png",
+          offset_x = 26, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 262, h = 186 },
           },
           scripts = {
           } },
         { texture = "face/enemy2/face02pr.png",
+          offset_x = 26, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 262, h = 186 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy2/face02lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 330, h = 620 },
           },
           scripts = {
           } },
         { texture = "face/enemy2/face02bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 330, h = 620 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -25030,6 +25151,7 @@ return {
             },
           } },
         { texture = "stgenm/stage02/cdbg02a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 128, y = 224, w = 384, h = 448 },
             { x = 64, y = 128, w = 384, h = 448 },
@@ -25067,6 +25189,7 @@ return {
             },
           } },
         { texture = "stgenm/stage02/cdbg02b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
             { x = 0, y = 128, w = 384, h = 448 },
@@ -25097,6 +25220,7 @@ return {
             },
           } },
         { texture = "face/enemy2/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -25135,6 +25259,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -25160,6 +25285,7 @@ return {
             },
           } },
         { texture = "face/enemy2/face02ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 238, h = 393 },
           },
@@ -25182,6 +25308,7 @@ return {
     },
     ["st02logo"] = {
         { texture = "front/logo/st02logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 448, h = 64 },
             { x = 0, y = 64, w = 320, h = 48 },
@@ -25280,6 +25407,7 @@ return {
             },
           } },
         { texture = "front/logo/st02logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -25289,6 +25417,7 @@ return {
     },
     ["st02wl"] = {
         { texture = "background/stage02/stg6bg.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 448 },
           },
@@ -25309,6 +25438,7 @@ return {
             },
           } },
         { texture = "background/stage02/stg6bg5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -25333,6 +25463,7 @@ return {
             },
           } },
         { texture = "background/stage02/stg6bg8.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
           },
@@ -25363,6 +25494,7 @@ return {
     },
     ["st03enm"] = {
         { texture = "stgenm/stage03/enm3.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -25555,60 +25687,70 @@ return {
             },
           } },
         { texture = "face/enemy3/face03no.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03n2.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03dp.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03pr.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03sp.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 500, h = 700 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 500, h = 700 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -25758,6 +25900,7 @@ return {
             },
           } },
         { texture = "stgenm/stage03/cdbg03a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -25793,6 +25936,7 @@ return {
             },
           } },
         { texture = "stgenm/stage03/cdbg03b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -25836,6 +25980,7 @@ return {
             },
           } },
         { texture = "face/enemy3/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -25874,6 +26019,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -25899,6 +26045,7 @@ return {
             },
           } },
         { texture = "face/enemy3/face03ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 316, h = 448 },
           },
@@ -25921,6 +26068,7 @@ return {
     },
     ["st03logo"] = {
         { texture = "front/logo/st03logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 320, h = 64 },
             { x = 0, y = 64, w = 256, h = 48 },
@@ -26019,6 +26167,7 @@ return {
             },
           } },
         { texture = "front/logo/st03logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -26028,6 +26177,7 @@ return {
     },
     ["st03wl"] = {
         { texture = "background/stage03/stg3bg1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -26045,6 +26195,7 @@ return {
             },
           } },
         { texture = "background/stage03/stg3bg2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -26086,6 +26237,7 @@ return {
             },
           } },
         { texture = "background/stage03/stg3bg3.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -26128,6 +26280,7 @@ return {
             },
           } },
         { texture = "background/stage03/stg3bg4.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
           },
@@ -26151,6 +26304,7 @@ return {
             },
           } },
         { texture = "background/stage03/stg3bg5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -26172,6 +26326,7 @@ return {
     },
     ["st04enm"] = {
         { texture = "stgenm/stage04/enm4.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -26325,60 +26480,70 @@ return {
             },
           } },
         { texture = "face/enemy4/face04no.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04n2.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04hp.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04dp.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04pr.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04sp.png",
+          offset_x = 273, offset_y = 13, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 196, h = 164 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 550, h = 660 },
           },
           scripts = {
           } },
         { texture = "face/enemy4/face04bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 550, h = 660 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -26528,6 +26693,7 @@ return {
             },
           } },
         { texture = "stgenm/stage04/cdbg04a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -26550,6 +26716,7 @@ return {
             },
           } },
         { texture = "stgenm/stage04/cdbg04b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -26569,6 +26736,7 @@ return {
             },
           } },
         { texture = "face/enemy4/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -26607,6 +26775,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -26632,6 +26801,7 @@ return {
             },
           } },
         { texture = "face/enemy4/face04ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 341, h = 448 },
           },
@@ -26654,6 +26824,7 @@ return {
     },
     ["st04logo"] = {
         { texture = "front/logo/st04logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 448, h = 64 },
             { x = 0, y = 64, w = 256, h = 48 },
@@ -26752,6 +26923,7 @@ return {
             },
           } },
         { texture = "front/logo/st04logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -26761,6 +26933,7 @@ return {
     },
     ["st04wl"] = {
         { texture = "background/stage04/stage03a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 256 },
           },
@@ -26772,6 +26945,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 1, y = 1, w = 254, h = 254 },
           },
@@ -26810,6 +26984,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03c.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -26823,6 +26998,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03d.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -26836,6 +27012,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03e.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -26847,6 +27024,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03f.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 32, h = 32 },
             { x = 32, y = 0, w = 32, h = 32 },
@@ -26910,6 +27088,7 @@ return {
             },
           } },
         { texture = "background/stage04/stage03g.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 256 },
           },
@@ -26923,6 +27102,7 @@ return {
             },
           } },
         { texture = "background/stage04/st01d.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -26983,6 +27163,7 @@ return {
     },
     ["st05enm"] = {
         { texture = "stgenm/stage05/enm5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -27168,6 +27349,7 @@ return {
             },
           } },
         { texture = "stgenm/stage05/enm5b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -27179,60 +27361,70 @@ return {
             },
           } },
         { texture = "face/enemy5/face05no.png",
+          offset_x = 205, offset_y = 404, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 180, h = 160 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05n2.png",
+          offset_x = 205, offset_y = 404, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 180, h = 160 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05hp.png",
+          offset_x = 205, offset_y = 404, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 180, h = 160 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05dp.png",
+          offset_x = 205, offset_y = 404, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 180, h = 160 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05pr.png",
+          offset_x = 205, offset_y = 404, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 180, h = 160 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 610, h = 1000 },
           },
           scripts = {
           } },
         { texture = "face/enemy5/face05bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 610, h = 1000 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -27382,6 +27574,7 @@ return {
             },
           } },
         { texture = "stgenm/stage05/cdbg05a00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -27406,6 +27599,7 @@ return {
             },
           } },
         { texture = "stgenm/stage05/cdbg05b00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
           },
@@ -27436,6 +27630,7 @@ return {
             },
           } },
         { texture = "face/enemy5/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -27474,6 +27669,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -27499,6 +27695,7 @@ return {
             },
           } },
         { texture = "face/enemy5/face05ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 336, h = 512 },
           },
@@ -27521,6 +27718,7 @@ return {
     },
     ["st05logo"] = {
         { texture = "front/logo/st05logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 448, h = 64 },
             { x = 0, y = 64, w = 256, h = 48 },
@@ -27619,6 +27817,7 @@ return {
             },
           } },
         { texture = "front/logo/st05logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -27628,6 +27827,7 @@ return {
     },
     ["st05wl"] = {
         { texture = "background/stage05/stage05a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -27639,6 +27839,7 @@ return {
             },
           } },
         { texture = "background/stage05/stage05b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 160 },
           },
@@ -27667,6 +27868,7 @@ return {
             },
           } },
         { texture = "background/stage05/stage05c.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 160 },
           },
@@ -27699,6 +27901,7 @@ return {
     },
     ["st06enm"] = {
         { texture = "stgenm/stage06/enm6.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 96, h = 128 },
             { x = 96, y = 0, w = 96, h = 128 },
@@ -27824,6 +28027,7 @@ return {
             },
           } },
         { texture = "stgenm/stage06/enm6b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 127, h = 84 },
           },
@@ -28123,60 +28327,70 @@ return {
             },
           } },
         { texture = "face/enemy6/face06no.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06n2.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06hp.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06an.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06dp.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06pr.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 1000, h = 1040 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -28326,6 +28540,7 @@ return {
             },
           } },
         { texture = "stgenm/stage06/cdbg06a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
             { x = 150, y = 0, w = 384, h = 448 },
@@ -28355,6 +28570,7 @@ return {
             },
           } },
         { texture = "stgenm/stage06/cdbg06b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
             { x = 192, y = 0, w = 384, h = 448 },
@@ -28380,6 +28596,7 @@ return {
             },
           } },
         { texture = "face/enemy6/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 256, h = 128 },
           },
@@ -28418,6 +28635,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -28443,6 +28661,7 @@ return {
             },
           } },
         { texture = "face/enemy6/face06ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 399, h = 512 },
           },
@@ -28468,6 +28687,7 @@ return {
     },
     ["st06logo"] = {
         { texture = "front/logo/st06logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 512, h = 64 },
             { x = 0, y = 64, w = 192, h = 48 },
@@ -28566,6 +28786,7 @@ return {
             },
           } },
         { texture = "front/logo/st06logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -28575,6 +28796,7 @@ return {
     },
     ["st06wl"] = {
         { texture = "background/stage06/stage06a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -28599,6 +28821,7 @@ return {
             },
           } },
         { texture = "background/stage06/stage05b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 160 },
           },
@@ -28627,6 +28850,7 @@ return {
             },
           } },
         { texture = "background/stage05/stage05c.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 160 },
           },
@@ -28655,6 +28879,7 @@ return {
             },
           } },
         { texture = "background/stage05/stage05a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -28668,6 +28893,7 @@ return {
             },
           } },
         { texture = "background/stage06/stg6bg8.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -28694,6 +28920,7 @@ return {
             },
           } },
         { texture = "background/stage06/stage06b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 256, y = 0, w = 1024, h = 512 },
           },
@@ -28712,6 +28939,7 @@ return {
     },
     ["st07enm"] = {
         { texture = "stgenm/stage07/enm7.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -29294,6 +29522,7 @@ return {
             },
           } },
         { texture = "stgenm/stage05/enm5b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -29356,60 +29585,70 @@ return {
             },
           } },
         { texture = "face/enemy7/face07no.png",
+          offset_x = 122, offset_y = 126, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 216, h = 166 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07n2.png",
+          offset_x = 122, offset_y = 126, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 216, h = 166 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07hp.png",
+          offset_x = 122, offset_y = 126, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 216, h = 166 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07sw.png",
+          offset_x = 122, offset_y = 126, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 216, h = 166 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07pr.png",
+          offset_x = 122, offset_y = 126, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 216, h = 166 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07lo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 606, h = 800 },
           },
           scripts = {
           } },
         { texture = "face/enemy7/face07bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 606, h = 800 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -29559,6 +29798,7 @@ return {
             },
           } },
         { texture = "stgenm/stage07/cdbg07a00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -29583,6 +29823,7 @@ return {
             },
           } },
         { texture = "stgenm/stage07/cdbg07b00.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
           },
@@ -29611,6 +29852,7 @@ return {
             },
           } },
         { texture = "face/enemy7/ename01.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 384, h = 128 },
           },
@@ -29649,6 +29891,7 @@ return {
             },
           } },
         { texture = "face/enemy1/enamebk.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 128, h = 128 },
           },
@@ -29674,6 +29917,7 @@ return {
             },
           } },
         { texture = "face/enemy7/face07ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 320, h = 529 },
           },
@@ -29696,6 +29940,7 @@ return {
     },
     ["st07enm2"] = {
         { texture = "stgenm/stage03/enm3.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 64, h = 96 },
             { x = 64, y = 0, w = 64, h = 96 },
@@ -29888,60 +30133,70 @@ return {
             },
           } },
         { texture = "face/enemy3/face03no.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03pr.png",
+          offset_x = 170, offset_y = 25, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 198, h = 198 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy3/face03bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 500, h = 700 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -30091,6 +30346,7 @@ return {
             },
           } },
         { texture = "stgenm/stage03/cdbg03a.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },
@@ -30126,6 +30382,7 @@ return {
             },
           } },
         { texture = "stgenm/stage03/cdbg03b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 256, h = 256 },
           },
@@ -30169,6 +30426,7 @@ return {
             },
           } },
         { texture = "face/enemy3/face03ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 316, h = 448 },
           },
@@ -30191,6 +30449,7 @@ return {
     },
     ["st07enm3"] = {
         { texture = "stgenm/stage06/enm6.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 96, h = 128 },
             { x = 96, y = 0, w = 96, h = 128 },
@@ -30316,6 +30575,7 @@ return {
             },
           } },
         { texture = "stgenm/stage06/enm6b.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 127, h = 84 },
           },
@@ -30615,60 +30875,70 @@ return {
             },
           } },
         { texture = "face/enemy6/face06no.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06n2.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06hp.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06an.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06dp.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06pr.png",
+          offset_x = 371, offset_y = 309, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 282, h = 282 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/dummy.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 4, h = 4 },
           },
           scripts = {
           } },
         { texture = "face/enemy6/face06bs.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 1000, h = 1040 },
             { x = 0, y = 0, w = 1, h = 1 },
@@ -30818,6 +31088,7 @@ return {
             },
           } },
         { texture = "face/enemy6/face06ct.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 399, h = 512 },
           },
@@ -30843,6 +31114,7 @@ return {
     },
     ["st07logo"] = {
         { texture = "front/logo/st07logo.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 640, h = 64 },
             { x = 0, y = 64, w = 192, h = 48 },
@@ -30941,6 +31213,7 @@ return {
             },
           } },
         { texture = "front/logo/st07logo.png",
+          offset_x = 0, offset_y = 448, low_res_scale = 1,
           sprites = {
             { x = 0, y = 0, w = 768, h = 32 },
             { x = 0, y = 32, w = 768, h = 32 },
@@ -30950,6 +31223,7 @@ return {
     },
     ["st07wl"] = {
         { texture = "background/stage07/stg3bg1.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -30967,6 +31241,7 @@ return {
             },
           } },
         { texture = "background/stage07/stg3bg2.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -31008,6 +31283,7 @@ return {
             },
           } },
         { texture = "background/stage07/stg3bg3.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 1024, h = 512 },
           },
@@ -31050,6 +31326,7 @@ return {
             },
           } },
         { texture = "background/stage07/stg3bg4.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 512, h = 512 },
           },
@@ -31073,6 +31350,7 @@ return {
             },
           } },
         { texture = "background/stage07/stg3bg5.png",
+          offset_x = 0, offset_y = 0, low_res_scale = 0,
           sprites = {
             { x = 0, y = 0, w = 384, h = 448 },
           },

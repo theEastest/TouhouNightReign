@@ -24,6 +24,9 @@ function EquipmentInstance.new(definition, owner_player_id, options)
         random_affixes = Immutable.copy(options.random_affixes or {}),
         weight = type(definition) == "table" and tonumber(definition.weight) or tonumber(options.weight) or 0,
     }, EquipmentInstance)
+    if options.random_affixes == nil and type(definition) == "table" then
+        instance.random_affixes = require("tnr.equipment.affix_catalog").roll(definition, options.affix_seed or instance.instance_id)
+    end
     assert(instance.instance_id ~= "", "instance_id is required")
     return instance
 end
@@ -42,13 +45,18 @@ end
 
 function EquipmentInstance.from_table(data)
     assert(type(data) == "table", "equipment instance data is required")
-    return EquipmentInstance.new(data.definition_id, data.owner_player_id, {
+    local restored = EquipmentInstance.new(data.definition_id, data.owner_player_id, {
         instance_id = data.instance_id,
         runtime_data = data.runtime_data,
         random_affixes = data.random_affixes,
         weight = data.weight,
         equipment_type = data.equipment_type,
     })
+    if #restored.random_affixes == 0 then
+        local definition=require("tnr.equipment.phase1_catalog").registry:get(restored.definition_id)
+        restored.random_affixes=require("tnr.equipment.affix_catalog").roll(definition,restored.instance_id)
+    end
+    return restored
 end
 
 return EquipmentInstance

@@ -10,16 +10,16 @@ local function _clamp(v)
     return v
 end
 function img_class:del()
-    New(bubble2, 'preimg' .. self._index, self.x, self.y, self.dx, self.dy, 11, self.imgclass.size, 0, Color(0xFFFFFFFF), Color(0xFFFFFFFF), self.layer, 'mul+add')
+    New(bubble2, 'preimg' .. self.index, self.x, self.y, self.dx, self.dy, 11, self.imgclass.size, 0, Color(0xFFFFFFFF), Color(0xFFFFFFFF), self.layer, 'mul+add')
 end
 function img_class:render()
     local k = _clamp(self.timer / 11)
     if self._blend then
-        SetImageState('preimg' .. self._index, self._blend, Color(255 * k, 255, 255, 255))
+        SetImageState('preimg' .. self.index, self._blend, Color(255 * k, 255, 255, 255))
     else
-        SetImageState('preimg' .. self._index, '', Color(255 * k, 255, 255, 255))
+        SetImageState('preimg' .. self.index, '', Color(255 * k, 255, 255, 255))
     end
-    Render('preimg' .. self._index, self.x, self.y, self.rot, ((1 - k) * 3 + 1) * self.imgclass.size)
+    Render('preimg' .. self.index, self.x, self.y, self.rot, ((1 - k) * 3 + 1) * self.imgclass.size)
 end
 ----------------------------------------------------------------
 particle_img = Class(object)
@@ -354,8 +354,8 @@ function water_drop:init(index)
 end
 function water_drop:render()
     local k = _clamp(self.timer / 11)
-    SetImageState('preimg' .. self._index, 'mul+add', Color(255 * k, 255, 255, 255))
-    Render('preimg' .. self._index, self.x, self.y, self.rot, ((1.0 - k) * 2 + 1) * self.imgclass.size)
+    SetImageState('preimg' .. self.index, 'mul+add', Color(255 * k, 255, 255, 255))
+    Render('preimg' .. self.index, self.x, self.y, self.rot, ((1.0 - k) * 2 + 1) * self.imgclass.size)
 end
 ----------------------------------------------------------------
 water_drop_dark = Class(img_class)   --2 4 6 10 12

@@ -27,14 +27,14 @@ function ShopService:open(node)
     local function ids_for(kind)
         local ids = {}
         for id, definition in pairs(definitions) do
-            if definition.test_only ~= true and definition.equipment_type == kind then ids[#ids + 1] = id end
+            if definition.test_only ~= true and not definition.internal_only and not definition.starter_only and definition.equipment_type == kind then ids[#ids + 1] = id end
         end
         table.sort(ids)
         return ids
     end
     local supports, weapons, modifiers = ids_for("SUPPORT"), ids_for("WEAPON"), {}
     for id, definition in pairs(definitions) do
-        if definition.test_only ~= true
+        if definition.test_only ~= true and not definition.internal_only and not definition.starter_only
                 and (definition.equipment_type == "SELF_MODIFIER" or definition.equipment_type == "SUPPORT_MODIFIER") then
             modifiers[#modifiers + 1] = id
         end
@@ -42,7 +42,9 @@ function ShopService:open(node)
     table.sort(modifiers)
     local function equipment_offer(ids, salt)
         if #ids == 0 then return { kind = "BOMB", price = 0, amount = 1 } end
-        return { kind = "EQUIPMENT", definition_id = ids[(seed + salt) % #ids + 1], price = 0 }
+        local id=ids[(seed + salt) % #ids + 1]
+        return { kind = "EQUIPMENT", definition_id = id, price = 0,
+            random_affixes = require("tnr.equipment.affix_catalog").roll(definitions[id],seed..":"..salt) }
     end
     self.offers = {
         { kind = "LIFE", price = 0, amount = 1, slot = 1 },
@@ -84,7 +86,7 @@ function ShopService:purchase(player_id, slot)
     elseif offer.kind == "EQUIPMENT" then
         local definition = self.session.equipment_registry:get(offer.definition_id)
         if not definition then return nil, "UNKNOWN_DEFINITION" end
-        local instance = EquipmentInstance.new(definition, player_id)
+        local instance = EquipmentInstance.new(definition, player_id, {random_affixes=offer.random_affixes})
         local acquired, err = self.session.acquisition_service:acquire(player_id, instance)
         if not acquired then
             -- A full inventory must not leave a pending acquisition behind:

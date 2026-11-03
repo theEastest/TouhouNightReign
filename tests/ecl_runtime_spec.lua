@@ -8,6 +8,26 @@ return function(assert_equal, assert_true)
     package.path = "game/scripts/?.lua;game/scripts/?/init.lua;" .. package.path
     local EclRuntime = require("tnr.legacy_replay.ecl_runtime")
     local chunks = require("tnr.legacy_replay.data.th15_all")
+    assert_true(chunks["st01mbs.MBoss1_at"] ~= nil,
+        "the parameterized stage-one midboss attack must be compiled")
+    local scoped = EclRuntime.new(chunks, {})
+    assert_equal(scoped:resolve_routine("MBoss1_at", {routine="st01mbs.MBoss1"}),
+        "st01mbs.MBoss1_at", "local routines override unrelated bare aliases")
+    assert_equal(scoped:resolve_routine("MBoss", {routine="st01.MainFront"}),
+        "st01mbs.MBoss", "enemy routines resolve through the stage's ECL imports")
+    local seen_arguments = {}
+    local argument_runtime = EclRuntime.new({
+        Parent = {{"assign", "%A", "=", "7"}, {"call", "Child", false, {"%A", "2.5f"}},
+                  {"ins", "record", {}}},
+        Child = {{"params", {"A", "B"}}, {"ins", "record", {}}, {"assign", "%A", "=", "99"}},
+    }, {instructions={record=function(thread)
+        seen_arguments[#seen_arguments+1] = {thread.floats.A, thread.floats.B}
+    end}})
+    argument_runtime.threads[1] = argument_runtime:spawn("Parent")
+    argument_runtime:update()
+    assert_equal(seen_arguments[1][1], 7, "callee receives evaluated arguments")
+    assert_equal(seen_arguments[1][2], 2.5, "float arguments retain their precision")
+    assert_equal(seen_arguments[2][1], 7, "callee locals do not corrupt caller locals")
 
     -- A recording host: every instruction the script issues is captured.
     local function make_runtime(trace)
@@ -103,6 +123,13 @@ return function(assert_equal, assert_true)
     local probe_thread = probe:spawn("X")
     probe_thread.ints["A"] = 7
     probe_thread.floats["B"] = 2.5
+    assert_true(EclRuntime.evaluate_condition(probe_thread,"($A >= 7) && (%B < 3.0f)"),
+        "ECL compound comparisons must actually evaluate")
+    assert_equal(EclRuntime.evaluate_condition(probe_thread,"($A == 3)"),false,
+        "false comparison stays false")
+    assert_equal(EclRuntime.evaluate_expression(probe_thread,"$A % 4"),3,"ECL modulo")
+    assert_equal(EclRuntime.evaluate_expression(probe_thread,"-%B"),-2.5,"mirrored coordinates preserve unary minus")
+    assert_equal(EclRuntime.evaluate_expression(probe_thread,"_f(2 + 3) * 4"),20,"cast preserves grouping")
     assert_equal(EclRuntime.resolve(probe_thread, "12"), 12, "integer literals resolve")
     assert_equal(EclRuntime.resolve(probe_thread, "1.5f"), 1.5, "float literals resolve")
     assert_equal(EclRuntime.resolve(probe_thread, "$A"), 7, "integer slots resolve")

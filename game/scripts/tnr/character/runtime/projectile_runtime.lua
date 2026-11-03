@@ -22,9 +22,10 @@ local function segment_distance(x, y, ax, ay, bx, by)
     return ((x - ax - dx * t) ^ 2 + (y - ay - dy * t) ^ 2) ^ 0.5
 end
 
-function Runtime.new(shot, weapon)
+function Runtime.new(shot, weapon, affixes)
     local self = setmetatable(Factory.from_shot(shot), Runtime)
     self.weapon = weapon
+    self.affix_runtime = affixes or (weapon and weapon.affix_runtime)
     self.age, self.hit_count, self.hit_targets = 0, 0, {}
     self.angle = math.rad(self.angle)
     self.beam = self.metadata.beam == true
@@ -79,7 +80,8 @@ function Runtime:update(targets, damage, spawn_field)
                 local desired = atan2(selected.y - self.y, selected.x - self.x)
                 local delta = (desired - self.angle + math.pi) % (2 * math.pi) - math.pi
                 local turn = math.min(0.12, (self.metadata.homing_turn_rate or 0.04)
-                    * (self.metadata.homing_turn_multiplier or 1))
+                    * (self.metadata.homing_turn_multiplier or 1)
+                    * (self.metadata.homing_turn_ratio or (self.metadata.homing_strength == "WEAK" and 0.5 or 1)))
                 self.angle = self.angle + math.max(-turn, math.min(turn, delta))
             end
         end
@@ -105,15 +107,23 @@ function Runtime:update(targets, damage, spawn_field)
                 end
                 if distance <= reach then
                     local bonus = self.weapon and self.weapon:damage_bonus(target_key) or 0
+                    local before_hp = target.object and target.object.hp or target.hp
                     if damage(target, self.damage * (1 + bonus), self) then
                         self.hit_targets[target_key] = self.age
                         self.hit_count = self.hit_count + 1
                         if self.weapon then
                             self.weapon:record_hit(target_key)
+                            if self.weapon.affix_runtime then
+                                self.weapon.affix_runtime:hit(self.weapon,self)
+                            end
                             if self.beam and not self.hit_reported and not self.metadata.mini_master_spark then
                                 self.weapon:notify_projectile_hit(self.weapon.frame)
                                 self.hit_reported = true
                             end
+                        end
+                        local after_hp=target.object and target.object.hp or target.hp
+                        if self.affix_runtime and before_hp and after_hp and before_hp>0 and after_hp<=0 then
+                            self.affix_runtime:kill(self.weapon,target_key)
                         end
                         if not self.field and self.metadata.legendary_effect == "wind_field" and spawn_field then
                             local shot = Factory.from_shot(self)
@@ -132,6 +142,10 @@ function Runtime:update(targets, damage, spawn_field)
     end
     self.age = self.age + 1
     if self.age >= self.max_age then self.dead = true end
+    if self.dead and not self.affix_finished and self.weapon and self.weapon.affix_runtime then
+        self.affix_finished=true
+        self.weapon.affix_runtime:projectile_end(self.weapon,self)
+    end
 end
 
 return Runtime

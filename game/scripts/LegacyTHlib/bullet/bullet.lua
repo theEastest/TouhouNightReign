@@ -9,7 +9,8 @@ COLOR_DEEP_BLUE = 5
 COLOR_BLUE = 6
 COLOR_ROYAL_BLUE = 7
 COLOR_CYAN = 8
-COLOR_DEEP_GREEN = 9
+-- activity7 uses the reference alias (10), even though newer THlib uses 9.
+COLOR_DEEP_GREEN = 10
 COLOR_GREEN = 10
 COLOR_CHARTREUSE = 11
 COLOR_YELLOW = 12
@@ -92,7 +93,8 @@ function bullet:render()
     end
     DefaultRenderFunc(self)
     if self._blend and self._a and self._r and self._g and self._b then
-        SetImgState(self, '', 255, 255, 255, 255)
+        local blend = (self.imgclass == ball_huge or self.imgclass == ball_light or self.imgclass == water_drop) and 'mul+add' or ''
+        SetImgState(self, blend, 255, 255, 255, 255)
     end
 end
 

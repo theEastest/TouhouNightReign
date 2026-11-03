@@ -933,7 +933,7 @@ function GameSession:claim_reward(player_id, choice_index)
     local definition_id = choice.definition_id
     local equipment_result, equipment_err
     if choice.kind == "EQUIPMENT" then
-        equipment_result, equipment_err = self.equipment_reward_service:grant(definition_id, player_id)
+        equipment_result, equipment_err = self.equipment_reward_service:grant(definition_id, player_id, choice.random_affixes)
         if not equipment_result then return nil, equipment_err end
     elseif choice.kind == "RESOURCE" then
         if choice.resource == "bomb" then

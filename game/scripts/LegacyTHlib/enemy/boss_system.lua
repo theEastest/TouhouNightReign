@@ -325,6 +325,8 @@ function system:kill()
     end
     --符卡逻辑
     local card = b.current_card
+    -- Legacy activity callbacks read the current capture bonus from lstg.var.
+    lstg.var.sc_bonus = tonumber(b.sc_bonus) or 0
     if card and card.beforedel then
         PreserveObject(b)
         task.Clear(b)
@@ -348,6 +350,7 @@ function system:kill_part2()
     local b = self.boss
     local card = b.current_card
     if card then
+        lstg.var.sc_bonus = tonumber(b.sc_bonus) or 0
         card.del(b)
     end
     if b.__card_finish then

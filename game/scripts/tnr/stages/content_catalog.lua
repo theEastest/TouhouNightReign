@@ -393,6 +393,21 @@ for id, alias in pairs(native_aliases) do
     end
 end
 
+-- These entries only animate/drop rewards and retire the Boss. Keep them
+-- in complete encounters, but do not advertise empty practice attacks.
+local retirement_slots = {
+    ["Mystia:Normal"]=9, ["Mystia:Lunatic"]=9,
+    ["Wriggle:Normal"]=5, ["Wriggle:Lunatic"]=5,
+    ["Larva:Normal"]=12, ["Larva:Lunatic"]=12, ["Larva+"]=5,
+    ["Junko_mid:Normal"]=6, ["Junko_mid_Lunatic:Lunatic"]=6,
+}
+for _, card in pairs(ContentCatalog.cards) do
+    local retired_slot = card.legacy_boss and retirement_slots[card.legacy_boss]
+    if retired_slot and retired_slot == card.legacy_card_slot then
+        card.legacy_transition = true
+    end
+end
+
 local pattern_bullet_sprites = {
     aimed = "tnr-thlib-bullet-gun",
     aimed_fan = "tnr-thlib-bullet-gun",

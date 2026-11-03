@@ -27,7 +27,7 @@ end
 local function sorted_ids(definitions, predicate)
     local result = {}
     for definition_id, definition in pairs(definitions or {}) do
-        if definition.test_only ~= true and predicate(definition) then result[#result + 1] = definition_id end
+        if definition.test_only ~= true and not definition.internal_only and not definition.starter_only and predicate(definition) then result[#result + 1] = definition_id end
     end
     table.sort(result)
     return result
@@ -52,7 +52,7 @@ function RewardService:generate_choices(battle_result, run_seed)
     local function equipment_choice(pool, offset)
         if #pool == 0 then return nil end
         local id = pool[((math.floor(hash / offset) % #pool) + 1)]
-        return { kind = "EQUIPMENT", definition_id = id }
+        return { kind = "EQUIPMENT", definition_id = id, random_affixes = require("tnr.equipment.affix_catalog").roll(definitions[id],key..":"..offset) }
     end
     local function resource_choice(offset)
         return { kind = "RESOURCE", resource = (math.floor(hash / offset) % 2 == 0) and "bomb" or "life", amount = 1 }

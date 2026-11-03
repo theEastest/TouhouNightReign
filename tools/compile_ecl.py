@@ -71,11 +71,12 @@ def split_args(text):
 
 def compile_file(path):
     """Return { subroutine_name: [ {op, args...}, ... ] } for one decl file."""
-    text = io.open(path, encoding="utf-8", errors="replace").read()
+    with io.open(path, encoding="utf-8", errors="replace") as source:
+        text = source.read()
     # Strip the header directives and prototypes.
     routines = {}
     # Find "void Name()" ... matching closing brace at column 0.
-    pattern = re.compile(r"^void\s+([A-Za-z0-9_]+)\s*\(\s*\)\s*\{", re.M)
+    pattern = re.compile(r"^void\s+([A-Za-z0-9_]+)\s*\(([^)]*)\)\s*\{", re.M)
     for match in pattern.finditer(text):
         name = match.group(1)
         body_start = match.end()
@@ -92,7 +93,9 @@ def compile_file(path):
                     break
             i += 1
         body = text[body_start:i]
-        routines[name] = compile_body(body)
+        parameters = [p.strip().removeprefix("var ").strip()
+                      for p in match.group(2).split(",") if p.strip()]
+        routines[name] = [("params", parameters)] + compile_body(body)
     return routines
 
 
@@ -111,8 +114,8 @@ def compile_body(body):
             pending = pending + " " + stripped
         else:
             pending = stripped
-        depth += pending.count("(") - pending.count(")")
-        depth += pending.count("[") - pending.count("]")
+        depth += stripped.count("(") - stripped.count(")")
+        depth += stripped.count("[") - stripped.count("]")
         if depth <= 0:
             lines.append(pending)
             pending = ""
@@ -133,9 +136,13 @@ def compile_body(body):
         nonlocal diff_values
         if pending_diff_values:
             ordered = []
-            for key in ("E", "N", "H", "LO", "O"):
-                if key in pending_diff_values:
-                    ordered.append(pending_diff_values[key])
+            count = max(len(values) for values in pending_diff_values.values())
+            for slot in range(count):
+                branches = []
+                for key in ("E", "N", "H", "L", "O"):
+                    values = pending_diff_values.get(key, [])
+                    branches.append(values[slot] if slot < len(values) else "0")
+                ordered.append(branches)
             if ordered:
                 diff_values = ordered
         pending_diff_values.clear()
@@ -155,7 +162,7 @@ def compile_body(body):
                 distance = int(match.group(1))
                 index = len(diff_values) + distance
                 if 0 <= index < len(diff_values):
-                    resolved.append({"__branches__": list(diff_values)})
+                    resolved.append({"__branches__": list(diff_values[index])})
                     continue
             resolved.append(operand)
         return resolved
@@ -181,6 +188,7 @@ def compile_body(body):
                 instructions.append(("diff_end",))
             else:
                 pending_diff_key = key
+                instructions.append(("diff", key))
                 # A combined marker such as !NHL declares one value for several
                 # difficulties at once; it is flushed when the block ends.
             continue
@@ -191,12 +199,7 @@ def compile_body(body):
                 # Record the value for each difficulty named in the marker.
                 for single in pending_diff_key:
                     if single in ("E", "N", "H", "L", "O"):
-                        pending_diff_values["LO" if single == "L" else single] = line[:-1]
-                    elif single == "O":
-                        pending_diff_values["O"] = line[:-1]
-                # !LO means lunatic and overdrive share the value.
-                if pending_diff_key == "LO":
-                    pending_diff_values["LO"] = line[:-1]
+                        pending_diff_values.setdefault(single, []).append(line[:-1])
             instructions.append(("value", line[:-1]))
             continue
         # if / unless conditional jumps.
@@ -212,7 +215,7 @@ def compile_body(body):
         # Async / call subroutines: "@Name() async;" or "@Name(args) async;".
         call = re.match(r"^@([A-Za-z0-9_]+)\((.*)\)\s*(async)?;$", line)
         if call:
-            instructions.append(("call", call.group(1), bool(call.group(3)), split_args(call.group(2))))
+            instructions.append(("call", call.group(1), bool(call.group(3)), resolve_placeholders(split_args(call.group(2)))))
             continue
         # Assignment.
         assign = re.match(r"^([\w\$%\s\[\]]+?)\s*(=|\+=|-=)\s*(.+);$", line)
@@ -272,6 +275,15 @@ def main():
         "-- Source: %s" % decl_dir.replace("\\", "/"),
         "return {",
     ]
+    lines.append('    ["__imports"] = {')
+    for filename in files:
+        source = io.open(os.path.join(decl_dir, filename), encoding="utf-8").read()
+        directive = re.search(r"ecli\s*\{([^}]+)\}", source)
+        if directive:
+            imports = re.findall(r'"([^".]+)\.ecl"', directive.group(1))
+            lines.append('        ["%s"] = {%s},' %
+                         (filename[:-5], ", ".join('"%s"' % item for item in imports)))
+    lines.append("    },")
     for name in sorted(chunks):
         lines.append('    ["%s"] = {' % name)
         for inst in chunks[name]:

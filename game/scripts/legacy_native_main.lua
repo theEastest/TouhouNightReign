@@ -1,3 +1,4 @@
+local NativePGauge = require("tnr.character.runtime.native_p_gauge")
 local load_error
 local legacy_loaded = false
 local native_stage
@@ -193,6 +194,21 @@ local native_remote_loadout_descriptor = nil
 -- so equipment descriptors are the sole source of player firepower.
 local native_runtime_active = false
 local native_runtime_drivers = { [1] = nil, [2] = nil }
+_G.tnr_affix_defend = function(p)
+    local d=native_runtime_drivers[native_local_player_id]
+    if not native_runtime_active or not d or not d.affixes then return false end
+    return d.affixes:defend(tonumber(lstg.var.lifeleft) or 0)
+end
+_G.tnr_affix_miss = function()
+    if native_coop_enabled then return end
+    local d=native_runtime_drivers[native_local_player_id]
+    if native_runtime_active and d and d.affixes then d.affixes:miss() end
+end
+_G.tnr_affix_kill = function(owner,instance_id,target)
+    local d=native_runtime_drivers[owner]
+    if native_runtime_active and d and d.affixes then d.affixes:kill(d.weapon_manager:find(instance_id),target) end
+end
+
 local native_runtime_shot_calls = 0
 local native_legacy_shot_calls = 0
 local native_runtime_last_projectile
@@ -272,7 +288,7 @@ local native_runtime_enemy_targets
 local function native_spawn_runtime_projectile(shot, player_object)
     local driver = native_runtime_drivers[shot.owner_player_id or native_local_player_id]
     local weapon = driver and driver.weapon_manager:find(shot.source_instance_id)
-    local object = NativeProjectile.spawn(shot, weapon, native_runtime_enemy_targets)
+    local object = NativeProjectile.spawn(shot, weapon, native_runtime_enemy_targets,driver and driver.affixes)
     native_runtime_last_projectile = object
     if object then native_runtime_shot_calls = native_runtime_shot_calls + 1 end
     return object
@@ -330,6 +346,7 @@ local function native_runtime_fire(driver, player_object, input, player_id)
         return 0
     end
     input = input or {}
+    if os.getenv("TNR_AFFIX_SMOKE")=="1" then require("tnr.debug.affix_smoke").prepare(driver) end
     local mode = input.focus == true and "LOW" or "HIGH"
     local context = {
         player_id = tonumber(player_id) or native_local_player_id,
@@ -338,6 +355,7 @@ local function native_runtime_fire(driver, player_object, input, player_id)
         angle = 90,
         frame = stage and stage.current_stage and tonumber(stage.current_stage.frame_count) or 0,
         focus = input.focus == true,
+        moving = (input.move_x or 0) ~= 0 or (input.move_y or 0) ~= 0,
         room_generation = native_external_room_generation or native_room_seed,
         attack_allowed = player_object and not player_object.hide and not player_object.lock
             and (tonumber(player_object.death) or 0) == 0
@@ -347,6 +365,25 @@ local function native_runtime_fire(driver, player_object, input, player_id)
     local ok, shots, support_state = pcall(driver.bridge.update, driver.bridge, driver,
         mode, input.shoot == true and not (player_object and player_object.hide == true), context)
     if not ok then error(shots) end
+    if driver.affixes then
+        player_object.tnr_pickup_multiplier=driver.affixes.pickup_multiplier
+        driver.affixes.on_resource=function(kind,amount)
+            if driver.player_id~=native_local_player_id then return end
+            if kind=="money" then
+                lstg.var.tnr_stage_money=(lstg.var.tnr_stage_money or 0)+amount
+            elseif kind=="bomb" then
+                lstg.var.bomb=(lstg.var.bomb or 0)+amount
+                if native_player_state then native_player_state.bomb=lstg.var.bomb end
+            elseif kind=="life" then
+                native_team_lives=native_team_lives+amount
+                lstg.var.lifeleft=(lstg.var.lifeleft or 0)+amount
+                if native_party_state then native_party_state.team_life=native_team_lives end
+                if native_player_state then native_player_state.life=(native_player_state.life or 0)+amount end
+            end
+        end
+    end
+    NativePGauge.update(driver, player_object, context)
+    if os.getenv("TNR_AFFIX_SMOKE")=="1" then require("tnr.debug.affix_smoke").update(driver,player_object) end
     driver._last_support_state = support_state
     native_runtime_support_layout(player_object, support_state)
     if driver.afterglow_invulnerability and driver.afterglow_invulnerability > 0 and player_object then
@@ -519,30 +556,15 @@ local function native_install_aggro_hooks()
     if type(New) == "function" then
         native_original_new = New
         New = function(class, ...)
-            -- Exported activity scripts can create a short-lived effect at
-            -- the same frame that its class is first referenced.  The native
-            -- constructor requires a registered LuaSTG class, so register a
-            -- valid class lazily and retry once before surfacing real errors.
+            -- Constructors may have side effects before raising an error. Never
+            -- run a failed initializer twice or silently discard a missing class.
             if type(class) ~= "table" or class.is_class ~= true then
-                return nil
+                error("native object class is missing or invalid", 2)
             end
-            local ok, object_or_error = pcall(native_original_new, class, ...)
-            if not ok and type(lstg.RegisterGameObjectClass) == "function" then
-                pcall(lstg.RegisterGameObjectClass, class)
-                ok, object_or_error = pcall(native_original_new, class, ...)
+            if type(lstg.RegisterGameObjectClass) == "function" then
+                lstg.RegisterGameObjectClass(class)
             end
-            if not ok then
-                -- Some imported activity helpers pass a legacy/plus class
-                -- table that cannot be represented by the modern native
-                -- object pool.  These are visual helpers (boss pointers,
-                -- optional HUD effects, etc.); skipping just this object is
-                -- safe and prevents an otherwise playable room from aborting
-                -- its frame.  Do not hide unrelated constructor failures.
-                if tostring(object_or_error):lower():match("object class required") then
-                    return nil
-                end
-                error(object_or_error, 0)
-            end
+            local object_or_error = native_original_new(class, ...)
             local object = object_or_error
             if object and native_damage_owner_context
                     and GROUP_PLAYER_BULLET and object.group == GROUP_PLAYER_BULLET then
@@ -564,6 +586,7 @@ local function native_install_aggro_hooks()
             if owner and before and after and after < before then
                 native_record_damage(owner, before - after)
                 native_notify_projectile_hit(other)
+                if before>0 and after<=0 then _G.tnr_affix_kill(owner,other.tnr_source_instance_id,self) end
             end
             return result
         end
@@ -580,6 +603,7 @@ local function native_install_aggro_hooks()
             if owner and before and after and after < before then
                 native_record_damage(owner, before - after)
                 native_notify_projectile_hit(other)
+                if before>0 and after<=0 then _G.tnr_affix_kill(owner,other.tnr_source_instance_id,self) end
             end
             return result
         end
@@ -1072,6 +1096,8 @@ local function native_record_bomb(owner_id, focus, input_tick, charged)
     local bomb_owner = tonumber(owner_id)
     if bomb_owner then
         native_bomb_counts[bomb_owner] = (native_bomb_counts[bomb_owner] or 0) + 1
+        local d=native_runtime_drivers[bomb_owner]
+        if d and d.affixes then d.affixes:bomb() end
     end
     native_bomb_events[#native_bomb_events + 1] = {
         sequence = native_bomb_generation,
@@ -1298,6 +1324,7 @@ local function native_resolve_team_wipe()
         -- A simultaneous wipe is one shared event. Clear the arena exactly
         -- once before either the life decrement or the synchronized revive.
         native_team_wipe_generation = native_team_wipe_generation + 1
+        for _,d in pairs(native_runtime_drivers) do if d.affixes then d.affixes:miss() end end
         native_clear_enemy_bullets()
         native_set_team_lives(native_team_lives - 1)
         if native_team_lives <= 0 then
@@ -1330,8 +1357,8 @@ local function native_render_coop_hud()
     local lives_value = native_coop_enabled and native_team_lives
         or (native_player_state and tonumber(native_player_state.life))
         or (lstg and lstg.var and tonumber(lstg.var.lifeleft)) or native_team_lives
-    RenderTTF("Sans", string.format("%s  %d", lives_label, lives_value), right, right, y, y,
-        Color(255, 220, 240, 255), "right", "vcenter", "noclip")
+    local status_art=require("tnr.character.runtime.status_art")
+    status_art.resources(10,lives_value,right-176,right,y,22)
     y = y - 26
     -- Bombs are player-owned resources.  Only show the local process's count;
     -- the peer has an independent count and never receives this value over
@@ -1341,8 +1368,7 @@ local function native_render_coop_hud()
         bombs = tonumber(lstg.var.bomb)
     end
     local bomb_alert = (native_bomb_hit_charge_window or 0) > 0
-    RenderTTF("Sans", string.format("BOMBS  %d", math.max(0, bombs or 0)), right, right, y, y,
-        bomb_alert and Color(255, 80, 80, 255) or Color(255, 255, 220, 255), "right", "vcenter", "noclip")
+    status_art.resources(6,bombs or 0,right-176,right,y,22)
     y = y - 26
     -- Current stage score and money collected this stage. Both reset at the
     -- room boundary, so this always reflects the stage being played.
@@ -1781,8 +1807,20 @@ local function build_native_card_sequence(class, slot)
             break
         end
     end
-    for _, move in ipairs(pending_moves) do
-        table.insert(cards, 1, move)
+    -- Later practiced cards still need the campaign entrance: their helpers
+    -- may be created before the card's own movement task, and bound helpers
+    -- spawned at the boss constructor's y=600 are immediately deleted.
+    if #pending_moves == 0 then
+        for index = combat_slot - 1, 1, -1 do
+            local entry = class.cards[index]
+            if entry and entry.is_move then
+                pending_moves[1] = entry
+                break
+            end
+        end
+    end
+    for index = #pending_moves, 1, -1 do
+        table.insert(cards, 1, pending_moves[index])
     end
     return cards
 end
@@ -2057,11 +2095,12 @@ local function patch_loader(name)
 
     lstg[name] = function(resource, path, ...)
         local normalized = normalize_legacy_path(path)
-        if name == "LoadFX" and resource == "er_desaturate" then
+        if name == "LoadFX" and (resource == "er_desaturate" or resource == "cameo"
+                or resource == "distortion_colorburn" or resource == "fx_switch") then
             -- The exported FX uses D3D9 effect syntax. This composite is
             -- required to present Tenka's scene, so load the D3D11 port and
             -- report any failure here instead of leaving an absent effect.
-            return original(resource, "shader/er_desaturate.hlsl", ...)
+            return original(resource, "shader/" .. resource .. ".hlsl", ...)
         end
         if name == "LoadMusic" and type(normalized) == "string" then
             -- The exported scripts refer to music by its original basename
@@ -2092,12 +2131,6 @@ local function patch_loader(name)
         if ok then
             return result
         end
-        -- The activity export does not ship every optional THlib HUD sheet.
-        -- Reuse the canonical boss sheet for those UI-only resources so the
-        -- actual card scripts can still run.
-        if type(normalized) == "string" and normalized:match("^Thlib/enemy/") then
-            return original(resource, "Thlib/enemy/boss.png", ...)
-        end
         if type(normalized) == "string" and normalized:match("%.[Ww][Aa][Vv]$") then
             return original(resource, "assets/audio/se/se_tan00.wav", ...)
         end
@@ -2118,7 +2151,7 @@ local function patch_loader(name)
                     if retry_ok then return retry_result end
                 end
             end
-            return nil
+            error(result, 0)
         end
         if name == "LoadMusic" then
             error("original BGM resource not found: " .. tostring(normalized) .. "; copy the exact file into game/assets/audio/music")
@@ -2207,35 +2240,6 @@ local function load_legacy_content()
             end
             return lstg.DoFile(path)
         end
-        -- Missing optional post-effect resources should not abort an otherwise
-        -- playable card. Keep the original call for valid effects and skip
-        -- only the known legacy effect when its shader could not be compiled.
-        local native_post_effect = rawget(lstg, "PostEffect") or rawget(_G, "PostEffect")
-        if type(native_post_effect) == "function" then
-            local function safe_post_effect(render_target, effect_name, ...)
-                -- fx_switch is an optional transition effect in the exported
-                -- activity.  Some installations do not compile the legacy
-                -- shader; treat that transition as a no-op instead of
-                -- aborting the whole frame.  Other effects retain native
-                -- error behavior so genuine rendering bugs remain visible.
-                if effect_name == "fx_switch" then
-                    local ok_call, result = pcall(native_post_effect, render_target, effect_name, ...)
-                    if ok_call then return result end
-                    if tostring(result):lower():match("posteffect.*not found")
-                            or tostring(result):lower():match("effect.*not found")
-                            or tostring(result):lower():match("fx_switch.*not found") then
-                        return nil
-                    end
-                    error(result, 0)
-                end
-                return native_post_effect(render_target, effect_name, ...)
-            end
-            -- Patch the namespace function as well as the global alias.  A
-            -- later Lapi/THlib include can recreate the alias from lstg, but
-            -- it cannot bypass this namespace-level wrapper.
-            lstg.PostEffect = safe_post_effect
-            PostEffect = safe_post_effect
-        end
         -- The activity editor assumes these classic THlib sheets were loaded
         -- by the original project root. Load them before THlib's laser module,
         -- which creates its node image group from `bullet1` during Include.
@@ -2244,6 +2248,7 @@ local function load_legacy_content()
             pcall(lstg.LoadTexture, "bullet" .. index, path, true)
         end
         Include("THlib.lua")
+        LoadFX("fx_switch", "shader/fx_switch.hlsl")
         -- Dialogue override hook. The reference export hard-codes its boss
         -- conversations; when the extracted JSON has a matching entry the text
         -- argument is replaced so the conversation can be edited without
@@ -2277,73 +2282,14 @@ local function load_legacy_content()
                     .. ": " .. tostring(character_error))
             end
         end
-        local classic_groups = {
-            { "preimg", 80, 0, 32, 32, 1, 8 },
-            { "arrow_big", 0, 0, 16, 16, 1, 16 },
-            { "gun_bullet", 24, 0, 16, 16, 1, 16 },
-            { "gun_bullet_void", 56, 0, 16, 16, 1, 16 },
-            { "butterfly", 112, 0, 32, 32, 1, 8 },
-            { "square", 152, 0, 16, 16, 1, 16 },
-            { "ball_mid", 176, 0, 32, 32, 1, 8 },
-            { "ellipse", 224, 0, 32, 32, 1, 8 },
-            { "ball_big", 176, 0, 32, 32, 1, 8 },
-            { "ball_light", 176, 0, 32, 32, 1, 8 },
-            { "ball_small", 208, 0, 16, 16, 1, 16 },
-            { "grain_a", 208, 0, 16, 16, 1, 16 },
-            { "grain_b", 208, 0, 16, 16, 1, 16 },
-            { "grain_c", 208, 0, 16, 16, 1, 16 },
-            { "star_small", 224, 0, 32, 32, 1, 8 },
-            { "star_big", 224, 0, 32, 32, 1, 8 },
-            { "heart", 112, 0, 32, 32, 1, 8 },
-            { "knife", 0, 0, 16, 16, 1, 16 },
-            { "knife_b", 0, 0, 16, 16, 1, 16 },
-            { "arrow_small", 0, 0, 16, 16, 1, 16 },
-            { "arrow_mid", 0, 0, 16, 16, 1, 16 },
-            { "water_drop", 176, 0, 32, 32, 1, 8 },
-            { "music", 152, 0, 16, 16, 1, 16 },
-            { "silence", 152, 0, 16, 16, 1, 16 },
-            { "money", 152, 0, 16, 16, 1, 16 },
-            { "mildew", 208, 0, 16, 16, 1, 16 },
-            { "ball_huge", 176, 0, 32, 32, 1, 8 },
-            { "ball_huge_dark", 176, 0, 32, 32, 1, 8 },
-            { "ball_light_dark", 176, 0, 32, 32, 1, 8 },
-        }
-        for _, group in ipairs(classic_groups) do
-            pcall(LoadImageGroup, group[1], "bullet1", group[2], group[3], group[4], group[5], group[6], group[7], 1, 1)
-            pcall(LoadImageGroup, "fade_" .. group[1], "bullet1", group[2], group[3], group[4], group[5], group[6], group[7], 1, 1)
-            for frame = 9, 16 do
-                pcall(CopyImage, group[1] .. frame, group[1] .. "1")
-                pcall(CopyImage, "fade_" .. group[1] .. frame, "fade_" .. group[1] .. "1")
-            end
-        end
-        -- The editor uses colour-suffixed variants that are not present in
-        -- the compact THlib atlas. Reuse the matching original frame; this
-        -- preserves the class and timing logic while keeping every projectile
-        -- constructible in the native object pool.
-        for _, prefix in ipairs({ "ball_mid_b", "ball_mid_c", "ball_mid_d" }) do
-            for frame = 1, 16 do
-                local source = "ball_mid" .. frame
-                local target = prefix .. frame
-                pcall(CopyImage, target, source)
-            end
-        end
-        -- Water-drop bullets are animated sprites, not frames in bullet1.
-        -- The activity export uses both the normal and dark variants.
-        pcall(LoadTexture, "bullet_water_drop", "Thlib/bullet/bullet_water_drop.png", true)
-        -- Bullet frame indices span 1..16 (see LegacyTHlib/bullet/bullet.lua),
-        -- but the water-drop sheet only carries 8 distinct frames. Load all
-        -- 16 animation names, mapping 9..16 back onto frames 1..8, so a
-        -- `water_drop_dark9..16` lookup can never fail at runtime.
-        for index = 1, 16 do
-            local source_index = ((index - 1) % 8) + 1
-            local x = 48 * (source_index - 1)
-            pcall(LoadAnimation, "water_drop" .. index, "bullet_water_drop", x, 0, 48, 32, 1, 4, 4, 4, 4)
-            pcall(SetAnimationState, "water_drop" .. index, "mul+add")
-            pcall(LoadAnimation, "water_drop_dark" .. index, "bullet_water_drop", x, 0, 48, 32, 1, 4, 4, 4, 4)
-        end
+        -- THlib's reference atlas loader already registers the real textures,
+        -- hitboxes and animation frames. Never overwrite them with aliases.
         -- Older activity background scripts refer to this helper table while
         -- defining their concrete background class.
-        starlight_background = { frame = function() end }
+        lstg.DoFile("Thlib/background/starlight/starlight.lua")
+        Include("LegacyTHlib/activity_compat.lua")
+        lstg.DoFile("Thlib/Class.lua")
+        lstg.DoFile("Thlib/BulletEx.lua")
         Include("_editor_output.lua")
         -- The reference launcher invokes these resource registration helpers
         -- from each stage script.  Training and roguelike rooms jump directly
@@ -2413,11 +2359,8 @@ local function setup_native_stage()
     lstg.RegisterAllGameObjectClass()
     item.PlayerInit()
     InitScoreData()
-    -- Drop substitution: half of the original power drops become money drops
-    -- instead. The reference `item.DropItem` is wrapped rather than edited so
-    -- the imported THlib source stays pristine and the change is reviewable.
-    -- Money keeps the power drop's 1-unit value and counts toward the stage
-    -- score exactly like the power it replaces.
+    InitActivityScoreData()
+    -- Independent pools: keep existing coins and repurpose score-point drops as P.
     if item and type(item.DropItem) == "function" and not _G.__tnr_money_drop_installed then
         _G.__tnr_money_drop_installed = true
         local native_original_drop_item = item.DropItem
@@ -2502,40 +2445,29 @@ local function setup_native_stage()
             return New(native_money_item_class(), x, y)
         end
         -- The item module's death drop and any other native code spawn the
-        -- regular pickup set through this hook so pink power items and green
-        -- faith items never reach the field.
+        -- money pickups through this hook; enemy P drops use their own pool.
         _G.tnr_spawn_money = native_spawn_money
+        local function restore_p(amount)
+            local driver = native_runtime_drivers[native_local_player_id]
+            if driver and driver.p_gauge then driver.p_gauge:restore(amount, "pickup") end
+        end
+        item_power.collect = function() restore_p(10) end
+        item_power_large.collect = function() restore_p(20) end
+        item_power_full.collect = function() restore_p(100) end
+
         item.DropItem = function(x, y, drop)
-            -- Keep a pristine copy of the drop table: the reference mutates
-            -- drop[1] and drop[4] in place.
-            local power = tonumber(drop and drop[1]) or 0
-            local faith = tonumber(drop and drop[2]) or 0
-            local points = tonumber(drop and drop[3]) or 0
-            -- Regular drops are limited to two pickups: the animated coin and
-            -- the original blue point item. Every power unit (including the
-            -- large P card and the full-power F card) becomes one coin, and
-            -- faith is folded into the point count so nothing green (or pink)
-            -- is left behind. Extend, bomb and bomb-chip drops never travel
-            -- through this table and are therefore untouched.
-            local money_units = 0
-            if power >= 400 then
-                -- The full-power drop is exported as a single F card in the
-                -- reference. It is a regular power drop here, so convert it
-                -- into a matching stack of coins instead of the card.
-                money_units = 1
-            elseif power > 0 then
-                money_units = math.floor(power / 100) + (power % 100)
+            local plan = require("tnr.battle.drop_plan").from_legacy(drop)
+            local function spawn_p(amount)
+                local a = math.rad(native_random_range(0, 360))
+                local radius = math.sqrt(native_random_range(1, 4)) * 8
+                native_original_drop_item(x + math.cos(a) * radius, y + math.sin(a) * radius, { amount, 0, 0 })
             end
-            local point_units = points + faith
-            if money_units <= 0 and point_units <= 0 then
-                return native_original_drop_item(x, y, drop)
+            -- Spawn denominations separately: the original 400+ branch emits F cards.
+            if plan.small_p > 0 then
+                for _ = 1, plan.small_p do spawn_p(1) end
             end
-            -- Reuse the reference spread math by handing it a drop table with
-            -- no power and no faith, only the surviving point count.
-            if point_units > 0 then
-                native_original_drop_item(x, y, { 0, 0, point_units })
-            end
-            for _ = 1, money_units do
+            for _ = 1, plan.large_p do spawn_p(100) end
+            for _ = 1, plan.money do
                 local r2 = math.sqrt(native_random_range(1, 4)) * 5
                 local angle = native_random_range(0, 360)
                 native_spawn_money(x + r2 * math.cos(math.rad(angle)), y + r2 * math.sin(math.rad(angle)))
@@ -2624,6 +2556,9 @@ local function setup_native_stage()
         end
         if lstg.var then
             lstg.var.ran_seed = native_seed
+            -- Reference library-stage setup, also required by isolated book cards.
+            lstg.var.bookbreak = 0
+            lstg.var.qxs_mirrow = 0
         end
         if ran and type(ran.Seed) == "function" then
             pcall(ran.Seed, ran, native_seed)
@@ -2802,7 +2737,7 @@ local function setup_native_stage()
         end
     end
     function native_stage:render()
-        if self.boss and self.boss.bg and self.boss.bg.render then
+        if self.boss and IsValid(self.boss) and self.boss.bg and IsValid(self.boss.bg) and self.boss.bg.render then
             self.boss.bg:render()
         end
     end
@@ -2842,16 +2777,19 @@ local function setup_native_stage()
         -- and boss layers cannot clip it at the upper edge of the playfield.
         native_render_remote_player()
         if native_runtime_active then
+            SetViewMode("world")
             for owner, driver in pairs(native_runtime_drivers) do
                 local player = owner == native_local_player_id and native_player or native_remote_player
                 if driver and player and not player.hide and not player.hidden then
                     NativeProjectile.render_supports(driver._last_support_state, owner == native_local_player_id and 255 or 180)
                     NativeProjectile.render_streaks(driver, player)
+                    NativePGauge.render_world(driver, player)
                 end
             end
         end
         native_render_aggro_marker()
         native_render_coop_hud()
+        NativePGauge.render_hud(native_runtime_drivers[native_local_player_id])
         AfterRender()
         lstg.EndScene()
     end
@@ -3200,8 +3138,10 @@ do
             return true
         end,
         set_runtime_drivers = function(local_driver, remote_driver)
-            native_runtime_drivers[1] = local_driver
-            native_runtime_drivers[2] = remote_driver
+            NativePGauge.reset()
+            native_runtime_drivers = {}
+            if local_driver then native_runtime_drivers[local_driver.player_id or native_local_player_id] = local_driver end
+            if remote_driver then native_runtime_drivers[remote_driver.player_id or (native_local_player_id == 1 and 2 or 1)] = remote_driver end
             return true
         end,
         set_runtime_active = function(active)
@@ -3636,6 +3576,9 @@ do
                     support = tonumber(state.player.support) or 0,
                     lh = tonumber(state.player.lh) or 0,
                     sp = native_copy_support_layout(state.player.sp),
+                    affixes = native_runtime_drivers[native_local_player_id] and native_runtime_drivers[native_local_player_id].affixes and native_runtime_drivers[native_local_player_id].affixes:to_table(),
+                    p_gauge = native_runtime_drivers[native_local_player_id]
+                        and native_runtime_drivers[native_local_player_id].p_gauge:to_table(),
                 }
             end
             if state.remote_player then
@@ -3732,6 +3675,9 @@ do
                         support = tonumber(native_player.support) or 0,
                         lh = tonumber(native_player.lh) or 0,
                         sp = native_copy_support_layout(native_player.sp),
+                        affixes = native_runtime_drivers[native_local_player_id] and native_runtime_drivers[native_local_player_id].affixes and native_runtime_drivers[native_local_player_id].affixes:to_table(),
+                    p_gauge = native_runtime_drivers[native_local_player_id]
+                            and native_runtime_drivers[native_local_player_id].p_gauge:to_table(),
                     }
                 end)
                 if not ok then players[native_local_player_id] = nil end
@@ -3819,6 +3765,14 @@ do
             end
             local remote_state = type(snapshot.players) == "table" and snapshot.players[remote_id]
             if remote_state and native_remote_player then
+                local driver = native_runtime_drivers[remote_id]
+                if driver and remote_state.p_gauge then
+                    if remote_state.affixes then
+                        driver.affixes=driver.affixes or require("tnr.equipment.runtime.affix_runtime").new(driver,driver.bridge:player(),driver.bridge.session)
+                        driver.affixes:apply_snapshot(remote_state.affixes)
+                    end
+                    NativePGauge.sync(driver, remote_state.p_gauge)
+                end
                 pcall(function()
                     if tonumber(remote_state.x) then native_remote_player.x = tonumber(remote_state.x) end
                     if tonumber(remote_state.y) then native_remote_player.y = tonumber(remote_state.y) end
@@ -3946,6 +3900,14 @@ do
             end
             local remote_state = snapshot.players and snapshot.players[remote_id]
             if remote_state and native_remote_player then
+                local driver = native_runtime_drivers[remote_id]
+                if driver and remote_state.p_gauge then
+                    if remote_state.affixes then
+                        driver.affixes=driver.affixes or require("tnr.equipment.runtime.affix_runtime").new(driver,driver.bridge:player(),driver.bridge.session)
+                        driver.affixes:apply_snapshot(remote_state.affixes)
+                    end
+                    NativePGauge.sync(driver, remote_state.p_gauge)
+                end
                 if tonumber(remote_state.x) then native_remote_player.x = tonumber(remote_state.x) end
                 if tonumber(remote_state.y) then native_remote_player.y = tonumber(remote_state.y) end
                 if tonumber(remote_state.support) then native_remote_player.support = tonumber(remote_state.support) end

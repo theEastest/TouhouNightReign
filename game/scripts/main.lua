@@ -38,6 +38,7 @@ if network_mode == "host" or network_mode == "client" then
 end
 
 local game = Bootstrap.create(bootstrap_options)
+local native_audit
 -- Native reference scripts route through the same coordinator as the project
 -- UI. This must be attached before GameInit so the title BGM and every later
 -- legacy PlayMusic call obey the single-track rule.
@@ -230,6 +231,28 @@ function GameInit()
     game.audio:play_music("menu")
     lstg.LoadTTF("Sans", "assets/font/SourceHanSansCN-Bold.otf", 48, 48)
     game:init()
+    -- Developer smoke-test entry; normal launches still open the main menu.
+    local replay_stage = tonumber(os.getenv("TNR_REPLAY_AUTO_STAGE"))
+    if replay_stage then
+        game:open_replay_select()
+        game.replay.stage_cursor = math.max(1, math.min(7, math.floor(replay_stage)))
+        if os.getenv("TNR_REPLAY_AUTO_MODE") == "classic" then game.replay.mode_cursor = 2 end
+        game:start_replay_stage()
+        if os.getenv("TNR_REPLAY_CAPTURE_DIALOGUE") == "1" then
+            -- Explicit developer preview only: advance with invulnerability
+            -- to the first spoken line, then freeze for screenshot inspection.
+            local runtime = game.replay.runtime
+            for _ = 1, 36000 do
+                for _, player in pairs(runtime.players) do player.invulnerable = 999 end
+                runtime:update()
+                if runtime.dialogue and runtime.dialogue.active and runtime.dialogue.wait > 0 then
+                    runtime.capture_frame = runtime.frames
+                    break
+                end
+            end
+            assert(runtime.capture_frame, "dialogue preview did not reach a spoken line")
+        end
+    end
     if os.getenv("TNR_NATIVE_INPUT_SELFTEST") == "1" then
         local test_ok, test_error = pcall(function()
             assert(TNRNativeLegacy and TNRNativeLegacy.start_room, "native bridge is unavailable")
@@ -376,9 +399,14 @@ function GameExit()
 end
 
 function FrameFunc()
+    if os.getenv("TNR_NATIVE_AUDIT") == "1" then
+        native_audit = native_audit or require("tnr.debug.native_card_audit").new(game)
+        return native_audit:update()
+    end
     return game:update()
 end
 
 function RenderFunc()
+    if native_audit then return native_audit:render() end
     game:render()
 end

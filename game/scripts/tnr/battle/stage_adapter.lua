@@ -1,3 +1,4 @@
+local PGaugeEffects = require("tnr.character.runtime.fallback_p_gauge")
 local ProjectileRuntime = require("tnr.character.runtime.projectile_runtime")
 local BattleManager = require("tnr.battle.battle_manager")
 local PerfectTracker = require("tnr.battle.perfect_tracker")
@@ -797,7 +798,7 @@ function StageAdapter:_append_runtime_projectile(shot, player)
             end
         end
     end
-    local bullet = ProjectileRuntime.new(shot, weapon)
+    local bullet = ProjectileRuntime.new(shot, weapon,owner and owner.combat_runtime and owner.combat_runtime.affixes)
     bullet.owner_id, bullet.focused = shot.owner_player_id, player.focus
     runtime.player_bullets[#runtime.player_bullets + 1] = bullet
     self.runtime_shot_calls = self.runtime_shot_calls + 1
@@ -813,10 +814,12 @@ function StageAdapter:_update_player_runtime(player, input_state)
     local shots, support_entities = bridge:update(combat, mode, input_state.shoot == true, {
         x = player.x, y = player.y, angle = 90,
         focus = player.focus, frame = self.runtime and self.runtime.frame or 0,
+        moving = (input_state.move_x or 0) ~= 0 or (input_state.move_y or 0) ~= 0,
         room_generation = self.session.room_generation,
         attack_allowed = self.session:get_player(player.player_id).alive == true,
         enemies = self.runtime and self.runtime.enemies or {},
     })
+    PGaugeEffects.update(self, player)
     player.support_entities = support_entities or {}
     if combat.afterglow_invulnerability and combat.afterglow_invulnerability > 0 then
         player.invulnerable = math.max(player.invulnerable or 0, combat.afterglow_invulnerability)
@@ -1215,6 +1218,7 @@ function StageAdapter:update(input)
             end
             if player.bomb_timer > 0 or player.bomb_rearmed == false then return false end
             self.battle:use_bomb(player_id)
+            if player.combat_runtime.affixes then player.combat_runtime.affixes:bomb() end
             if self.audio then self.audio:play_bomb(player.focus == true) end
             player.bomb_timer = charged and (bomb_profile.charged_duration or bomb_profile.duration)
                 or bomb_profile.duration
@@ -1396,8 +1400,10 @@ function StageAdapter:update(input)
                 local graze_distance = (bullet.radius + player.graze_radius) ^ 2
                 local distance = distance_squared(bullet, player)
                 if distance <= collision_distance and player.invulnerable == 0 then
+                    local affixes=player.combat_runtime and player.combat_runtime.affixes
+                    local defended=affixes and affixes:defend(session_player.life)
                     local was_charging = player.bomb_charging == true
-                    if was_charging then
+                    if was_charging and not defended then
                         player.bomb_charging = false
                         player.bomb_charge = 0
                         player.bomb_hit_charge_timer = 30
@@ -1406,7 +1412,8 @@ function StageAdapter:update(input)
                     player.invulnerable = 90
                     -- A hit during charge is converted into a local safety
                     -- Bomb.  It must not also consume a life.
-                    if not was_charging then
+                    if not was_charging and not defended then
+                        runtime.affix_missed = runtime.affix_missed or {}; runtime.affix_missed[player_id]=true
                         self.battle:record_player_life_lost(player_id, 1)
                         self.session:add_life(player_id, -1, "hit")
                     end
@@ -1430,15 +1437,18 @@ function StageAdapter:update(input)
             for player_id, player in pairs(runtime.players) do
                 local session_player = self.session:get_player(player_id)
                 if session_player and session_player.alive and player.invulnerable == 0 and distance_squared(enemy, player) <= (enemy.radius + player.profile.hitbox_radius) ^ 2 then
+                    local affixes=player.combat_runtime and player.combat_runtime.affixes
+                    local defended=affixes and affixes:defend(session_player.life)
                     local was_charging = player.bomb_charging == true
-                    if was_charging then
+                    if was_charging and not defended then
                         player.bomb_charging = false
                         player.bomb_charge = 0
                         player.bomb_hit_charge_timer = 30
                         player.bomb_hit_charge_window = 18
                     end
                     player.invulnerable = 90
-                    if not was_charging then
+                    if not was_charging and not defended then
+                        runtime.affix_missed = runtime.affix_missed or {}; runtime.affix_missed[player_id]=true
                         self.battle:record_player_life_lost(player_id, 1)
                         self.session:add_life(player_id, -1, "enemy_contact")
                     end
@@ -1448,6 +1458,15 @@ function StageAdapter:update(input)
         end
     end
 
+    if runtime.affix_missed then
+        local all_missed=true
+        for id in pairs(runtime.players) do if not runtime.affix_missed[id] then all_missed=false end end
+        if all_missed then
+            for _,p in pairs(runtime.players) do if p.combat_runtime.affixes then p.combat_runtime.affixes:miss() end end
+        end
+        runtime.affix_missed=nil
+    end
+    PGaugeEffects.pickups(self)
     local alive_players = self:get_alive_players()
     if #alive_players == 0 then
         self:_finish(false, { reward_eligible = false })
@@ -1457,6 +1476,9 @@ function StageAdapter:update(input)
     for index = #runtime.enemies, 1, -1 do
         if runtime.enemies[index].hp <= 0 then
             local defeated = runtime.enemies[index]
+            local owner=runtime.players[defeated.last_hit_player_id or 1]
+            if owner and owner.combat_runtime.affixes then owner.combat_runtime.affixes:kill(nil,defeated) end
+            PGaugeEffects.drop(runtime, defeated)
             self.battle:collect_money(defeated.drop or 2, defeated.last_hit_player_id or 1, "enemy_drop")
             table.remove(runtime.enemies, index)
         end
@@ -1498,6 +1520,9 @@ function StageAdapter:get_world_snapshot()
         local state = self.session:get_player(player_id)
         players[#players + 1] = {
             id = player_id, x = player.x, y = player.y, invulnerable = player.invulnerable,
+            p_gauge = player.combat_runtime and player.combat_runtime.p_gauge:to_table(),
+            affixes = player.combat_runtime and player.combat_runtime.affixes and player.combat_runtime.affixes:to_table(),
+            p_rng_state = player.combat_runtime and player.combat_runtime.p_rng and player.combat_runtime.p_rng.state,
             focus = player.focus, shoot_cooldown = player.shoot_cooldown,
             bomb_timer = player.bomb_timer, bomb_damage_applied = player.bomb_damage_applied,
             bomb_charge = player.bomb_charge or 0, bomb_charging = player.bomb_charging == true,
@@ -1583,6 +1608,8 @@ function StageAdapter:get_world_snapshot()
         card_time_remaining = runtime.card_time_remaining,
         card_time_spell = runtime.card_time_spell,
         players = players,
+        p_active_owner = runtime.p_active_owner,
+        p_pickups = require("tnr.core.immutable").copy(runtime.p_pickups or {}),
         enemies = enemies,
         bullets = bullets,
         player_bullets = player_bullets,
@@ -1641,10 +1668,26 @@ function StageAdapter:apply_snapshot(snapshot)
     if snapshot.battle and self.battle.active then
         self.battle.active.encounter_id = snapshot.battle.encounter_id or self.battle.active.encounter_id
     end
+    runtime.p_pickups = require("tnr.core.immutable").copy(snapshot.p_pickups or {})
+    runtime.p_active_owner = snapshot.p_active_owner
+    runtime.p_active_gauge = runtime.p_active_owner and runtime.players[runtime.p_active_owner]
+        and runtime.players[runtime.p_active_owner].combat_runtime.p_gauge
     for _, player_snapshot in ipairs(snapshot.players or {}) do
         local player = runtime.players[player_snapshot.id]
         local state = self.session:get_player(player_snapshot.id)
         if player then
+            if player.combat_runtime and player_snapshot.p_gauge then
+                if player_snapshot.affixes then
+                    local d=player.combat_runtime
+                    d.affixes=d.affixes or require("tnr.equipment.runtime.affix_runtime").new(d,state,self.session)
+                    d.affixes:apply_snapshot(player_snapshot.affixes)
+                end
+                player.combat_runtime.p_gauge:apply_snapshot(player_snapshot.p_gauge)
+                if player_snapshot.p_rng_state then
+                    player.combat_runtime.p_rng = require("tnr.core.rng").new(player_snapshot.p_rng_state)
+                end
+                player.combat_runtime.last_x, player.combat_runtime.last_y = player_snapshot.x, player_snapshot.y
+            end
             player.x = player_snapshot.x
             player.y = player_snapshot.y
             player.invulnerable = player_snapshot.invulnerable or 0
@@ -1664,6 +1707,8 @@ function StageAdapter:apply_snapshot(snapshot)
         end
         if state then
             state.life = player_snapshot.life or state.life
+            state.bomb = player_snapshot.bomb or state.bomb
+            state.money = player_snapshot.money or state.money
             state.alive = player_snapshot.alive ~= false and state.life > 0
         end
     end
@@ -1711,6 +1756,7 @@ function StageAdapter:apply_snapshot(snapshot)
             if target then hit_targets[target] = hit.age end
         end
         runtime.player_bullets[#runtime.player_bullets + 1] = setmetatable({
+            affix_runtime = owner and owner.combat_runtime and owner.combat_runtime.affixes,
             x = bullet_snapshot.x, y = bullet_snapshot.y,
             vx = bullet_snapshot.vx, vy = bullet_snapshot.vy,
             speed = bullet_snapshot.speed, damage = bullet_snapshot.damage,
@@ -1845,13 +1891,14 @@ function StageAdapter:render()
             lstg.RenderRect(image, enemy.x - enemy.radius, enemy.x + enemy.radius, enemy.y - enemy.radius, enemy.y + enemy.radius)
         end
     end
+    PGaugeEffects.render(self)
     local phase_text = runtime.current_card and runtime.current_card.display_name or runtime.phase
     local hud_parts = {}
     for player_id = 1, self.session.player_count or 1 do
         local player_state = self.session:get_player(player_id)
         local runtime_player = runtime.players[player_id]
         if player_state and runtime_player then
-            hud_parts[#hud_parts + 1] = string.format("P%d Score %d  Life %d  Graze %d", player_id, player_state.score, player_state.life, player_state.graze)
+            hud_parts[#hud_parts + 1] = string.format("P%d Score %d  Graze %d", player_id, player_state.score, player_state.graze)
         end
     end
     local local_id = self.session.local_player_id or 1
@@ -1865,9 +1912,11 @@ function StageAdapter:render()
     lstg.RenderTTF("Sans", table.concat(hud_parts, "     "), 40, 40, 680, 680, 0, lstg.Color(255, 240, 240, 240), 2)
     local status_color = local_runtime_player and (local_runtime_player.bomb_hit_charge_window or 0) > 0
         and lstg.Color(255, 80, 80, 255) or lstg.Color(255, 240, 240, 240)
-    lstg.RenderTTF("Sans", string.format("%s %d", lives_label, single_player and (local_state and local_state.life or 0) or team_lives),
-        40, 40, 650, 650, 0, lstg.Color(255, 240, 240, 240), 1.7)
-    lstg.RenderTTF("Sans", string.format("BOMBS %d", local_bombs), 40, 40, 620, 620, 0, status_color, 1.7)
+    if lstg.Render and rawget(_G,"lstg") then
+        local art=require("tnr.character.runtime.status_art")
+        art.resources(10,single_player and (local_state and local_state.life or 0) or team_lives,40,260,650,28)
+        art.resources(6,local_bombs,40,260,620,28)
+    end
     -- Bomb charging is a local player action. Keep the bar in the lower-right
     -- corner so it remains readable without overlapping the team HUD.
     local bomb_profile = local_runtime_player and local_runtime_player.profile

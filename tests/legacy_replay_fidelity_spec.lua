@@ -1,10 +1,4 @@
--- Fidelity checks for the legacy replay rendering.
---
--- These verify the invariants the reference capture established: the playfield
--- geometry, the background layer stack, the per-stage fog tint and the sprite
--- resolution. They do not pixel-compare against the capture (that needs the
--- engine), but they pin every number the comparison relies on, so a regression
--- that would move the field or drop the tint fails here.
+-- Source-data and rendering regressions. Passing these is not a visual acceptance test.
 
 return function(assert_equal, assert_true)
     package.path = "game/scripts/?.lua;game/scripts/?/init.lua;" .. package.path
@@ -13,6 +7,21 @@ return function(assert_equal, assert_true)
     local StageRuntime = require("tnr.legacy_replay.stage_runtime")
     local anm = require("tnr.legacy_replay.data.th15_anm")
     local std = require("tnr.legacy_replay.data.th15_std")
+    local face_entry
+    for i, source in ipairs(anm.pl00) do
+        if source.texture == "face/pl00/face_pl00pr.png" then face_entry = i end
+    end
+    local face_load
+    StageRuntime.load_stage_assets({
+        LoadTexture = function() end,
+        GetTextureSize = function() return 2048, 2048 end,
+        LoadImage = function(name, texture, x, y, w, h)
+            if name == StageRuntime.image_name("pl00", face_entry, 1) then face_load = {x,y,w,h} end
+        end,
+    }, "st01", anm, {})
+    assert_equal(face_load[1], 340, "portrait extraction canvas X offset is applied")
+    assert_equal(face_load[2], 54, "portrait extraction canvas Y offset is applied")
+    assert_equal(face_load[3], 236, "portrait rectangle keeps its unpadded width")
 
     local function close(a, b, tolerance, message)
         assert_true(math.abs(a - b) <= (tolerance or 0.5),
@@ -20,11 +29,12 @@ return function(assert_equal, assert_true)
     end
 
     -- Playfield geometry measured from the original capture. The field is
-    -- 384x448 units at (37.2, 17.8)-(499.2, 556.8) in the 1280x720 canvas.
-    close(BossUi.PLAYFIELD_LEFT, 37.2, 0.1, "playfield left")
-    close(BossUi.PLAYFIELD_RIGHT, 499.2, 0.1, "playfield right")
-    close(BossUi.PLAYFIELD_BOTTOM, 17.8, 0.1, "playfield bottom")
-    close(BossUi.PLAYFIELD_TOP, 556.8, 0.1, "playfield top")
+    -- Source front00 border strips: 64/768/448 px across a 1280x960 canvas.
+    -- Fit at 0.75 scale, centred horizontally in the project's 1280x720.
+    close(BossUi.PLAYFIELD_LEFT, 208, 0.1, "playfield left")
+    close(BossUi.PLAYFIELD_RIGHT, 784, 0.1, "playfield right")
+    close(BossUi.PLAYFIELD_BOTTOM, 24, 0.1, "playfield bottom")
+    close(BossUi.PLAYFIELD_TOP, 696, 0.1, "playfield top")
     -- The field must keep the reference 384:448 aspect ratio exactly.
     local width = BossUi.PLAYFIELD_RIGHT - BossUi.PLAYFIELD_LEFT
     local height = BossUi.PLAYFIELD_TOP - BossUi.PLAYFIELD_BOTTOM
@@ -60,15 +70,40 @@ return function(assert_equal, assert_true)
     -- The base is opaque; the detail layers are translucent.
     assert_equal(background.layers[1].alpha, 255, "the base layer is opaque")
     assert_true(background.layers[2].alpha < 255, "detail layers are translucent")
-    -- Stage 1 must carry the violet fog measured from the capture.
-    assert_true(background.tint ~= nil, "stage 1 has a fog tint")
-    assert_equal(background.tint[1], 203, "fog tint red")
-    assert_equal(background.tint[2], 78, "fog tint green")
-    assert_equal(background.tint[3], 199, "fog tint blue")
+    -- Source STD coordinates and camera transitions, not colours fitted to an
+    -- unrelated screenshot. These checks do not certify visual fidelity.
+    assert_equal(background.tint, nil, "no fixed violet overlay")
+    assert_equal(std.st01[1].faces[1].x, 0, "instance x")
+    assert_equal(std.st01[1].faces[1].y, -128, "instance y")
+    assert_equal(std.st01[1].quads[1].position[3], 300, "quad depth")
+    assert_equal(background.camera.position[3], -600, "opening camera depth")
+    for _ = 1, 200 do background:update() end
+    close(background.layers[5].alpha, 64, 0.001, "cloud alpha interpolates instead of moving")
+    close(background.layers[2].position[1], 16 * 2 / 9, 0.001, "cloud uses mode 9 position interpolation")
+    for _ = 201, 390 do background:update() end
+    close(background.camera.position[2], 512, 0.001, "camera reset at frame 390")
+    close(background.camera.position[3], -400, 0.001, "camera arrives at target depth")
+    for _ = 391, 6230 do background:update() end
+    assert_equal(background.camera.time, 5830, "STD jumps to its source timestamp")
+    for _ = 1, 800 do background:update() end
+    assert_equal(background.camera.time, 5830, "STD loop remains stable")
 
     -- Image naming: the loader and the renderer must agree on the pattern.
     assert_equal(StageRuntime.image_name("st01enm", 1, 3), "tnr-th15-st01enm-1-3",
         "sprite image naming")
+    local renderer = setmetatable({anm = anm}, StageRuntime)
+    local blue_ring, ring_w = renderer:bullet_image({sprite = 4, color_index = 6})
+    assert_equal(blue_ring, "tnr-th15-bullet-1-71", "type 4 blue colour selects sprite 70, not script 4")
+    assert_equal(ring_w, 16, "ring uses source sprite width")
+    local big_ball = renderer:bullet_image({sprite = 18, color_index = 0})
+    assert_equal(big_ball, "tnr-th15-bullet-2-1", "global sprite 368 resolves into second sheet")
+    local spawning = {sprite = 4, color_index = 6, ex = {flags = 2, int1 = 1}, anim_frame = 8}
+    local spawn_image = renderer:bullet_image(spawning)
+    assert_true(spawn_image ~= blue_ring, "spawn effect uses its own descriptor sprite")
+    close(spawning.legacy_bullet_animation.alpha, 136, 0.001, "spawn alpha follows ANM duration")
+    spawning.anim_frame = 16
+    assert_equal(renderer:bullet_image(spawning), blue_ring, "spawn jump reaches live bullet body")
+    close(spawning.legacy_bullet_animation.alpha, 255, 0.001, "live bullet is opaque")
 
     -- Every stage must expose a background layout.
     for _, stage in ipairs({ "st01", "st02", "st03", "st04", "st05", "st06", "st07" }) do

@@ -16,11 +16,37 @@ import sys
 def parse_std(path):
     entries = []
     current = None
-    for raw in io.open(path, encoding="utf-8", errors="replace"):
+    quad = None
+    timeline = []
+    in_script = False
+    time = 0
+    offset = 0
+    with io.open(path, encoding="utf-8", errors="replace") as source:
+        source_lines = source.readlines()
+    for raw in source_lines:
         line = raw.rstrip("\n")
         stripped = line.strip()
+        if stripped == "SCRIPT:":
+            in_script = True
+            continue
+        if in_script:
+            if re.fullmatch(r"\d+:", stripped):
+                time = int(stripped[:-1])
+            match = re.fullmatch(r"ins_(\d+)\((.*)\);", stripped)
+            if match:
+                args = []
+                for value in match[2].split(","):
+                    value = value.strip()
+                    if value:
+                        args.append(int(value[1:], 16) if value.startswith("#")
+                                    else float(value[:-1]) if value.endswith("f")
+                                    else int(value))
+                timeline.append(dict(id=int(match[1]), time=time, offset=offset, args=args))
+                offset += 8 + 4 * len(args)
+            continue
         if stripped.startswith("ENTRY:"):
-            current = {"faces": []}
+            current = {"faces": [], "quads": []}
+            quad = None
             entries.append(current)
             continue
         if current is None:
@@ -28,22 +54,39 @@ def parse_std(path):
         key, _, value = stripped.partition(":")
         key = key.strip()
         value = value.strip()
+        if key == "QUAD":
+            quad = {}
+            current["quads"].append(quad)
+            continue
+        target = quad if quad is not None else current
         if key in ("Width", "Height") and value:
-            current[key.lower()] = int(value)
+            target[key.lower()] = float(value)
         elif key == "Script_index":
-            current["script"] = int(value)
+            target["script"] = int(value)
+        elif key == "Position":
+            target["position"] = [float(v) for v in value.split()]
+        elif key == "Type":
+            target["type"] = int(value)
         elif key == "Depth":
-            current["depth"] = int(value)
+            current["depth"] = float(value)
         elif key == "FACE":
             parts = value.split()
             if len(parts) == 4:
                 current["faces"].append({
-                    "size": int(parts[0]),
-                    "u": int(parts[1]),
-                    "v": int(parts[2]),
-                    "x": int(parts[3]),
+                    "flags": int(parts[0]),
+                    "x": float(parts[1]),
+                    "y": float(parts[2]),
+                    "z": float(parts[3]),
                 })
-    return entries
+    return entries, timeline
+
+
+def lua(value):
+    if isinstance(value, dict):
+        return "{ " + ", ".join(str(k) + " = " + lua(v) for k, v in value.items()) + " }"
+    if isinstance(value, list):
+        return "{ " + ", ".join(lua(v) for v in value) + " }"
+    return repr(value)
 
 
 def main():
@@ -63,22 +106,18 @@ def main():
         if not filename.endswith(".txt"):
             continue
         stage = filename[:-4]
-        entries = parse_std(os.path.join(std_dir, filename))
+        entries, timeline = parse_std(os.path.join(std_dir, filename))
         if not entries:
             continue
         lines.append('    ["%s"] = {' % stage)
+        lines.append("        timeline = " + lua(timeline) + ",")
         for entry in entries:
             faces = entry["faces"]
             if not faces:
                 continue
-            lines.append("        { width = %d, height = %d, depth = %d, script = %d,"
-                         % (entry.get("width", 0), entry.get("height", 0),
-                            entry.get("depth", 0), entry.get("script", 0)))
-            lines.append("          faces = {")
-            for face in faces:
-                lines.append("            { size = %d, u = %d, v = %d, x = %d },"
-                             % (face["size"], face["u"], face["v"], face["x"]))
-            lines.append("          } },")
+            # Keep the first script alias for older consumers; preserve every quad.
+            entry["script"] = entry["quads"][0].get("script", 0) if entry["quads"] else 0
+            lines.append("        " + lua(entry) + ",")
             count += 1
         lines.append("    },")
     lines.append("}")

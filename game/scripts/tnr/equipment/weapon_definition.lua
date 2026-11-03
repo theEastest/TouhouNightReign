@@ -32,7 +32,7 @@ function WeaponDefinition.new(spec)
     result.metadata = Immutable.copy(spec.metadata or {})
     result.weapon_id = spec.weapon_id
     result.name = data.display_name
-    result.type = spec.type or (spec.slot == "LOW" and "LOW_WEAPON" or "HIGH_WEAPON")
+    result.type = spec.type or ((spec.slot == "LOW" or (spec.active_modes and spec.active_modes.LOW and not spec.active_modes.HIGH)) and "LOW_WEAPON" or "HIGH_WEAPON")
     result.display_name_zh = data.display_name_zh
     result.display_name_en = data.display_name_en
     result.rarity = data.rarity
@@ -53,6 +53,15 @@ function WeaponDefinition.new(spec)
     result.allowed_slots = spec.allowed_slots and Immutable.copy(spec.allowed_slots)
     result.dual_mode = spec.dual_mode == true
     result.test_only = spec.test_only == true
+    result.internal_only = spec.internal_only == true
+    result.starter_only = spec.starter_only == true
+    if not result.allowed_slots and spec.active_modes and not spec.dual_mode then
+        result.allowed_slots = {
+            HIGH_WEAPON = spec.active_modes.HIGH == true,
+            LOW_WEAPON = spec.active_modes.LOW == true,
+        }
+    end
+    result.exclusive_affix = Immutable.copy(require("tnr.equipment.affix_catalog").exclusive[spec.weapon_id])
     return Immutable.freeze(result, methods)
 end
 

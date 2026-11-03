@@ -356,11 +356,12 @@ function balloon:render()
     local hscale = self.hpos / 2 * self.scale
     local vscale = self.vpos / 2 * self.scale
     SetViewMode "ui"
-    Render(self.imgs[1], self.x, self.y, 0, hscale, vscale)
-    Render(self.imgs[3], self.x + self.x_target[#self.x_target] * self.scale, self.y, 0, hscale, vscale)
-    for i = 1, self.n_body do
-        Render(self.imgs[2], self.x + self.x_target[i] * self.scale, self.y, 0, hscale, vscale)
-    end
+    local width = (self.n_body * 16 + 64) * self.scale
+    local height = (self.d and 76 or 52) * self.scale
+    local center_x = self.x + self.hpos * (width / 2 - 16 * self.scale)
+    local center_y = self.y + (self.vpos > 0 and -12 or 12) * self.scale
+    SetImageState("dialog_box", "", Color(self.alpha,255,255,255))
+    Render("dialog_box", center_x, center_y, 0, width / 368, height / 60)
     if self.hpos < 0 then
         x = self.x + (self.x_target[self.n_body] - 16) * self.scale
     end
@@ -371,7 +372,7 @@ function balloon:render()
     end
     self.ttfdrawer:render("balloon_font",
             x, y, 16, 32, 0, 0,
-            self.scale, Color(self.alpha, 0, 0, 0), 4)
+            self.scale, Color(self.alpha, 255, 255, 255), 4)
     SetViewMode "world"
 end
 

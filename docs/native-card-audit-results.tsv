@@ -1,0 +1,668 @@
+case	kind	boss	slot	frames	status
+1	spell	Marisa:Normal	4	3663	PASS
+2	spell	Reimu:Normal	11	4984	PASS
+3	spell	几缟雪嬢:Normal	3	3063	PASS
+4	spell	几缟雪嬢:Normal	5	3663	PASS
+5	spell	狐狸灵梦:Normal	3	3063	PASS
+6	spell	狐狸灵梦:Normal	5	3124	PASS
+7	spell	狐狸魔理沙:Normal	3	3063	PASS
+8	spell	狐狸魔理沙:Normal	5	3124	PASS
+9	spell	狐狸早苗:Normal	3	3063	PASS
+10	spell	狐狸早苗:Normal	5	3124	PASS
+11	spell	狐狸无耳:Normal	3	3063	PASS
+12	spell	狐狸无耳:Normal	5	1984	PASS
+13	spell	明津祢津:Normal	3	3663	PASS
+14	spell	明津祢津:Normal	5	3663	PASS
+15	spell	明津祢津:Normal	7	3663	PASS
+16	spell	明津祢津:Normal	9	3663	PASS
+17	spell	明津祢津:Normal	11	3663	PASS
+18	spell	明津祢津:Normal	13	4263	PASS
+19	spell	明津祢津:Normal	15	1984	PASS
+20	spell	明津祢津:Normal	18	4384	PASS
+21	spell	明津祢津:Normal	20	7384	PASS
+22	spell	几缟雪嬢:Lunatic	3	3063	PASS
+23	spell	几缟雪嬢:Lunatic	5	3663	PASS
+24	spell	狐狸灵梦:Lunatic	3	3063	PASS
+25	spell	狐狸灵梦:Lunatic	5	3124	PASS
+26	spell	狐狸魔理沙:Lunatic	3	3063	PASS
+27	spell	狐狸魔理沙:Lunatic	5	3124	PASS
+28	spell	狐狸早苗:Lunatic	3	3063	PASS
+29	spell	狐狸早苗:Lunatic	5	3124	PASS
+30	spell	狐狸无耳:Lunatic	3	3063	PASS
+31	spell	狐狸无耳:Lunatic	5	1984	PASS
+32	spell	OLC_ZMW:Normal	10	8763	PASS
+33	spell	OLC_ZMW:Lunatic	4	3663	PASS
+34	spell	OLC_ZMW:Lunatic	7	3663	PASS
+35	spell	OLC_ZMW:Lunatic	10	3663	PASS
+36	spell	明津祢津:Lunatic	3	3663	PASS
+37	spell	OLC_ZMW:Lunatic	13	3663	PASS
+38	spell	OLC_ZMW:Lunatic	16	3663	PASS
+39	spell	OLC_ZMW:Lunatic	18	8763	PASS
+40	spell	明津祢津:Lunatic	5	3663	PASS
+41	spell	wuer_yamame:Normal	4	2463	PASS
+42	spell	wuer_yamame:Normal	6	2463	PASS
+43	spell	wuer_yamame:Lunatic	4	2463	PASS
+44	spell	wuer_yamame:Lunatic	6	2463	PASS
+45	spell	明津祢津:Lunatic	7	3663	PASS
+46	spell	otohime_mid:Normal	3	3063	PASS
+47	spell	otohime_mid:Normal	5	3663	PASS
+48	spell	otohime_mid:Lunatic	3	3063	PASS
+49	spell	otohime_mid:Lunatic	5	3663	PASS
+50	spell	明津祢津:Lunatic	9	3663	PASS
+51	spell	明津祢津:Lunatic	11	3663	PASS
+52	spell	明津祢津:Lunatic	13	4263	PASS
+53	spell	明津祢津:Lunatic	15	1984	PASS
+54	spell	明津祢津:Lunatic	18	4384	PASS
+55	spell	明津祢津:Lunatic	20	7384	PASS
+56	spell	tenka1:Normal	3	4263	PASS
+57	spell	tenka1:Normal	5	4263	PASS
+58	spell	tenka1:Normal	7	4143	PASS
+59	spell	otohime:Normal	3	4263	PASS
+60	spell	otohime:Normal	6	1563	PASS
+61	spell	tenka2:Normal	3	4863	PASS
+62	spell	tenka2:Normal	5	4863	PASS
+63	spell	tenka2:Normal	7	4863	PASS
+64	spell	tenka2:Normal	9	5103	PASS
+65	spell	tenka2:Normal	11	7863	PASS
+66	spell	tenka_lsc:Normal	2	7263	PASS
+67	spell	tenka1:Lunatic	3	4263	PASS
+68	spell	tenka1:Lunatic	5	4263	PASS
+69	spell	tenka1:Lunatic	7	4143	PASS
+70	spell	otohime:Lunatic	3	4263	PASS
+71	spell	otohime:Lunatic	6	1563	PASS
+72	spell	tenka2:Lunatic	3	4863	PASS
+73	spell	tenka2:Lunatic	5	4863	PASS
+74	spell	tenka2:Lunatic	7	4863	PASS
+75	spell	tenka2:Lunatic	9	5103	PASS
+76	spell	tenka2:Lunatic	11	7863	PASS
+77	spell	tenka_lsc:Lunatic	2	7263	PASS
+78	spell	明津祢津LSC:Lunatic	3	12063	PASS
+79	spell	ビール子(road):Normal	3	1863	PASS
+80	spell	ビール子(road):Lunatic	3	1863	PASS
+81	spell	ビール子:Normal	3	3963	PASS
+82	spell	ビール子:Normal	5	3663	PASS
+83	spell	ビール子:Normal	7	3963	PASS
+84	spell	ビール子:Normal	10	3963	PASS
+85	spell	ビール子:Normal	12	4563	PASS
+86	spell	ビール子:Normal	14	9063	PASS
+87	spell	ビール子:Lunatic	3	3963	PASS
+88	spell	ビール子:Lunatic	5	3663	PASS
+89	spell	ビール子:Lunatic	7	3963	PASS
+90	spell	ビール子:Lunatic	10	3963	PASS
+91	spell	ビール子:Lunatic	12	4563	PASS
+92	spell	ビール子:Lunatic	14	9063	PASS
+93	spell	Larva:Normal	3	3663	PASS
+94	spell	Larva:Normal	5	3663	PASS
+95	spell	Larva:Normal	7	3844	PASS
+96	spell	Larva:Normal	9	3844	PASS
+97	spell	Mystia:Normal	4	3665	PASS
+98	spell	Mystia:Normal	6	4565	PASS
+99	spell	Mystia:Normal	8	4565	PASS
+100	spell	Reimu:Normal	4	3663	PASS
+101	spell	Reimu:Normal	9	5045	PASS
+102	spell	Reimu:Normal	11	4984	PASS
+103	spell	Reimu:Normal	13	12484	PASS
+104	spell	Marisa:Normal	4	3663	PASS
+105	spell	Marisa:Normal	9	5275	PASS
+106	spell	Marisa:Normal	11	5214	PASS
+107	spell	Marisa:Normal	13	12714	PASS
+108	spell	Wriggle:Lunatic	2	3663	PASS
+109	spell	Larva:Lunatic	3	3663	PASS
+110	spell	Larva:Lunatic	5	3663	PASS
+111	spell	Larva:Lunatic	7	3844	PASS
+112	spell	Larva:Lunatic	9	3844	PASS
+113	spell	Mystia:Lunatic	4	3665	PASS
+114	spell	Mystia:Lunatic	6	4565	PASS
+115	spell	Mystia:Lunatic	8	4565	PASS
+116	spell	Reimu:Lunatic	4	3663	PASS
+117	spell	Reimu:Lunatic	9	5045	PASS
+118	spell	Reimu:Lunatic	11	4984	PASS
+119	spell	Reimu:Lunatic	13	12484	PASS
+120	spell	Marisa:Lunatic	4	3663	PASS
+121	spell	Marisa:Lunatic	9	5275	PASS
+122	spell	Marisa:Lunatic	11	5214	PASS
+123	spell	Marisa:Lunatic	13	12714	PASS
+124	spell	Larva+	3	5463	PASS
+125	spell	Wriggle+	2	5463	PASS
+126	spell	Mystia Lorelei:Normal	2	2104	PASS
+127	spell	Mystia Lorelei:Lunatic	2	2104	PASS
+128	spell	魅明魔 影:Normal	4	2764	PASS
+129	spell	魅明魔 影:Normal	6	2944	PASS
+130	spell	魅明魔 影:Normal	7	3004	PASS
+131	spell	魅明魔 影:Normal	8	2944	PASS
+132	spell	魅明魔 影:Normal	9	3004	PASS
+133	spell	魅明魔 影:Normal	11	3124	PASS
+134	spell	魅明魔 影:Normal	13	3304	PASS
+135	spell	魅明魔 影:Normal	15	3724	PASS
+136	spell	魅明魔 影:Normal	17	3964	PASS
+137	spell	魅明魔 影:Normal	18	2824	PASS
+138	spell	魅明魔 影:Normal	19	6124	PASS
+139	spell	魅明魔 影:Lunatic	4	2764	PASS
+140	spell	魅明魔 影:Lunatic	6	3004	PASS
+141	spell	魅明魔 影:Lunatic	7	3004	PASS
+142	spell	魅明魔 影:Lunatic	8	3004	PASS
+143	spell	魅明魔 影:Lunatic	9	3004	PASS
+144	spell	魅明魔 影:Lunatic	11	3244	PASS
+145	spell	魅明魔 影:Lunatic	13	3484	PASS
+146	spell	魅明魔 影:Lunatic	15	3724	PASS
+147	spell	魅明魔 影:Lunatic	17	3964	PASS
+148	spell	魅明魔 影:Lunatic	18	2824	PASS
+149	spell	魅明魔 影:Lunatic	19	6124	PASS
+150	spell	???:Lunatic	1	6003	PASS
+151	spell	Hidden:Lunatic	1	2043	PASS
+152	spell	Hidden:Lunatic	2	2883	PASS
+153	spell	Hidden:Lunatic	3	2883	PASS
+154	spell	karl_cirno_stage_boss:Normal	3	1924	PASS
+155	spell	karl_Cirno:Normal	3	2463	PASS
+156	spell	karl_Cirno:Normal	5	2463	PASS
+157	spell	karl_Cirno:Normal	7	3663	PASS
+158	spell	karl_Cirno:Normal	9	1863	PASS
+159	spell	karl_Cirno:Normal	10	3663	PASS
+160	spell	karl_cirno_stage_boss:Lunatic	3	1924	PASS
+161	spell	karl_Cirno:Lunatic	3	2463	PASS
+162	spell	karl_Cirno:Lunatic	5	2463	PASS
+163	spell	karl_Cirno:Lunatic	7	3663	PASS
+164	spell	karl_Cirno:Lunatic	9	1863	PASS
+165	spell	karl_Cirno:Lunatic	10	3663	PASS
+166	spell	Houjuu Nue:Normal	5	3004	PASS
+167	spell	Houjuu Nue:Normal	9	2524	PASS
+168	spell	Houjuu Nue:Normal	13	3004	PASS
+169	spell	Houjuu Nue:Normal	17	2584	PASS
+170	spell	Houjuu Nue:Normal	21	2524	PASS
+171	spell	Houjuu Nue:Normal	25	3724	PASS
+172	spell	Houjuu Nue:Normal	27	5944	PASS
+173	spell	Houjuu Nue:Normal	29	7444	PASS
+174	spell	Houjuu Nue:Lunatic	5	3724	PASS
+175	spell	Houjuu Nue:Lunatic	9	3724	PASS
+176	spell	Houjuu Nue:Lunatic	13	3004	PASS
+177	spell	Houjuu Nue:Lunatic	17	4324	PASS
+178	spell	Houjuu Nue:Lunatic	21	4984	PASS
+179	spell	Houjuu Nue:Lunatic	25	3724	PASS
+180	spell	Houjuu Nue:Lunatic	29	4924	PASS
+181	spell	Houjuu Nue:Lunatic	33	4924	PASS
+182	spell	Houjuu Nue:Lunatic	35	5944	PASS
+183	spell	Houjuu Nue:Lunatic	37	7444	PASS
+184	spell	Houjuu Nue:Lunatic	39	6844	PASS
+185	spell	Junko_mid:Normal	4	3664	PASS
+186	spell	Junko_mid_Lunatic:Lunatic	4	3664	PASS
+187	spell	Junko:Normal	5	3724	PASS
+188	spell	Junko:Normal	7	3724	PASS
+189	spell	Junko:Normal	9	3724	PASS
+190	spell	Junko:Normal	11	4924	PASS
+191	spell	Junko:Normal	13	4924	PASS
+192	spell	Junko:Normal	14	7324	PASS
+193	spell	Junko:Normal	15	9124	PASS
+194	spell	Junko_Lunatic:Lunatic	5	3724	PASS
+195	spell	Junko_Lunatic:Lunatic	7	3724	PASS
+196	spell	Junko_Lunatic:Lunatic	9	3724	PASS
+197	spell	Junko_Lunatic:Lunatic	11	4924	PASS
+198	spell	Junko_Lunatic:Lunatic	13	4924	PASS
+199	spell	Junko_Lunatic:Lunatic	14	7324	PASS
+200	spell	Junko_Lunatic:Lunatic	15	9124	PASS
+201	spell	道中早苗L:Lunatic	6	3844	PASS
+202	spell	道中早苗L:Lunatic	8	4444	PASS
+203	spell	道中早苗N:Normal	6	3844	PASS
+204	spell	道中早苗N:Normal	8	4444	PASS
+205	spell	丰姬L:Lunatic	6	3724	PASS
+206	spell	丰姬L:Lunatic	9	4684	PASS
+207	spell	丰姬L:Lunatic	12	3844	PASS
+208	spell	丰姬L:Lunatic	15	4564	PASS
+209	spell	丰姬L:Lunatic	18	5644	PASS
+210	spell	丰姬L:Lunatic	21	4564	PASS
+211	spell	丰姬L:Lunatic	24	6184	PASS
+212	spell	丰姬L:Lunatic	27	3004	PASS
+213	spell	丰姬L:Lunatic	28	3904	PASS
+214	spell	丰姬L:Lunatic	29	21844	PASS
+215	spell	丰姬N:Normal	6	3724	PASS
+216	spell	丰姬N:Normal	9	4684	PASS
+217	spell	丰姬N:Normal	12	3844	PASS
+218	spell	丰姬N:Normal	15	4564	PASS
+219	spell	丰姬N:Normal	18	5644	PASS
+220	spell	丰姬N:Normal	21	4564	PASS
+221	spell	丰姬N:Normal	24	6184	PASS
+222	spell	丰姬N:Normal	27	3004	PASS
+223	spell	丰姬N:Normal	28	3904	PASS
+224	spell	丰姬N:Normal	29	21844	PASS
+225	spell	嫦娥N:Normal	5	4924	PASS
+226	spell	嫦娥N:Normal	9	4624	PASS
+227	spell	嫦娥N:Normal	13	4624	PASS
+228	spell	嫦娥N:Normal	17	4624	PASS
+229	spell	嫦娥N:Normal	21	4624	PASS
+230	spell	嫦娥N:Normal	25	4624	PASS
+231	spell	嫦娥N:Normal	29	4624	PASS
+232	spell	嫦娥N:Normal	31	4924	PASS
+233	spell	嫦娥N:Normal	33	8224	PASS
+234	spell	嫦娥N:Normal	35	4324	PASS
+235	spell	嫦娥L:Lunatic	5	4924	PASS
+236	spell	嫦娥L:Lunatic	9	4624	PASS
+237	spell	嫦娥L:Lunatic	13	4624	PASS
+238	spell	嫦娥L:Lunatic	17	4624	PASS
+239	spell	嫦娥L:Lunatic	21	4624	PASS
+240	spell	嫦娥L:Lunatic	25	4624	PASS
+241	spell	嫦娥L:Lunatic	29	4624	PASS
+242	spell	嫦娥L:Lunatic	31	4924	PASS
+243	spell	嫦娥L:Lunatic	33	8224	PASS
+244	spell	嫦娥L:Lunatic	35	7804	PASS
+245	spell	akuma:Normal	4	3665	PASS
+246	spell	akuma:Normal	5	5465	PASS
+247	spell	akuma:Lunatic	4	3665	PASS
+248	spell	akuma:Lunatic	5	5465	PASS
+249	spell	pachi:Normal	5	3724	PASS
+250	spell	pachi:Normal	7	5524	PASS
+251	spell	pachi:Normal	9	3724	PASS
+252	spell	pachi:Normal	11	3724	PASS
+253	spell	pachi:Normal	13	3724	PASS
+254	spell	pachi:Normal	15	1384	PASS
+255	spell	pachi:Normal	17	7324	PASS
+256	spell	pachi:Normal	18	7324	PASS
+257	spell	pachi:Lunatic	5	3724	PASS
+258	spell	pachi:Lunatic	7	5524	PASS
+259	spell	pachi:Lunatic	9	3724	PASS
+260	spell	pachi:Lunatic	11	3724	PASS
+261	spell	pachi:Lunatic	13	3724	PASS
+262	spell	pachi:Lunatic	15	1384	PASS
+263	spell	pachi:Lunatic	17	7324	PASS
+264	spell	pachi:Lunatic	18	7324	PASS
+265	spell	Yukari:Normal	2	3663	PASS
+266	spell	Yukari:Normal	3	3663	PASS
+267	spell	Yukari:Normal	4	3663	PASS
+268	spell	Yukari:Lunatic	2	3663	PASS
+269	spell	Yukari:Lunatic	3	3663	PASS
+270	spell	Yukari:Lunatic	4	3663	PASS
+271	spell	Alice:Normal	3	4863	PASS
+272	spell	Alice:Normal	6	3663	PASS
+273	spell	Alice:Normal	8	5463	PASS
+274	spell	Alice:Normal	11	4563	PASS
+275	spell	Alice:Normal	13	4923	PASS
+276	spell	Alice:Normal	16	4863	PASS
+277	spell	Alice:Normal	18	4563	PASS
+278	spell	Alice:Normal	20	2283	PASS
+279	spell	Alice:Normal	22	9963	PASS
+280	spell	Alice:Lunatic	3	5343	PASS
+281	spell	Alice:Lunatic	6	3663	PASS
+282	spell	Alice:Lunatic	8	5463	PASS
+283	spell	Alice:Lunatic	10	4563	PASS
+284	spell	Alice:Lunatic	12	4923	PASS
+285	spell	Alice:Lunatic	14	4863	PASS
+286	spell	Alice:Lunatic	16	4563	PASS
+287	spell	Alice:Lunatic	18	2283	PASS
+288	spell	Alice:Lunatic	20	9963	PASS
+289	spell	Shinki:Lunatic	3	2463	PASS
+290	spell	Shinki:Lunatic	4	6123	PASS
+291	spell	Shinki:Lunatic	5	4503	PASS
+292	spell	YYZY_boss:Normal	4	7384	PASS
+293	spell	YYZY_boss:Normal	6	5584	PASS
+294	spell	YYZY_boss:Normal	8	3784	PASS
+295	spell	YYZY_boss:Normal	10	5584	PASS
+296	spell	YYZY_boss:Normal	12	3424	PASS
+297	spell	YYZY_boss:Normal	14	7084	PASS
+298	spell	YYZY_boss:Lunatic	4	7384	PASS
+299	spell	YYZY_boss:Lunatic	6	5584	PASS
+300	spell	YYZY_boss:Lunatic	8	3784	PASS
+301	spell	YYZY_boss:Lunatic	10	5584	PASS
+302	spell	YYZY_boss:Lunatic	12	3424	PASS
+303	spell	YYZY_boss:Lunatic	14	7084	PASS
+304	spell	YYZY_boss2:Lunatic	2	5763	PASS
+305	spell	pisi:Normal	5	1624	PASS
+306	spell	pisi:Normal	7	3124	PASS
+307	spell	pisi:Lunatic	5	2524	PASS
+308	spell	pisi:Lunatic	7	3124	PASS
+309	spell	Cirno:Normal	5	2524	PASS
+310	spell	Cirno:Normal	7	2524	PASS
+311	spell	Cirno:Lunatic	5	2524	PASS
+312	spell	Cirno:Lunatic	7	2524	PASS
+313	spell	sita12:Normal	6	2524	PASS
+314	spell	sita12:Normal	9	2524	PASS
+315	spell	sita12:Lunatic	6	2224	PASS
+316	spell	sita12:Lunatic	9	2524	PASS
+317	spell	luna1:Normal	4	3724	PASS
+318	spell	luna1:Lunatic	4	3724	PASS
+319	spell	sunny1:Normal	4	3724	PASS
+320	spell	sunny1:Lunatic	4	3724	PASS
+321	spell	sita34:Normal	3	3724	PASS
+322	spell	sita34:Lunatic	3	3724	PASS
+323	spell	luna2:Normal	4	3124	PASS
+324	spell	luna2:Lunatic	4	3124	PASS
+325	spell	sunny2:Normal	3	3724	PASS
+326	spell	sunny2:Lunatic	3	3724	PASS
+327	spell	三月精协力:Normal	3	5524	PASS
+328	spell	三月精协力:Lunatic	3	5224	PASS
+329	spell	三月精终符:Normal	2	7563	PASS
+330	spell	三月精终符:Lunatic	2	7563	PASS
+331	spell	keraha:Lunatic	2	1863	PASS
+332	spell	keraha:Lunatic	3	1863	PASS
+333	spell	keraha:Normal	2	2403	PASS
+334	spell	keraha:Normal	3	2403	PASS
+335	spell	Vinoshu:Lunatic	4	3724	PASS
+336	spell	Vinoshu:Lunatic	6	3724	PASS
+337	spell	Vinoshu:Lunatic	8	3724	PASS
+338	spell	Vinoshu:Lunatic	10	3724	PASS
+339	spell	Vinoshu:Lunatic	12	3724	PASS
+340	spell	Vinoshu:Lunatic	13	4924	PASS
+341	spell	Vinoshu:Normal	4	3724	PASS
+342	spell	Vinoshu:Normal	6	3724	PASS
+343	spell	Vinoshu:Normal	8	3724	PASS
+344	spell	Vinoshu:Normal	10	3724	PASS
+345	spell	Vinoshu:Normal	12	3724	PASS
+346	spell	Vinoshu:Normal	13	4924	PASS
+347	spell	OLC_九十九 弁弁:Normal	7	3724	PASS
+348	spell	OLC_九十九 弁弁:Lunatic	7	3724	PASS
+349	spell	OLC_九十九 八桥:Normal	6	3724	PASS
+350	spell	OLC_九十九 八桥:Lunatic	6	3724	PASS
+351	spell	OLC_ZMW:Normal	4	3663	PASS
+352	spell	OLC_ZMW:Normal	7	3663	PASS
+353	spell	Marisa:Normal	9	5275	PASS
+354	spell	Reimu:Normal	4	3663	PASS
+355	spell	Reimu:Normal	9	5045	PASS
+356	nonspell	百鬼夜行妖精1:Normal	1	1263	PASS
+357	nonspell	百鬼夜行妖精2:Normal	1	1263	PASS
+358	nonspell	几缟雪嬢:Normal	2	1863	PASS
+359	nonspell	狐狸灵梦:Normal	2	1863	PASS
+360	nonspell	狐狸魔理沙:Normal	2	1863	PASS
+361	nonspell	狐狸早苗:Normal	2	1863	PASS
+362	nonspell	狐狸无耳:Normal	2	1863	PASS
+363	nonspell	明津祢津:Normal	2	3063	PASS
+364	nonspell	明津祢津:Normal	4	3063	PASS
+365	nonspell	明津祢津:Normal	6	3063	PASS
+366	nonspell	明津祢津:Normal	8	3063	PASS
+367	nonspell	明津祢津:Normal	10	3063	PASS
+368	nonspell	明津祢津:Normal	12	3663	PASS
+369	nonspell	明津祢津:Normal	17	3784	PASS
+370	nonspell	百鬼夜行妖精1:Lunatic	1	1263	PASS
+371	nonspell	百鬼夜行妖精2:Lunatic	1	1263	PASS
+372	nonspell	几缟雪嬢:Lunatic	2	1863	PASS
+373	nonspell	狐狸灵梦:Lunatic	2	1863	PASS
+374	nonspell	狐狸魔理沙:Lunatic	2	1863	PASS
+375	nonspell	狐狸早苗:Lunatic	2	1863	PASS
+376	nonspell	狐狸无耳:Lunatic	2	1863	PASS
+377	nonspell	OLC_ZMW:Normal	8	3663	PASS
+378	nonspell	OLC_ZMW:Lunatic	2	3663	PASS
+379	nonspell	明津祢津:Lunatic	2	3063	PASS
+380	nonspell	OLC_ZMW:Lunatic	5	3663	PASS
+381	nonspell	OLC_ZMW:Lunatic	8	3663	PASS
+382	nonspell	OLC_ZMW:Lunatic	11	3663	PASS
+383	nonspell	OLC_ZMW:Lunatic	14	3663	PASS
+384	nonspell	明津祢津:Lunatic	4	3063	PASS
+385	nonspell	wuer_yamame:Normal	2	1863	PASS
+386	nonspell	wuer_yamame:Normal	8	3663	PASS
+387	nonspell	wuer_yamame:Lunatic	2	1863	PASS
+388	nonspell	明津祢津:Lunatic	6	3063	PASS
+389	nonspell	wuer_yamame:Lunatic	8	3663	PASS
+390	nonspell	otohime_mid:Normal	2	3663	PASS
+391	nonspell	otohime_mid:Normal	7	3663	PASS
+392	nonspell	otohime_mid:Lunatic	2	3663	PASS
+393	nonspell	otohime_mid:Lunatic	7	3663	PASS
+394	nonspell	otohime_exit	2	3663	PASS
+395	nonspell	otohime_exit_2:Normal	3	3663	PASS
+396	nonspell	otohime_exit_2:Lunatic	3	3663	PASS
+397	nonspell	明津祢津:Lunatic	8	3063	PASS
+398	nonspell	wuer_ufo:Normal	3	2463	PASS
+399	nonspell	wuer_ufo:Normal	4	2703	PASS
+400	nonspell	wuer_ufo:Normal	5	2763	PASS
+401	nonspell	明津祢津:Lunatic	10	3063	PASS
+402	nonspell	wuer_ufo:Lunatic	3	2463	PASS
+403	nonspell	wuer_ufo:Lunatic	4	2703	PASS
+404	nonspell	wuer_ufo:Lunatic	5	2763	PASS
+405	nonspell	明津祢津:Lunatic	12	3663	PASS
+406	nonspell	明津祢津:Lunatic	17	3784	PASS
+407	nonspell	tenka1:Normal	2	3063	PASS
+408	nonspell	tenka1:Normal	4	3063	PASS
+409	nonspell	tenka1:Normal	6	3063	PASS
+410	nonspell	tenka1:Normal	9	3663	PASS
+411	nonspell	otohime:Normal	2	3663	PASS
+412	nonspell	otohime:Normal	4	3663	PASS
+413	nonspell	otohime:Normal	8	3663	PASS
+414	nonspell	tenka2:Normal	2	3063	PASS
+415	nonspell	tenka2:Normal	4	3063	PASS
+416	nonspell	tenka2:Normal	6	3063	PASS
+417	nonspell	tenka1:Lunatic	2	3063	PASS
+418	nonspell	tenka1:Lunatic	4	3063	PASS
+419	nonspell	tenka1:Lunatic	6	3063	PASS
+420	nonspell	tenka1:Lunatic	9	3663	PASS
+421	nonspell	otohime:Lunatic	2	3663	PASS
+422	nonspell	otohime:Lunatic	4	3663	PASS
+423	nonspell	otohime:Lunatic	8	3663	PASS
+424	nonspell	tenka2:Lunatic	2	3063	PASS
+425	nonspell	tenka2:Lunatic	4	3063	PASS
+426	nonspell	tenka2:Lunatic	6	3063	PASS
+427	nonspell	wuer_normal_exit	2	3663	PASS
+428	nonspell	ビール子(road):Normal	2	1263	PASS
+429	nonspell	ビール子(road):Normal	5	1263	PASS
+430	nonspell	ビール子(road):Lunatic	2	1263	PASS
+431	nonspell	ビール子(road):Lunatic	5	1263	PASS
+432	nonspell	ビール子:Normal	2	3363	PASS
+433	nonspell	ビール子:Normal	4	3063	PASS
+434	nonspell	ビール子:Normal	6	3063	PASS
+435	nonspell	ビール子:Normal	8	3063	PASS
+436	nonspell	ビール子:Lunatic	2	3363	PASS
+437	nonspell	ビール子:Lunatic	4	3063	PASS
+438	nonspell	ビール子:Lunatic	6	3063	PASS
+439	nonspell	ビール子:Lunatic	8	3063	PASS
+440	nonspell	Wriggle:Normal	1	1863	PASS
+441	nonspell	Wriggle:Normal	2	2463	PASS
+442	nonspell	Larva:Normal	2	2463	PASS
+443	nonspell	Larva:Normal	4	2463	PASS
+444	nonspell	Larva:Normal	8	2644	PASS
+445	nonspell	Mystia:Normal	3	2465	PASS
+446	nonspell	Mystia:Normal	5	2465	PASS
+447	nonspell	Mystia:Normal	7	2765	PASS
+448	nonspell	Reimu:Normal	2	3663	PASS
+449	nonspell	Reimu:Normal	3	3063	PASS
+450	nonspell	Reimu:Normal	5	3063	PASS
+451	nonspell	Reimu:Normal	10	3484	PASS
+452	nonspell	Marisa:Normal	2	3663	PASS
+453	nonspell	Marisa:Normal	3	3063	PASS
+454	nonspell	Marisa:Normal	5	3063	PASS
+455	nonspell	Marisa:Normal	10	3714	PASS
+456	nonspell	Wriggle:Lunatic	1	2463	PASS
+457	nonspell	Larva:Lunatic	2	2463	PASS
+458	nonspell	Larva:Lunatic	4	2463	PASS
+459	nonspell	Larva:Lunatic	8	2644	PASS
+460	nonspell	Mystia:Lunatic	3	2465	PASS
+461	nonspell	Mystia:Lunatic	5	2465	PASS
+462	nonspell	Mystia:Lunatic	7	2465	PASS
+463	nonspell	Reimu:Lunatic	2	3663	PASS
+464	nonspell	Reimu:Lunatic	3	3063	PASS
+465	nonspell	Reimu:Lunatic	5	3063	PASS
+466	nonspell	Reimu:Lunatic	10	3484	PASS
+467	nonspell	Marisa:Lunatic	2	3663	PASS
+468	nonspell	Marisa:Lunatic	3	3063	PASS
+469	nonspell	Marisa:Lunatic	5	3063	PASS
+470	nonspell	Marisa:Lunatic	10	3714	PASS
+471	nonspell	魅明魔 影:Normal	3	2404	PASS
+472	nonspell	魅明魔 影:Normal	5	2524	PASS
+473	nonspell	魅明魔 影:Normal	10	2644	PASS
+474	nonspell	魅明魔 影:Normal	12	2764	PASS
+475	nonspell	魅明魔 影:Normal	14	2884	PASS
+476	nonspell	魅明魔 影:Normal	16	3004	PASS
+477	nonspell	魅明魔 影:Lunatic	3	2404	PASS
+478	nonspell	魅明魔 影:Lunatic	5	2524	PASS
+479	nonspell	魅明魔 影:Lunatic	10	2644	PASS
+480	nonspell	魅明魔 影:Lunatic	12	2764	PASS
+481	nonspell	魅明魔 影:Lunatic	14	2884	PASS
+482	nonspell	魅明魔 影:Lunatic	16	3004	PASS
+483	nonspell	karl_cirno_stage_boss:Normal	5	3724	PASS
+484	nonspell	karl_Cirno:Normal	2	1863	PASS
+485	nonspell	karl_Cirno:Normal	4	1863	PASS
+486	nonspell	karl_Cirno:Normal	6	3663	PASS
+487	nonspell	karl_Cirno:Normal	8	3063	PASS
+488	nonspell	karl_cirno_stage_boss:Lunatic	5	3724	PASS
+489	nonspell	karl_Cirno:Lunatic	2	1863	PASS
+490	nonspell	karl_Cirno:Lunatic	4	1863	PASS
+491	nonspell	karl_Cirno:Lunatic	6	3663	PASS
+492	nonspell	karl_Cirno:Lunatic	8	3063	PASS
+493	nonspell	Houjuu Nue:Normal	3	3724	PASS
+494	nonspell	Houjuu Nue:Normal	7	3844	PASS
+495	nonspell	Houjuu Nue:Normal	11	3844	PASS
+496	nonspell	Houjuu Nue:Normal	15	3844	PASS
+497	nonspell	Houjuu Nue:Normal	19	3844	PASS
+498	nonspell	Houjuu Nue:Normal	23	3844	PASS
+499	nonspell	Houjuu Nue:Normal	31	3844	PASS
+500	nonspell	MID--NORM	2	60003	PASS
+501	nonspell	MID--LUNA	2	60003	PASS
+502	nonspell	Houjuu Nue:Lunatic	3	3724	PASS
+503	nonspell	Houjuu Nue:Lunatic	7	3844	PASS
+504	nonspell	Houjuu Nue:Lunatic	11	3844	PASS
+505	nonspell	Houjuu Nue:Lunatic	15	3844	PASS
+506	nonspell	Houjuu Nue:Lunatic	19	3844	PASS
+507	nonspell	Houjuu Nue:Lunatic	23	3844	PASS
+508	nonspell	Houjuu Nue:Lunatic	27	3844	PASS
+509	nonspell	Houjuu Nue:Lunatic	31	3844	PASS
+510	nonspell	Junko_mid:Normal	2	3724	PASS
+511	nonspell	Junko_mid:Normal	3	3724	PASS
+512	nonspell	Junko_mid_Lunatic:Lunatic	2	3724	PASS
+513	nonspell	Junko_mid_Lunatic:Lunatic	3	3724	PASS
+514	nonspell	Junko:Normal	4	3724	PASS
+515	nonspell	Junko:Normal	6	3724	PASS
+516	nonspell	Junko:Normal	8	3724	PASS
+517	nonspell	Junko:Normal	10	3724	PASS
+518	nonspell	Junko:Normal	12	7324	PASS
+519	nonspell	Junko_Lunatic:Lunatic	4	3724	PASS
+520	nonspell	Junko_Lunatic:Lunatic	6	3724	PASS
+521	nonspell	Junko_Lunatic:Lunatic	8	3724	PASS
+522	nonspell	Junko_Lunatic:Lunatic	10	3724	PASS
+523	nonspell	Junko_Lunatic:Lunatic	12	7324	PASS
+524	nonspell	道中早苗L:Lunatic	4	3724	PASS
+525	nonspell	道中早苗N:Normal	4	3724	PASS
+526	nonspell	丰姬L:Lunatic	4	3724	PASS
+527	nonspell	丰姬L:Lunatic	7	3844	PASS
+528	nonspell	丰姬L:Lunatic	10	3844	PASS
+529	nonspell	丰姬L:Lunatic	13	3844	PASS
+530	nonspell	丰姬L:Lunatic	16	3844	PASS
+531	nonspell	丰姬L:Lunatic	19	3844	PASS
+532	nonspell	丰姬L:Lunatic	22	3844	PASS
+533	nonspell	丰姬L:Lunatic	25	3844	PASS
+534	nonspell	sf_精英boss:Lunatic	5	1987	PASS
+535	nonspell	sf_连长boss:Lunatic	5	1987	PASS
+536	nonspell	丰姬N:Normal	4	3724	PASS
+537	nonspell	丰姬N:Normal	7	3844	PASS
+538	nonspell	丰姬N:Normal	10	3844	PASS
+539	nonspell	丰姬N:Normal	13	3844	PASS
+540	nonspell	丰姬N:Normal	16	3844	PASS
+541	nonspell	丰姬N:Normal	19	3844	PASS
+542	nonspell	丰姬N:Normal	22	3844	PASS
+543	nonspell	丰姬N:Normal	25	3844	PASS
+544	nonspell	sf_精英bossn:Normal	5	1987	PASS
+545	nonspell	sf_连长bossn:Normal	5	1987	PASS
+546	nonspell	嫦娥N:Normal	3	3724	PASS
+547	nonspell	嫦娥N:Normal	7	3724	PASS
+548	nonspell	嫦娥N:Normal	11	3724	PASS
+549	nonspell	嫦娥N:Normal	15	3724	PASS
+550	nonspell	嫦娥N:Normal	19	3724	PASS
+551	nonspell	嫦娥N:Normal	23	3724	PASS
+552	nonspell	嫦娥N:Normal	27	3724	PASS
+553	nonspell	嫦娥L:Lunatic	3	3724	PASS
+554	nonspell	嫦娥L:Lunatic	7	3724	PASS
+555	nonspell	嫦娥L:Lunatic	11	3724	PASS
+556	nonspell	嫦娥L:Lunatic	15	3724	PASS
+557	nonspell	嫦娥L:Lunatic	19	3724	PASS
+558	nonspell	嫦娥L:Lunatic	23	3724	PASS
+559	nonspell	嫦娥L:Lunatic	27	3724	PASS
+560	nonspell	纯狐N	3	2524	PASS
+561	nonspell	纯狐N	4	2524	PASS
+562	nonspell	纯狐N	6	3724	PASS
+563	nonspell	纯狐L	3	2524	PASS
+564	nonspell	纯狐L	4	2524	PASS
+565	nonspell	纯狐L	6	3724	PASS
+566	nonspell	akuma:Normal	3	3665	PASS
+567	nonspell	akuma:Lunatic	3	3665	PASS
+568	nonspell	pachi:Normal	4	3724	PASS
+569	nonspell	pachi:Normal	6	3724	PASS
+570	nonspell	pachi:Normal	8	3724	PASS
+571	nonspell	pachi:Normal	10	3724	PASS
+572	nonspell	pachi:Normal	12	3724	PASS
+573	nonspell	pachi:Lunatic	4	3724	PASS
+574	nonspell	pachi:Lunatic	6	3724	PASS
+575	nonspell	pachi:Lunatic	8	3724	PASS
+576	nonspell	pachi:Lunatic	10	3724	PASS
+577	nonspell	pachi:Lunatic	12	3724	PASS
+578	nonspell	Alice:Normal	2	3663	PASS
+579	nonspell	Alice:Normal	5	3663	PASS
+580	nonspell	Alice:Normal	7	3663	PASS
+581	nonspell	Alice:Normal	10	3663	PASS
+582	nonspell	Alice:Normal	12	3663	PASS
+583	nonspell	Alice:Normal	15	3903	PASS
+584	nonspell	Alice:Normal	17	3663	PASS
+585	nonspell	Alice:Normal	19	3663	PASS
+586	nonspell	Alice:Lunatic	2	3663	PASS
+587	nonspell	Alice:Lunatic	5	4563	PASS
+588	nonspell	Alice:Lunatic	7	4863	PASS
+589	nonspell	Alice:Lunatic	9	3663	PASS
+590	nonspell	Alice:Lunatic	11	3663	PASS
+591	nonspell	Alice:Lunatic	13	3903	PASS
+592	nonspell	Alice:Lunatic	15	3663	PASS
+593	nonspell	Alice:Lunatic	17	3663	PASS
+594	nonspell	Shinki:Lunatic	2	3783	PASS
+595	nonspell	YYZY_boss:Normal	3	3784	PASS
+596	nonspell	YYZY_boss:Normal	5	3784	PASS
+597	nonspell	YYZY_boss:Normal	7	3784	PASS
+598	nonspell	YYZY_boss:Normal	9	3784	PASS
+599	nonspell	YYZY_boss:Lunatic	3	3784	PASS
+600	nonspell	YYZY_boss:Lunatic	5	3784	PASS
+601	nonspell	YYZY_boss:Lunatic	7	3784	PASS
+602	nonspell	YYZY_boss:Lunatic	9	3784	PASS
+603	nonspell	dajiang:Normal	2	1324	PASS
+604	nonspell	dajiang:Normal	5	3724	PASS
+605	nonspell	dajiang:Lunatic	2	1324	PASS
+606	nonspell	dajiang:Lunatic	5	3724	PASS
+607	nonspell	stupid_LilyWhite:Normal	2	1324	PASS
+608	nonspell	stupid_LilyWhite:Normal	5	3724	PASS
+609	nonspell	stupid_LilyWhite:Lunatic	2	1324	PASS
+610	nonspell	stupid_LilyWhite:Lunatic	5	3724	PASS
+611	nonspell	pisi:Normal	3	1624	PASS
+612	nonspell	pisi:Lunatic	3	1624	PASS
+613	nonspell	Cirno:Normal	3	3724	PASS
+614	nonspell	Cirno:Lunatic	3	3724	PASS
+615	nonspell	sita12:Normal	4	1985	PASS
+616	nonspell	sita12:Normal	7	1924	PASS
+617	nonspell	sita12:Normal	12	3724	PASS
+618	nonspell	sita12:Lunatic	4	1985	PASS
+619	nonspell	sita12:Lunatic	7	1924	PASS
+620	nonspell	sita12:Lunatic	12	3724	PASS
+621	nonspell	luna1:Normal	2	3724	PASS
+622	nonspell	luna1:Normal	7	3724	PASS
+623	nonspell	luna1:Lunatic	2	3724	PASS
+624	nonspell	luna1:Lunatic	7	3724	PASS
+625	nonspell	sunny1:Normal	2	3724	PASS
+626	nonspell	sunny1:Normal	7	3724	PASS
+627	nonspell	sunny1:Lunatic	2	1924	PASS
+628	nonspell	sunny1:Lunatic	7	3724	PASS
+629	nonspell	sita34:Normal	1	3663	PASS
+630	nonspell	sita34:Normal	5	3724	PASS
+631	nonspell	sita34:Lunatic	1	3663	PASS
+632	nonspell	sita34:Lunatic	5	3724	PASS
+633	nonspell	luna2:Normal	2	3724	PASS
+634	nonspell	luna2:Normal	7	3724	PASS
+635	nonspell	luna2:Lunatic	2	3724	PASS
+636	nonspell	luna2:Lunatic	7	3724	PASS
+637	nonspell	sunny2:Normal	1	3663	PASS
+638	nonspell	sunny2:Normal	6	3724	PASS
+639	nonspell	sunny2:Lunatic	1	3663	PASS
+640	nonspell	sunny2:Lunatic	6	3724	PASS
+641	nonspell	luna f	3	3724	PASS
+642	nonspell	sunny f	3	3724	PASS
+643	nonspell	stupid_last dialog	5	3665	PASS
+644	nonspell	luna t	3	3724	PASS
+645	nonspell	sita t	3	3724	PASS
+646	nonspell	Vinoshu:Lunatic	3	3724	PASS
+647	nonspell	Vinoshu:Lunatic	5	3724	PASS
+648	nonspell	Vinoshu:Lunatic	7	3724	PASS
+649	nonspell	Vinoshu:Lunatic	9	3724	PASS
+650	nonspell	Vinoshu:Lunatic	11	3724	PASS
+651	nonspell	Vinoshu:Normal	3	3724	PASS
+652	nonspell	Vinoshu:Normal	5	3724	PASS
+653	nonspell	Vinoshu:Normal	7	3724	PASS
+654	nonspell	Vinoshu:Normal	9	3724	PASS
+655	nonspell	Vinoshu:Normal	11	3724	PASS
+656	nonspell	OLC_九十九 弁弁:Normal	4	3787	PASS
+657	nonspell	OLC_九十九 弁弁:Normal	6	3724	PASS
+658	nonspell	OLC_九十九 弁弁:Lunatic	4	3787	PASS
+659	nonspell	OLC_九十九 弁弁:Lunatic	6	3724	PASS
+660	nonspell	OLC_九十九 八桥:Normal	3	3785	PASS
+661	nonspell	OLC_九十九 八桥:Normal	5	3724	PASS
+662	nonspell	OLC_九十九 八桥:Lunatic	3	3785	PASS
+663	nonspell	OLC_九十九 八桥:Lunatic	5	3724	PASS
+664	nonspell	OLC_ZMW:Normal	2	3663	PASS
+665	nonspell	OLC_ZMW:Normal	5	3663	PASS
+666	nonspell	Marisa:Normal	2	3663	PASS
+667	nonspell	Reimu:Normal	2	3663	PASS

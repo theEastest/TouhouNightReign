@@ -841,7 +841,7 @@ function Bootstrap:_preparation_rows()
     return rows
 end
 
-function Bootstrap:_activate_preparation()
+function Bootstrap:_activate_preparation(toggle_weapon)
     local player_id = self.session.local_player_id or 1
     local player = self.session:get_player(player_id)
     local row = self:_preparation_rows()[self.preparation_cursor]
@@ -911,6 +911,12 @@ function Bootstrap:_activate_preparation()
         if not result and err then self.preparation_message = err else self.preparation_message = result and "Ready 已锁定配装" or "已取消 Ready" end
         return result
     elseif row.kind == "equipped" then
+        if toggle_weapon and (row.group == "high_weapons" or row.group == "low_weapons") then
+            local Service = require("tnr.equipment.loadout_service")
+            local ok, enabled = Service.new(self.session, self.session.equipment_registry):toggle_weapon(player_id, row.group, row.index)
+            self.preparation_message = ok and (enabled and "武器已启用" or "武器已停用") or enabled
+            return ok
+        end
         local result, err = self.session:dispatch({ type = Command.UNEQUIP_ITEM, player_id = player_id, slot_type = row.group, slot_index = row.index })
         self.preparation_message = result and "装备已卸下到仓库" or (err or "卸下失败")
         return result
@@ -952,7 +958,7 @@ function Bootstrap:_update_preparation(player_input, overlay)
             if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
                 self.preparation_cursor = hit
             end
-            if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation() end
+            if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation(true) end
         end
     end
     if player_input.confirm then
@@ -1461,7 +1467,7 @@ function Bootstrap:update()
     elseif self.session.run_state == Constants.run_states.REPLAY_STAGE then
         -- The replay owns its input through the shared provider, so only the
         -- leave and pause buttons are handled here.
-        local outcome = self.replay:update()
+        local outcome = self.replay:update(inputs)
         if outcome ~= "playing" then
             self.replay:finish_stage(outcome)
             self.session.run_state = Constants.run_states.REPLAY_RESULT

@@ -173,7 +173,7 @@ Interfaces.classic_mode = function()
         extend_score = CLASSIC_EXTEND_SCORE,
         next_extend = CLASSIC_EXTEND_SCORE,
         starting_resources = function()
-            return { lives = 2, bombs = 3, power = 0 }
+            return { lives = 2, bombs = 3, power = 1 }
         end,
         rewards_per_stage = function() return 0 end,
         score_extend_threshold = function(self) return self.extend_score end,

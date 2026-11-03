@@ -54,7 +54,9 @@ return function(assert_equal, assert_true)
     player.power = 0
     assert_equal(player:power_level(), 1, "no power is level one")
     player.power = 100
-    assert_equal(player:power_level(), 4, "full power is the top level")
+    assert_equal(player:power_level(), 2, "100 power selects the first upgraded shooter set")
+    player.power = 400
+    assert_equal(player:power_level(), 5, "400 power selects the fifth shooter set")
 
     -- Shooter sets are selected by focus state and power level.
     player.power = 0
@@ -105,6 +107,9 @@ return function(assert_equal, assert_true)
     target.x, target.y = 0, 200
     assert_true(target:hits(0, 200), "a direct hit registers")
     assert_true(not target:hits(10, 200), "a distant point misses")
+    assert_true(target:hits(5, 200, 4), "bullet radius contributes to contact")
+    assert_true(not target:grazes(5, 200, 4), "a hit cannot also graze")
+    assert_true(target:grazes(9, 200, 4), "bullet edge contributes to grazing")
     assert_true(target:grazes(0, 205), "a nearby point grazes")
     assert_true(not target:grazes(0, 220), "a far point does not graze")
     assert_true(target:collects(0, 210), "an item within the item box collects")

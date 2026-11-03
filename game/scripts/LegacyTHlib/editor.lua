@@ -29,7 +29,7 @@ function _object:render()
     if self.dmgt and self.dmgmaxt then
         c = self.dmgt / self.dmgmaxt
     end
-    SetImgState(self, self._blend, self._a, self._r - self._r * 0.75 * c, self._g - self._g * 0.75 * c, self._b)
+    SetImgState(self, self._blend or "", self._a or 255, (self._r or 255) * (1 - 0.75 * c), (self._g or 255) * (1 - 0.75 * c), self._b or 255)
     DefaultRenderFunc(self)
 end
 function _object:set_color(blend, a, r, g, b)
@@ -248,7 +248,7 @@ function RawSetA(self, accel, angle, navi, maxv)
     if navi then
         self.navi = navi
     end
-    if maxv ~= 0 then
+    if maxv and maxv ~= 0 then
         self.maxv = maxv
     end
 end
@@ -259,11 +259,11 @@ function SetA(self, accel, angle, maxv, gravity, maxvy, navi)
     end
     self.ax = accel * cos(angle)
     self.ay = accel * sin(angle)
-    self.ag = gravity
-    if maxv ~= 0 then
+    self.ag = gravity or 0
+    if maxv and maxv ~= 0 then
         self.maxv = maxv
     end
-    if maxvy ~= 0 then
+    if maxvy and maxvy ~= 0 then
         self.maxvy = maxvy
     end
 end
@@ -788,7 +788,8 @@ smear.func = function(img)
     if lstg.tmpvar.smearcache == nil then
         lstg.tmpvar.smearcache = {}
     end
-    if not lstg.tmpvar.smearcache[img] then
+    -- Stage resources can be evicted while tmpvar survives a room change.
+    if not lstg.tmpvar.smearcache[img] or not lstg.CheckRes(6, lstg.tmpvar.smearcache[img]) then
         smear.cache[img] = img .. "_smear_psi"
         lstg.tmpvar.smearcache[img] = img .. "_smear_psi"
         -- The reference editor points at THlib/smear.psi; the exported path

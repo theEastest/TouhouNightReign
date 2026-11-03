@@ -36,7 +36,7 @@ end
 
 function item:render()
     if self.y > lstg.world.t then
-        Render(self.imgup, self.x, lstg.world.t - 8)
+        Render(self.imgup, self.x, lstg.world.t - 8, 0, self._p_scale_x or 1, self._p_scale_y or 1)
     else
         object.render(self)
     end
@@ -80,6 +80,11 @@ function item:frame()
     if self.attract >= 8 then
         self.collected = true
     end
+    -- P sprites have different transparent padding. Keep their visible size
+    -- stable instead of letting the legacy spawn animation restore scale 1.
+    if self._p_scale_x then
+        self.hscale, self.vscale = self._p_scale_x, self._p_scale_y
+    end
 end
 
 function item:colli(other)
@@ -117,8 +122,15 @@ function GetPower(v)
 end
 
 item_power = Class(item)
+local function size_power_item(self, side, sprite_width, sprite_height)
+    -- Coin sheet uses a 10px visible face inside its 32px texture cell.
+    self._p_scale_x, self._p_scale_y = side / sprite_width, side / sprite_height
+    self.hscale, self.vscale = self._p_scale_x, self._p_scale_y
+    self.a, self.b = side / 2, side / 2
+end
 function item_power:init(x, y, v, a)
     item.init(self, x, y, 1, v, a)
+    size_power_item(self, 10, 14, 14)
 end
 function item_power:collect()
     GetPower(1)
@@ -127,6 +139,7 @@ end
 item_power_large = Class(item)
 function item_power_large:init(x, y, v, a)
     item.init(self, x, y, 6, v, a)
+    size_power_item(self, 10 * math.sqrt(2), 22, 23)
 end
 function item_power_large:collect()
     GetPower(100)
@@ -461,6 +474,7 @@ function item.playercollect(n)
 end
 -----------------------------
 function item:PlayerMiss()
+    if _G.tnr_affix_miss then _G.tnr_affix_miss() end
     lstg.var.chip_bonus = false
     if lstg.var.sc_bonus then
         lstg.var.sc_bonus = 0

@@ -27,10 +27,13 @@ function WeaponRuntime.new(instance, definition, slot_type, slot_index)
     assert(instance and definition, "weapon runtime requires instance and definition")
     return setmetatable({
         instance_id = instance.instance_id,
+        enabled = not (instance.runtime_data and instance.runtime_data.enabled == false),
         definition_id = instance.definition_id,
         slot_type = slot_type,
         slot_index = slot_index,
         definition = definition,
+        instance = instance,
+        random_affixes = copy_table(instance.random_affixes or {}),
         fire_count = 0,
         cooldown = 0,
         afterglow_pending = {},
@@ -43,7 +46,11 @@ function WeaponRuntime.new(instance, definition, slot_type, slot_index)
 end
 
 function WeaponRuntime:is_active(mode)
+    if not self.enabled then return false end
     mode = tostring(mode or "HIGH"):upper()
+    local modes = self.definition.active_modes or {}
+    if (modes.HIGH or modes.LOW) and modes[mode] ~= true then return false end
+    if self.definition.internal_only then return false end
     if self.definition.dual_mode then return true end
     return (self.slot_type == "high_weapons" and mode == "HIGH")
         or (self.slot_type == "low_weapons" and mode == "LOW")
@@ -51,7 +58,7 @@ end
 
 function WeaponRuntime:update(mode, firing, context)
     context = context or {}
-    if context.paused then return {} end
+    if context.paused or not self.enabled then return {} end
     self.frame = self.frame + 1
     self.rng_seed = tostring(context.room_generation or 0) .. ":" .. tostring(context.player_id or 1)
         .. ":" .. tostring(self.slot_type) .. ":" .. tostring(self.slot_index)
@@ -113,7 +120,8 @@ function WeaponRuntime:update(mode, firing, context)
     while #offsets < math.max(1, math.floor(count)) do offsets[#offsets + 1] = 0 end
     for index, offset in ipairs(offsets) do
         local shot_metadata = copy_table(metadata)
-        if context and context.homing_turn_multiplier then
+        if context and context.homing_turn_multiplier
+                and (metadata.homing or definition.targeting == "NEAREST_ENEMY") then
             shot_metadata.homing_turn_multiplier = tonumber(context.homing_turn_multiplier) or 1
         end
         if context and context.force_homing and not metadata.homing and definition.targeting ~= "NEAREST_ENEMY" then

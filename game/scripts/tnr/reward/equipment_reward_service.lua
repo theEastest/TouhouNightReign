@@ -7,11 +7,11 @@ function EquipmentRewardService.new(session)
     return setmetatable({ session = session }, EquipmentRewardService)
 end
 
-function EquipmentRewardService:grant(definition_id, player_id)
+function EquipmentRewardService:grant(definition_id, player_id, affixes)
     local definition = self.session.equipment_registry:get(definition_id)
     if not definition then return nil, "UNKNOWN_DEFINITION" end
     player_id = tonumber(player_id) or self.session.local_player_id or 1
-    local instance = EquipmentInstance.new(definition, player_id)
+    local instance = EquipmentInstance.new(definition, player_id, {random_affixes=affixes})
     local acquired, err = self.session.acquisition_service:acquire(player_id, instance)
     return {
         instance = instance,

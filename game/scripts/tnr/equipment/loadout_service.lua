@@ -48,6 +48,7 @@ function LoadoutService:can_equip(instance, slot_type, slot_index, player_id, ig
     end
     local definition = self:_definition(instance)
     if not definition then return false, "UNKNOWN_DEFINITION" end
+    if definition.internal_only then return false, "INTERNAL_WEAPON" end
     -- A non-dual weapon instance has one slot identity.  Reject attempts to
     -- place the same instance in the other weapon collection; moving it must
     -- go through an explicit unequip first.
@@ -193,6 +194,19 @@ function LoadoutService:validate(player_id)
         seen[instance.instance_id] = true
     end
     return true
+end
+
+function LoadoutService:toggle_weapon(player_id, slot_type, slot_index)
+    if slot_type ~= "high_weapons" and slot_type ~= "low_weapons" then return nil, "NOT_WEAPON" end
+    local player = self.session:get_player(player_id)
+    local instance = player and player.loadout and player.loadout:get_slot(slot_type, slot_index)
+    if not instance or instance == false then return nil, "EMPTY_SLOT" end
+    local ok, err = self:can_equip(instance, slot_type, slot_index, player_id)
+    if not ok then return nil, err end
+    instance.runtime_data = instance.runtime_data or {}
+    instance.runtime_data.enabled = instance.runtime_data.enabled == false
+    player.loadout.version = (player.loadout.version or 1) + 1
+    return true, instance.runtime_data.enabled
 end
 
 return LoadoutService

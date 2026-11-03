@@ -22,10 +22,7 @@ Include 'THlib/bullet/bullet.lua'
 -- halves in the same initialization order so every legacy style (including
 -- kite12 and the animation-based styles) has its real image resource.
 Include 'THlib/bullet/legacy_bullet_load_resources.txt'
--- The activity export does not include the optional generated bullet atlas.
--- Keep the rest of the legacy bullet classes available when it is absent.
-pcall(Include, 'THlib/bullet/bullet_style_loader.lua')
-pcall(Include, 'THlib/bullet/bullet_others.lua')
+Include 'THlib/bullet/bullet_others.lua'
 Include 'THlib/bullet/legacy_bullet_styles.lua'
 Include 'THlib/laser/laser.lua'
 Include 'THlib/background/background.lua'

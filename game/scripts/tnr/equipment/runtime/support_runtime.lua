@@ -129,6 +129,7 @@ function SupportRuntime:fire(mode, firing, context, registry)
     local function mode_value(name, fallback)
         local value = metadata[prefix .. name]
         if value == nil then value = metadata[name] end
+        if value == nil then value = weapon_metadata[name] end
         if value == nil then value = fallback end
         return value
     end
@@ -137,18 +138,26 @@ function SupportRuntime:fire(mode, firing, context, registry)
     local spread = tonumber(mode_value("spread", weapon_metadata.spread)) or 0
     local speed = tonumber(mode_value("projectile_speed", weapon and (weapon.speed or weapon.projectile_speed))) or 8
     local damage = tonumber(mode_value("damage", weapon and weapon.damage)) or 1
+    if mode_value("damage_normalized_by_count", false) then
+        -- Authored damage is the whole formation's per-projectile budget.
+        damage = damage / math.max(1, #self.entities)
+    end
+    local targeting = mode_value("targeting", weapon and weapon.targeting)
+    if targeting == "nearest" then targeting = "NEAREST_ENEMY" end
     local result = {}
     local player_x, player_y = tonumber(context and context.x) or 0, tonumber(context and context.y) or 0
     local angle = tonumber(context and context.angle) or 90
     for _, entity in ipairs(self.entities) do
         for index = 1, math.max(1, math.floor(count)) do
-            local shot_metadata = copy_table(metadata)
+            local shot_metadata = copy_table(weapon_metadata)
+            for key, value in pairs(copy_table(metadata)) do shot_metadata[key] = value end
             shot_metadata.beam = mode_value("beam", false)
-            shot_metadata.homing = mode_value("homing", false) or mode_value("targeting") == "NEAREST_ENEMY"
+            shot_metadata.homing = mode_value("homing", false) or targeting == "NEAREST_ENEMY"
             shot_metadata.beam_duration_frames = mode_value("beam_duration_frames", 8)
             shot_metadata.tick_interval = mode_value("tick_interval", 2)
-            shot_metadata.max_tracking_frames = 90
-            shot_metadata.homing_turn_rate = 0.04
+            shot_metadata.max_tracking_frames = mode_value("max_tracking_frames", 90)
+            shot_metadata.homing_turn_rate = mode_value("homing_turn_rate", 0.04)
+            shot_metadata.homing_turn_ratio = mode_value("homing_turn_ratio", 1)
             result[#result + 1] = {
                 owner_player_id = context and context.player_id,
                 source_type = "support",
@@ -160,13 +169,13 @@ function SupportRuntime:fire(mode, firing, context, registry)
                 speed = speed,
                 damage = damage,
                 scale = 1,
-                targeting = mode_value("targeting", weapon and weapon.targeting),
+                targeting = targeting,
                 metadata = shot_metadata,
             }
         end
     end
     self.fire_count = self.fire_count + 1
-    self.cooldown = math.max(1, math.floor(tonumber(metadata.fire_interval or (weapon and weapon.fire_interval)) or 8))
+    self.cooldown = math.max(1, math.floor(tonumber(mode_value("fire_interval", weapon and weapon.fire_interval)) or 8))
     return result
 end
 

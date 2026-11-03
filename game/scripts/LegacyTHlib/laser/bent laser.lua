@@ -30,7 +30,7 @@ function laser_bent:init(index, x, y, l, w, sample, node)
     self.listx = {}
     self.listy = {}
     self.node = node or 0
-    self._l = int(l / 4)
+    self._l = max(1, int(l / 4))
     self.img4 = 'laser_node' .. int((self.index + 1) / 2)
     self.pause = 0
     self.a = 0
@@ -42,7 +42,8 @@ function laser_bent:init(index, x, y, l, w, sample, node)
     self._colli = true
     self._inf_graze = true
     self.deactive = 0
-    self.sample = sample--by OLC，不使用换class来实现
+    -- Legacy sample values 2/3/8 use the standard curve, not an absent style.
+    self.sample = sample == 0 and 0 or (laser_bent_renderFunc[sample] and sample or 4)
     self._blend, self._a, self._r, self._g, self._b = 'mul+add', 255, 255, 255, 255
 
     setmetatable(self, { __index = GetAttr, __newindex = laser_bent_meta_newindex })
@@ -228,4 +229,27 @@ function laser_bent_death_ef:render()
     if laser_bent_renderFuncDeath[self.sample] then
         laser_bent_renderFuncDeath[self.sample](self)
     end
+end
+
+-- Reference exports can switch an existing curve to this electrical class.
+-- Keep the modern collision/lifetime implementation and select its real
+-- animated thunder renderer, including the destruction effect.
+laser_bent_elec = Class(laser_bent)
+function laser_bent_elec:init(index,x,y,l,w,sample,node)
+    laser_bent.init(self,index,x,y,l,w,0,node)
+end
+function laser_bent_elec:frame()
+    self.sample=0
+    laser_bent.frame(self)
+end
+function laser_bent_elec:render()
+    laser_bent_renderFunc[0](self)
+end
+function laser_bent_elec:del()
+    self.sample=0
+    laser_bent.del(self)
+end
+function laser_bent_elec:kill()
+    self.sample=0
+    laser_bent.kill(self)
 end

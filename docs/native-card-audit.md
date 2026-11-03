@@ -1,34 +1,91 @@
-# Native Card Audit
+# 原生弹幕复刻检查与修复
 
-The runtime now loads `game/legacy/source/activity7/_editor_output.lua` and
-resolves cards by the original Boss class and card-list slot. Slot numbering
-includes `boss.move.New(...)` entries because that is how the reference Boss
-object consumes its list.
+检查日期：2026-11-03。参考项目：本机 `E:/galgames/TouHouDoujinshi`。
 
-Current audit (2026-08-28):
+## 参考来源与范围
 
-- 355 spell and 321 non-spell entries are exposed by the two practice
-  catalogs (676 total).
-- Static validation found an original Boss class, numeric source slot,
-  `legacy_exact=true`, and a combat initializer for every entry.
-- Each entry was launched in an isolated runtime process. The initial batch
-  run found five genuine runtime defects: two missing `wuer_yamame` helper
-  images, two `akuma` cards requiring the legacy world-center aliases, and
-  one card requiring a preceding setup/dialogue entry. All five were fixed by
-  restoring the original resource registration and setup sequence, then
-  re-tested successfully. The remaining batch-only `_editor_class=nil` and
-  stage-reset reports were not reproducible in isolated launches.
-- Direct launches also confirmed the original movement segments place the
-  Boss inside the playfield; the off-screen starting coordinates are the
-  reference entrance animation, not a catalog position error.
+本报告检查 activity7 原生战斗路径：`legacy_native_main.lua`、
+`LegacyTHlib` 和原作 `_editor_output.lua`。它与 `tnr/legacy_replay`
+中的《东方绀珠传》ECL 重演是两个不同系统；后者仍以
+[一面验证记录](stage1-validation.md)中的未完成项为准。
 
-Room routing is native by default:
+通过原作 ZIP 目录中的 CRC32 核验现有解包脚本，无需解密或修改参考项目：
+`source/data` 的 85 个 Lua 文件全部匹配；`source/activity7` 的 37 个文件匹配。
+三个有差异的文件为既有修改的 `yahoon_bar.lua`，以及本次修复的
+`wuer_woods.lua`、`_editor_output.lua`。原作本身存在的错误也作兼容修复，
+并非将所有原作错误照搬到新引擎。
 
-- Ordinary: original activity small-enemy classes plus Reimu's first non-spell.
-- Elite: a deterministic `:Normal` Boss class with fewer than three cards.
-- Boss: a deterministic main Boss class with its complete original card list.
+## 已定位并修复的问题
 
-The audit intentionally does not label a card native based on its display name
-alone; it must have both `legacy_boss` and `legacy_card_slot` metadata.
-Direct training also validates that the resolved source entry is a combat card
-with an `init` function before changing stages, preventing silent empty rooms.
+| 问题 | 影响及修复 |
+| --- | --- |
+| 加载器重复覆盖弹幕图集 | 许多弹种被重新指向 bullet1，颜色、尺寸和碰撞盒失真；保留原作图集注册，测试逐项比较纹理区域、碰撞形状及动画帧。 |
+| 雾化阶段颜色索引 | 16 色弹幕错误访问只有 8 帧的雾化图片；使用原作成对颜色索引。 |
+| 深绿色常量不一致 | 保留参考项目 `COLOR_DEEP_GREEN=10` 的实际别名语义。 |
+| 消弹碎片未加载 | 失效资源路径被异常吞掉，留下空效果；恢复原作 etbreak 图集和碎片逻辑。 |
+| 自定义着色后混合模式丢失 | 恢复大光球、水滴等弹种的加法混合状态。 |
+| 激光变色后的头部索引越界 | `ChangeImage` 与初始化统一使用 8 帧配对索引，覆盖全部 16 色。 |
+| 曲线激光缺失电弧类 | 补回 `laser_bent_elec` 兼容类，复用当前引擎的生命周期与碰撞实现。 |
+| 部分曲线激光完全不可见 | 原作 sample=2/3/8 被当作未注册绘制器；按原作语义映射普通曲线，0 为电弧；短曲线历史长度至少为 1。 |
+| 重力弹整段缺失 | 原作 BulletEx/Class 模块未加载，`New` 又静默丢弃缺失类；恢复模块并使构造错误直接暴露。 |
+| 构造失败重复执行 | 删除对任意构造异常重试的逻辑，避免生成两份副作用。 |
+| 老版后处理不兼容 | 移植 cameo、fx_switch、distortion_colorburn 到 D3D11；保留遮罩、浮雕、扭曲与染色参数，修正中心归一化及负数分数幂；不再静默跳过缺失效果。 |
+| 背景依赖不完整 | 加载真正的 starlight 背景；树林初始化调用自身的预热函数。 |
+| UFO 击破时访问不存在的迷宫 | Normal/Lunatic 清理回调只在迷宫对象有效时修改进度。 |
+| 旧版成就与奖励状态缺失 | 在分数存档载入后补齐计数，保留已有成就；加载成就提示和音效；击破回调同步当前符卡奖励。 |
+| 图书馆书本计数为空 | 每个原生房间初始化 bookbreak，防止清场/击破书本时崩溃。 |
+| 练习遗漏原作入场移动 | 后段符卡召唤物出生在屏外立即被清理；恢复最近的原作入场移动，并保持多个移动段的顺序。 |
+| 啤酒符卡擦弹基准缺失 | 独立练习时在符卡开始建立基准，完整流程已有基准仍保留。 |
+| 激光在碰撞中改分组 | 改用当前引擎的延迟分组切换，立即关闭碰撞并正常播放消散。 |
+| 跟随激光访问已删除母弹 | 检查母弹有效性，母弹消失时终止跟随对象。 |
+| 翅膀等跟随特效在退场后仍读取 Boss | 五处跟随回调改用实际绑定的母对象；母对象失效时结束特效，完整 Boss 各阶段之间仍保留翅膀。 |
+| Boss 消失后仍访问背景 | 绘制前检查 Boss 和背景对象有效性。 |
+| 拖尾粒子缓存跨房间失效 | 缓存存在但资源已卸载时重新加载，不再引用空资源。 |
+| 缺省 blend/重力参数 | 为旧脚本允许省略的参数补上正常混合、白色和零重力，避免现代原生属性拒绝 nil。 |
+| 神绮动画循环配置越界 | 修正原作错误的循环帧数组，避免移动/收尾阶段选择不存在的图片。 |
+| 新版 HUD 资源缺失时错图 | 使用原作 Boss 图标、对话框、现有粒子/圆环及文字标签；删除整张 boss.png 冒充所有缺失图片的兜底。 |
+| 练习目录混入退场脚本 | Mystia、Wriggle、Larva 和 Junko_mid 的 9 个条目仅播放退场/掉落/转场，从非符练习移除；完整 Boss 流程继续保留。 |
+
+## 验证方式
+
+第一轮对原目录 676 项逐个运行约 20 秒模拟时间并触发击破，覆盖真实
+对象更新、碰撞、渲染及清理回调。发现错误后修复，从失败项继续复测。
+其中 9 个条目经源码与长时记录核对，只负责退场、掉落或转场；修正后的练习目录为 355 张符卡、312 张非符。
+
+第二轮对 674 项进行长时检查（包含后来确认的 7 个退场脚本），推进到原作符卡时限附近再触发击破，
+对自然提前结束的符卡保留原作结束逻辑。使用原生 Release 引擎；
+测试玩家无敌且不射击，按固定房间种子运行。
+
+长时检查结果：**667／667 个实际攻击条目通过**，累计 2,704,450 个模拟帧（约 12.52 小时游戏时间）；额外 7 个退场脚本也执行完成后从练习目录排除。
+发现错误后停止、修复并从失败项续跑；最终通过记录见
+[逐项结果](native-card-audit-results.tsv)。
+
+LuaJIT、Lua 5.4 全套测试及 5 项 Python 编译器测试通过。
+Release 引擎已重新编译，SHA-256：
+`4b807e422d05ca38d1a91c7a74a276525829478035483e2aa3d7016d2bc841ba`。
+
+回归测试比较原作和当前图集、全部颜色常量、动画参数、激光头及曲线
+渲染选择；另外覆盖成就初始化、树林预热、入场顺序、可选重力参数、
+拖尾缓存失效和 UFO 清理。既有武器、词条、P 槽及 ECL 编译测试同时运行。
+
+本检查验证这些路径的运行与资源完整性，不等于逐帧画面对齐、所有随机
+分支、全部操作方式或多人联机均已穷尽验证。加速检查每批模拟帧后渲染
+一次，不能代替逐帧截图比较；也不构成《绀珠传》完整移植验收。
+
+## 复现
+
+在项目根目录，用当前 Release 引擎运行 `game` 目录：
+
+```powershell
+$env:TNR_NATIVE_AUDIT='1'
+$env:TNR_AUDIT_FULL='1'
+$env:TNR_AUDIT_BATCH='120'
+$env:TNR_AUDIT_OUTPUT="$PWD\.validation\native-cards.result"
+Start-Process '..\LuaSTG-Sub-master\build\amd64\bin\LuaSTGSub.exe' -WorkingDirectory "$PWD\game" -WindowStyle Hidden
+```
+
+`TNR_AUDIT_START` 可从目录序号继续；`TNR_AUDIT_FILTER` 按 Boss/slot 子串筛选。
+不设置 `TNR_AUDIT_FULL` 时用 `TNR_AUDIT_FRAMES` 指定模拟时长（默认 1200）。
+逐项进度记录在 engine.log；测试结束后才写完整 TSV，避免读写抢占文件。
+测试遇到首个错误就停止，避免渲染异常后的引擎状态引发大量虚假后续错误。
+这些入口均须环境变量显式启用，正常发布启动不启用测试、无敌或自动通关。

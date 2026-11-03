@@ -10,6 +10,17 @@ return function(assert_equal, assert_true)
     local Adapter = require("tnr.legacy_replay.adapter")
     local chunks = require("tnr.legacy_replay.data.th15_all")
     local anm = require("tnr.legacy_replay.data.th15_anm")
+    local movement = Adapter.new({lstg={}, chunks={}})
+    local moving = {x=0,y=0}
+    local context = {object=moving, ints={}, floats={}}
+    movement.instructions.moveVel(context, movement.runtime, {"0.0f", "3.0f"})
+    movement.instructions.moveVelTime(context, movement.runtime, {"60", "0", "-999999.0f", "1.0f"})
+    for _=1,60 do movement:advance_enemy_movement(moving) end
+    assert_true(math.abs(moving.legacy_speed-1)<1e-6, "velocity interpolation reaches the requested speed")
+    local end_x = moving.x
+    movement:advance_enemy_movement(moving)
+    assert_true(math.abs(moving.x-end_x-1)<1e-6, "enemy keeps moving after the velocity transition")
+    assert_true(end_x>110 and end_x<130, "deceleration integrates velocity rather than half a target displacement")
 
     -- A recording host: enemy and bullet creation are both counted.
     local enemies_created, bullets_created = 0, 0

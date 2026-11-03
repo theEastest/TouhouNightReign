@@ -33,7 +33,7 @@ function wuer_woods_background:init()
 	self.interval=0.5
 	self.acc=self.interval
 	self.al=255
-	for i=1,400 do woods_background.frame(self) end
+	for i=1,400 do wuer_woods_background.frame(self) end
 	self.al=255
 	self._eye,self._at={},{}
 	for i=1,3 do

@@ -33,7 +33,7 @@ New-Item -ItemType Directory -Path $destination -Force | Out-Null
 $gameRoot = Join-Path $projectRoot 'game'
 # /XJ prevents development junctions from retaining dependencies on this PC.
 # Saves, logs and developer self-test results must not travel to other players.
-& robocopy $gameRoot $destination /E /XJ /XD (Join-Path $gameRoot 'userdata') (Join-Path $gameRoot 'legacy/virtual_data') /XF '*.log' '*.dmp' '*.result' '*.bak' 'desktop.ini' 'Thumbs.db' /NFL /NDL /NJH /NJS /NP
+& robocopy $gameRoot $destination /E /XJ /XD (Join-Path $gameRoot 'userdata') (Join-Path $gameRoot 'legacy/virtual_data') /XF '*.log' '*.dmp' '*.result' '*_smoke_result.txt' '*.bak' 'desktop.ini' 'Thumbs.db' /NFL /NDL /NJH /NJS /NP
 if ($LASTEXITCODE -ge 8) { throw "Copy failed: robocopy exit $LASTEXITCODE" }
 foreach ($name in $binaryFiles) {
     $outputName = if ($name -eq 'LuaSTGSub.exe') { 'TouHouNightReign.exe' } else { $name }
@@ -42,6 +42,14 @@ foreach ($name in $binaryFiles) {
 Copy-Item -LiteralPath (Join-Path $EngineRoot 'data/license') -Destination (Join-Path $destination 'licenses') -Recurse
 Copy-Item -LiteralPath (Join-Path $EngineRoot 'License.txt') -Destination (Join-Path $destination 'licenses/LuaSTG-Sub-License.txt')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'release_readme.txt') -Destination (Join-Path $destination 'README.txt')
+$validationRoot = Join-Path $destination 'validation'
+New-Item -ItemType Directory -Path $validationRoot -Force | Out-Null
+foreach ($report in @('native-card-audit.md', 'native-card-audit-results.tsv', 'stage1-validation.md')) {
+    $reportPath = Join-Path $projectRoot ('docs/' + $report)
+    if (Test-Path -LiteralPath $reportPath -PathType Leaf) {
+        Copy-Item -LiteralPath $reportPath -Destination (Join-Path $validationRoot $report)
+    }
+}
 New-Item -ItemType Directory -Path (Join-Path $destination 'userdata') -Force | Out-Null
 $launcher = @'
 @echo off
@@ -76,6 +84,7 @@ if (@(Get-ChildItem -LiteralPath $destination -Recurse -Force -Attributes Repars
 $metadata = [ordered]@{
     name = $ReleaseName
     built_at = (Get-Date -Format o)
+    source_commit = (& git -C $projectRoot rev-parse HEAD)
     platform = 'Windows x64'
     configuration = 'Release'
     engine_sha256 = (Get-FileHash -LiteralPath (Join-Path $destination 'TouHouNightReign.exe') -Algorithm SHA256).Hash

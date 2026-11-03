@@ -189,7 +189,7 @@ local defaultFrameEvent = {
             else
                 if self.__slow_flag then
                     for _, o in ObjList(GROUP_ITEM) do
-                        if Dist(self, o) < 48 then
+                        if Dist(self, o) < 48 * (self.tnr_pickup_multiplier or 1) then
                             if o.attract < 3 then
                                 o.attract = max(o.attract, 3)
                                 o.target = self
@@ -198,7 +198,7 @@ local defaultFrameEvent = {
                     end
                 else
                     for _, o in ObjList(GROUP_ITEM) do
-                        if Dist(self, o) < 24 then
+                        if Dist(self, o) < 24 * (self.tnr_pickup_multiplier or 1) then
                             if o.attract < 3 then
                                 o.attract = max(o.attract, 3)
                                 o.target = self
@@ -422,6 +422,11 @@ function system:colli(other)
     if not cheat then
         if p.death == 0 and not p.dialog then
             if p.protect == 0 then
+                if _G.tnr_affix_defend and _G.tnr_affix_defend(p) then
+                    p.protect=1
+                    if other.group==GROUP_ENEMY_BULLET then Del(other) end
+                    return
+                end
                 PlaySound("pldead00", 0.5)
                 p.death = 100
             end

@@ -39,11 +39,11 @@ local function sprite(kind)
     return "tnr-white", 0.5, 0
 end
 
-function Native.spawn(shot, weapon, targets)
+function Native.spawn(shot, weapon, targets, affixes)
     if not projectile_class then
         projectile_class = Class(object)
-        function projectile_class:init(descriptor, source, provider)
-            self.sim = Simulation.new(descriptor, source)
+        function projectile_class:init(descriptor, source, provider, owner_affixes)
+            self.sim = Simulation.new(descriptor, source, owner_affixes)
             self.x, self.y = self.sim.x, self.sim.y
             self.group, self.layer = GROUP_PLAYER_BULLET, LAYER_PLAYER_BULLET
             self.bound, self.colli, self.killflag = false, false, true
@@ -76,7 +76,7 @@ function Native.spawn(shot, weapon, targets)
                 -- aggro and damage ownership) without engine double collision.
                 enemy.class.colli(enemy, self)
                 return (enemy.hp or before) < before
-            end, function(field_shot, source) Native.spawn(field_shot, source, self.provider) end)
+            end, function(field_shot, source) Native.spawn(field_shot, source, self.provider,self.sim.affix_runtime) end)
             self.x, self.y = self.sim.x, self.sim.y
             if self.sim.dead then Del(self) end
         end
@@ -106,7 +106,7 @@ function Native.spawn(shot, weapon, targets)
             lstg.RegisterGameObjectClass(projectile_class)
         end
     end
-    return New(projectile_class, shot, weapon, targets)
+    return New(projectile_class, shot, weapon, targets,affixes)
 end
 
 function Native.set_local_player_id(player_id)

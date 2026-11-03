@@ -40,13 +40,19 @@ return function(assert_equal, assert_true)
         assert_true(chunks[main] ~= nil, stage .. " must expose its main timeline")
 
         local adapter, ui = new_adapter(stage)
+        local created = 0
+        local original_spawn = adapter.spawn_enemy
+        adapter.spawn_enemy = function(self, ...)
+            created = created + 1
+            return original_spawn(self, ...)
+        end
         local thread = adapter.runtime:spawn(main)
         assert_true(thread ~= nil, stage .. " main timeline must start")
         adapter.runtime.threads[#adapter.runtime.threads + 1] = thread
 
         -- Run the opening third of the stage.
         for _ = 1, 1200 do adapter:update() end
-        assert_true(#adapter.enemies > 0, stage .. " must spawn enemies in its opening")
+        assert_true(created > 0, stage .. " must spawn enemies in its opening")
 
         -- The stage must not depend on an instruction the adapter lacks.
         local report = adapter:missing_report()

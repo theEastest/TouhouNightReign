@@ -82,7 +82,7 @@ register(ModifierDefinition.new({
 }))
 
 local initial_high = register(WeaponDefinition.new({
-    weapon_id = "reimu_initial_high_weapon", name = "Reimu High Weapon", weight = 0,
+    weapon_id = "reimu_initial_high_weapon", starter_only = true, name = "Reimu High Weapon", weight = 0,
     display_name_zh = "灵梦高速射击", display_name_en = "Reimu High Shot", rarity = "COMMON",
     description = "灵梦的初始高速射击，向前方稳定发射封魔针。",
     fire_interval = 4, damage = 2, projectile_type = "reimu_normal", projectile_speed = 24,
@@ -91,7 +91,7 @@ local initial_high = register(WeaponDefinition.new({
     },
 }))
 local initial_low = register(WeaponDefinition.new({
-    weapon_id = "reimu_initial_low_weapon", name = "Reimu Low Weapon", weight = 0,
+    weapon_id = "reimu_initial_low_weapon", starter_only = true, name = "Reimu Low Weapon", weight = 0,
     display_name_zh = "灵梦低速射击", display_name_en = "Reimu Low Shot", rarity = "COMMON",
     description = "灵梦的初始低速射击，集中火力向前方发射。",
     fire_interval = 4, damage = 2.5, projectile_type = "reimu_focused", projectile_speed = 24,
@@ -100,14 +100,14 @@ local initial_low = register(WeaponDefinition.new({
     },
 }))
 local reimu_support_high = register(WeaponDefinition.new({
-    weapon_id = "reimu_support_high_weapon", name = "Reimu Blue Support Weapon", weight = 0,
+    weapon_id = "reimu_support_high_weapon", internal_only = true, name = "Reimu Blue Support Weapon", weight = 0,
     display_name_zh = "灵梦子机高速射击", display_name_en = "Reimu Blue Support Shot", rarity = "COMMON",
     description = "子机在高速模式下发射的追踪灵弹。",
     fire_interval = 8, damage = 1, projectile_type = "reimu_support_blue", projectile_speed = 8,
     active_modes = { HIGH = true }, metadata = { projectile_count = 1, spread = 0, targeting = "nearest" },
 }))
 local reimu_support_low = register(WeaponDefinition.new({
-    weapon_id = "reimu_support_low_weapon", name = "Reimu Orange Support Weapon", weight = 0,
+    weapon_id = "reimu_support_low_weapon", internal_only = true, name = "Reimu Orange Support Weapon", weight = 0,
     display_name_zh = "灵梦子机低速射击", display_name_en = "Reimu Orange Support Shot", rarity = "COMMON",
     description = "子机在低速模式下发射的直射灵弹。",
     fire_interval = 4, damage = 0.3, projectile_type = "reimu_support_orange", projectile_speed = 24,
@@ -125,7 +125,7 @@ local initial_support = register(SupportDefinition.new({
 
 -- Kirisame Marisa initial kit.
 local marisa_initial_high = register(WeaponDefinition.new({
-    weapon_id = "marisa_initial_high_weapon", name = "Marisa High Weapon", weight = 0,
+    weapon_id = "marisa_initial_high_weapon", starter_only = true, name = "Marisa High Weapon", weight = 0,
     display_name_zh = "魔理沙高速射击", display_name_en = "Marisa High Shot", rarity = "COMMON",
     description = "魔理沙的初始高速射击，向前方发射双联魔法飞弹。",
     fire_interval = 6, damage = 3.0, projectile_type = "marisa_bullet", projectile_speed = 20,
@@ -134,7 +134,7 @@ local marisa_initial_high = register(WeaponDefinition.new({
     },
 }))
 local marisa_initial_low = register(WeaponDefinition.new({
-    weapon_id = "marisa_initial_low_weapon", name = "Marisa Low Weapon", weight = 0,
+    weapon_id = "marisa_initial_low_weapon", starter_only = true, name = "Marisa Low Weapon", weight = 0,
     display_name_zh = "魔理沙低速射击", display_name_en = "Marisa Low Shot", rarity = "COMMON",
     description = "魔理沙的初始低速射击，集中火力向前方发射。",
     fire_interval = 5, damage = 2.8, projectile_type = "marisa_bullet", projectile_speed = 22,
@@ -143,14 +143,14 @@ local marisa_initial_low = register(WeaponDefinition.new({
     },
 }))
 local marisa_support_high = register(WeaponDefinition.new({
-    weapon_id = "marisa_support_high_weapon", name = "Marisa Support High Weapon", weight = 0,
+    weapon_id = "marisa_support_high_weapon", internal_only = true, name = "Marisa Support High Weapon", weight = 0,
     display_name_zh = "魔理沙子机高速射击", display_name_en = "Marisa Support High Shot", rarity = "COMMON",
     description = "子机在高速模式下发射的魔法飞弹。",
     fire_interval = 8, damage = 1.0, projectile_type = "marisa_missile", projectile_speed = 16,
     active_modes = { HIGH = true }, metadata = { projectile_count = 1, spread = 0, targeting = "nearest" },
 }))
 local marisa_support_low = register(WeaponDefinition.new({
-    weapon_id = "marisa_support_low_weapon", name = "Marisa Support Low Weapon", weight = 0,
+    weapon_id = "marisa_support_low_weapon", internal_only = true, name = "Marisa Support Low Weapon", weight = 0,
     display_name_zh = "魔理沙子机低速射击", display_name_en = "Marisa Support Low Shot", rarity = "COMMON",
     description = "子机在低速模式下发射的集中魔法飞弹。",
     fire_interval = 5, damage = 0.5, projectile_type = "marisa_missile", projectile_speed = 20,
@@ -168,7 +168,7 @@ local marisa_initial_support = register(SupportDefinition.new({
 
 -- Kochiya Sanae initial kit.
 local sanae_initial_high = register(WeaponDefinition.new({
-    weapon_id = "sanae_initial_high_weapon", name = "Sanae High Weapon", weight = 0,
+    weapon_id = "sanae_initial_high_weapon", starter_only = true, name = "Sanae High Weapon", weight = 0,
     display_name_zh = "早苗高速射击", display_name_en = "Sanae High Shot", rarity = "COMMON",
     description = "早苗的初始高速射击，发射具有弱追踪能力的风刃。",
     fire_interval = 5, damage = 2.2, projectile_type = "sanae_wind", projectile_speed = 18,
@@ -178,7 +178,7 @@ local sanae_initial_high = register(WeaponDefinition.new({
     },
 }))
 local sanae_initial_low = register(WeaponDefinition.new({
-    weapon_id = "sanae_initial_low_weapon", name = "Sanae Low Weapon", weight = 0,
+    weapon_id = "sanae_initial_low_weapon", starter_only = true, name = "Sanae Low Weapon", weight = 0,
     display_name_zh = "早苗低速射击", display_name_en = "Sanae Low Shot", rarity = "COMMON",
     description = "早苗的初始低速射击，集中火力向前方发射风弹。",
     fire_interval = 5, damage = 2.3, projectile_type = "sanae_wind", projectile_speed = 20,
@@ -187,14 +187,14 @@ local sanae_initial_low = register(WeaponDefinition.new({
     },
 }))
 local sanae_support_high = register(WeaponDefinition.new({
-    weapon_id = "sanae_support_high_weapon", name = "Sanae Support High Weapon", weight = 0,
+    weapon_id = "sanae_support_high_weapon", internal_only = true, name = "Sanae Support High Weapon", weight = 0,
     display_name_zh = "早苗子机高速射击", display_name_en = "Sanae Support High Shot", rarity = "COMMON",
     description = "子机在高速模式下发射的追踪风刃。",
     fire_interval = 8, damage = 1.2, projectile_type = "sanae_wind2", projectile_speed = 16,
     active_modes = { HIGH = true }, metadata = { projectile_count = 1, spread = 0, targeting = "nearest", homing = true },
 }))
 local sanae_support_low = register(WeaponDefinition.new({
-    weapon_id = "sanae_support_low_weapon", name = "Sanae Support Low Weapon", weight = 0,
+    weapon_id = "sanae_support_low_weapon", internal_only = true, name = "Sanae Support Low Weapon", weight = 0,
     display_name_zh = "早苗子机低速射击", display_name_en = "Sanae Support Low Shot", rarity = "COMMON",
     description = "子机在低速模式下发射的集中风弹。",
     fire_interval = 5, damage = 0.6, projectile_type = "sanae_wind2", projectile_speed = 18,

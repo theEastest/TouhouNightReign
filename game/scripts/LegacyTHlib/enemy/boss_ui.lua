@@ -637,11 +637,9 @@ function sc_name:render()
         --RenderText("bonus2", bonus, x - 90, y, fontsize, "right")
         --RenderText("bonus2", string.format("%d/%d", sc_hist[1], sc_hist[2]), x, y, fontsize, "right")
         --RenderText("bonus", "BONUS          HISTORY", x - 40, y, 0.5, "right")
-        SetImageState("cardui_history", "", Color(a, 255, 255, 255))
-        SetImageState("cardui_bonus", "", Color(a, 255, 255, 255))
-        Render("cardui_history", x - 63 + self.xp, y - 6 + self.yp, 0, 0.5)
-        Render("cardui_bonus", x - 156 + self.xp, y - 6 + self.yp, 0, 0.5)
         SetFontState("bonus2", "", Color(a, 255, 255, 255))
+        RenderText("bonus2", "HISTORY", x - 63 + self.xp, y + self.yp, 0.4, "center")
+        RenderText("bonus2", "BONUS", x - 156 + self.xp, y + self.yp, 0.4, "center")
         --x = x - 1
         --y = y + 1
         --RenderText("bonus", "BONUS          HISTORY", x - 40, y, 0.5, "right")
@@ -652,8 +650,7 @@ function sc_name:render()
             if bonus ~= "FAILED" then
                 RenderText("bonus2", bonus, x - 90, y, fontsize, "right")
             else
-                SetImageState("sc_failed", "", Color(a, 255, 255, 255))
-                Render("sc_failed", x - 108, y - ym - 6, 0, fontsize)
+                RenderText("bonus2", "FAILED", x - 90, y, fontsize, "right")
             end
             if self.yp == 0 then
                 if sc_hist[2] < 100 then
@@ -664,8 +661,7 @@ function sc_name:render()
                     x = x - 8
                     RenderText("bonus2", string.format("%02d/99+", sc_hist[1], sc_hist[2]), x, y, fontsize, "right")
                 elseif sc_hist[1] > 99 then
-                    SetImageState("sc_master", "", Color(a, 255, 255, 255))
-                    Render("sc_master", x - 29, y - ym - 7, 0, fontsize)
+                    RenderText("bonus2", "MASTER", x, y, fontsize, "right")
                 end
             else
                 x = x - 52

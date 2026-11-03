@@ -28442,7 +28442,8 @@ _editor_class["qxs_sc1-shatter"].kill=function(self)
     New(item_faith_minor,self.x,self.y)
     PreserveObject(self)
     self.class=laser_death_ef
-    self.group=GROUP_GHOST
+    self.colli=false
+    self._want_set_group=true
     local alpha=self.alpha
     local d=self.w
     task.Clear(self)
@@ -28892,6 +28893,7 @@ _editor_class["qxs_sc4-laser"].init=function(self,_x,_y,angle,mst,co)
     self.mst=mst
     task.New(self,function()
         do for _=1,_infinite do
+            if not IsValid(self.mst) then Del(self); return end
             _set_rel_pos(self,0,0,self.mst.rot,false)
             task._Wait(1)
         end end
@@ -30316,7 +30318,8 @@ end
 _editor_class["qxs_sc?-laser4"].kill=function(self)
     PreserveObject(self)
     self.class=laser_death_ef
-    self.group=GROUP_GHOST
+    self.colli=false
+    self._want_set_group=true
     local alpha=self.alpha
     local d=self.w
     task.Clear(self)
@@ -42727,7 +42730,8 @@ _editor_class["sf_bossheet10"].init=function(self,_x,_y,_)
             end end
         end)
         do for _=1,_infinite do
-            _set_rel_pos(self,0,sin(_boss.ani*4)*4+10,self.rot,false)
+            if not IsValid(self._master) then Del(self); return end
+            _set_rel_pos(self,0,sin(self._master.ani*4)*4+10,self.rot,false)
             task._Wait(1)
         end end
     end)
@@ -42766,7 +42770,8 @@ _editor_class["sf_bossheet"].init=function(self,_x,_y,_)
             end end
         end)
         do for _=1,_infinite do
-            _set_rel_pos(self,0,sin(_boss.ani*4)*4+10,self.rot,false)
+            if not IsValid(self._master) then Del(self); return end
+            _set_rel_pos(self,0,sin(self._master.ani*4)*4+10,self.rot,false)
             task._Wait(1)
         end end
     end)
@@ -45911,7 +45916,8 @@ _editor_class["sf_10符fake"].init=function(self,_x,_y,_)
         end
         task.New(self,function()
             do for _=1,_infinite do
-                _set_rel_pos(self,0,sin(_boss.ani*4)*4,self.rot,false)
+                if not IsValid(self._master) then Del(self); return end
+                _set_rel_pos(self,0,sin(self._master.ani*4)*4,self.rot,false)
                 task._Wait(1)
             end end
         end)
@@ -78791,7 +78797,7 @@ _editor_class["Shinki:Lunatic"].init=function(self,cards)
 	self.ani_intv=16
 	for i=1,4 do self['img'..i]={} end
 	self.nn={5,2,2,3}
-	self.mm={5,1,1,3}
+	self.mm={1,1,3}
 	for i=2,4 do self['ani'..i]=self.nn[i]-self.mm[i-1] end
 	for i=1,4 do
 		for j=1,self.nn[i] do
@@ -79563,7 +79569,8 @@ _editor_class["Shinki-wing"].init=function(self,_x,_y,_)
     end)
     task.New(self,function()
         do local a,_d_a=(-90),(4) for _=1,_infinite do
-            _set_rel_pos(self,0,sin(_boss.ani*4)*4,self.rot,false)
+            if not IsValid(self._master) then Del(self); return end
+            _set_rel_pos(self,0,sin(self._master.ani*4)*4,self.rot,false)
             task._Wait(1)
         a=a+_d_a end end
     end)
@@ -79890,7 +79897,8 @@ _editor_class["Shinki-wing-lsc"].init=function(self,_x,_y,_)
     end)
     task.New(self,function()
         do local a,_d_a=(-90),(4) for _=1,_infinite do
-            _set_rel_pos(self,0,sin(_boss.ani*4)*4,self.rot,false)
+            if not IsValid(self._master) then Del(self); return end
+            _set_rel_pos(self,0,sin(self._master.ani*4)*4,self.rot,false)
             task._Wait(1)
         a=a+_d_a end end
     end)
@@ -105176,7 +105184,8 @@ function _tmp_sc:init()
     end)
 end
 function _tmp_sc:del()
-    labyrinth.no_ufo=true
+    -- Standalone rooms run this card without the labyrinth campaign background.
+    if labyrinth and IsValid(labyrinth) then labyrinth.no_ufo=true end
     PlaySound("ufo_die",1,0,true)
 end
 table.insert(_editor_class["wuer_ufo:Normal"].cards,_tmp_sc)
@@ -105545,7 +105554,8 @@ function _tmp_sc:init()
     end)
 end
 function _tmp_sc:del()
-    labyrinth.no_ufo=true
+    -- Standalone rooms run this card without the labyrinth campaign background.
+    if labyrinth and IsValid(labyrinth) then labyrinth.no_ufo=true end
     PlaySound("ufo_die",1,0,true)
 end
 table.insert(_editor_class["wuer_ufo:Lunatic"].cards,_tmp_sc)
@@ -124446,6 +124456,7 @@ end
 table.insert(_editor_class["ビール子:Lunatic"].cards,_tmp_sc)
 _tmp_sc=boss.card.New("狱啤「冬季风味的BMF La Dragonne」",10,15,65,1200,{50,50,50},false)
 function _tmp_sc:init()
+    self.graze0 = self.graze0 or lstg.var.graze
     task.New(self,function()
         task.New(self,function()
             last=New(_editor_class["yahoon-face"],self.x,self.y,_)
@@ -124462,7 +124473,7 @@ function _tmp_sc:init()
         end)
         task.New(self,function()
             do for _=1,_infinite do
-                if lstg.var.graze-self.graze0>=800 then
+                if lstg.var.graze-(self.graze0 or lstg.var.graze)>=800 then
                     self.achievement3=true
                 else
                 end

@@ -26,9 +26,12 @@ BossUi.__index = BossUi
 local PLAYFIELD_WIDTH = 384
 local PLAYFIELD_HEIGHT = 448
 local CANVAS_SCALE = 720 / 960
-local PLAYFIELD_SCALE = 616.0 / PLAYFIELD_WIDTH * CANVAS_SCALE
-local PLAYFIELD_LEFT = 49.6 * CANVAS_SCALE
-local PLAYFIELD_TOP = 742.4 * CANVAS_SCALE
+-- front00's border strips are 64x960, 448x960 and 768x32.
+-- They define a 1280x960 source canvas and a 768x896 inner field.
+-- Fit that 4:3 canvas into 1280x720 without stretching it.
+local PLAYFIELD_SCALE = 2 * CANVAS_SCALE
+local PLAYFIELD_LEFT = 160 + 64 * CANVAS_SCALE
+local PLAYFIELD_TOP = 720 - 32 * CANVAS_SCALE
 
 BossUi.PLAYFIELD_SCALE = PLAYFIELD_SCALE
 BossUi.PLAYFIELD_LEFT = PLAYFIELD_LEFT

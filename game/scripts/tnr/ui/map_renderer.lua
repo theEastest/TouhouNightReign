@@ -596,6 +596,11 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
             draw_rect(lstg, self.white, active and { 220, 78, 88, 82 } or { 150, 80, 90, 45 },
                 left + 4, left + slot_w - 4, group.y + 4, group.y + slot_h - 4)
             self:draw_text(tostring(index), left + 9, group.y + slot_h - 17, 0.58, COLORS.accent, 0)
+            if active and (group.key == "high_weapons" or group.key == "low_weapons") then
+                local enabled = not (instance.runtime_data and instance.runtime_data.enabled == false)
+                self:draw_text(enabled and "[启用]" or "[停用]", left + 8, group.y + 14, 0.5,
+                    enabled and COLORS.accent or COLORS.muted, 0)
+            end
             self:draw_text(name_of(instance), left + slot_w * 0.5, group.y + slot_h * 0.5, 0.58,
                 active and COLORS.text or COLORS.muted, 1 + 4)
         end
@@ -625,13 +630,13 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
     if inspect_row and inspect_row.instance and inspect_row.instance ~= false then
         local definition = inspect_row.definition
             or (registry and registry:get(inspect_row.instance.definition_id))
-        detail_lines = EquipmentInfo.describe(definition)
+        detail_lines = EquipmentInfo.describe(definition, inspect_row.instance)
     elseif inspect_row and inspect_row.kind == "equipped" then
         detail_lines = { { text = "空槽位", color = "muted" },
             { text = tostring(inspect_row.group) .. " / " .. tostring(inspect_row.index), color = "muted" } }
     end
     self:draw_info_lines(detail_lines, 866, 566, { size = 0.62, line_height = 25, max_lines = 10 })
-    self:draw_text(edit_only and "Enter saves and returns to map" or "Enter equips/unequips   Backspace discards", 850, 84, 0.60, COLORS.muted, 0)
+    self:draw_text(edit_only and "Enter saves and returns to map" or "点击武器启停 / Enter 装卸 / Backspace 丢弃", 850, 84, 0.60, COLORS.muted, 0)
     self:draw_text(message or (overlay and "方向键选择   回车确认   退格丢弃   Tab/Esc 返回商店"
         or "方向键选择   回车确认   退格丢弃   Tab/Esc 返回"), self.width * 0.5, 58, 0.68, COLORS.muted, 1 + 4)
     lstg.EndScene()

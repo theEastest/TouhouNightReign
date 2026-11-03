@@ -161,7 +161,11 @@ function Replay:start_stage()
     local roster = Interfaces.PlayerRoster.new({ player_ids = player_ids })
     for _, player_id in ipairs(player_ids) do
         if self.input_provider then
-            roster:set_input(player_id, InputBridge.keyboard(self.input_provider, player_id))
+            local keyboard = InputBridge.keyboard(self.input_provider, player_id)
+            roster:set_input(player_id, InputBridge.scripted(function()
+                if self.frame_inputs then return self.frame_inputs[player_id] or {} end
+                return keyboard:sample()
+            end))
         else
             roster:set_input(player_id, InputBridge.scripted(function()
                 return self.keyboard_input or {}
@@ -247,6 +251,7 @@ function Replay:claim_reward()
             if reward.team then reward.team(session, player_id) end
             local player = self.runtime.players[player_id]
             if player and reward.apply then reward.apply(player) end
+            if reward.key == "power" then session:add_power(player_id, 1) end
         end
         if reward.score then
             local stats = self.runtime.stats or {}
@@ -264,8 +269,9 @@ function Replay:is_active()
 end
 
 --- Advance one frame. Returns the run state: "playing", "cleared" or "failed".
-function Replay:update()
+function Replay:update(inputs)
     if not self.runtime then return "playing" end
+    self.frame_inputs = inputs
     self.runtime:update()
     self:_sync_stats()
     -- The stage is clear once the timeline has run every section, which happens
@@ -310,9 +316,11 @@ function Replay:_sync_stats()
     local player = runtime.players[player_id]
     local stats = runtime.stats or {}
     runtime.stats = stats
-    stats.power = player and math.floor(player.power or 0) or 0
+    stats.power = player and (player.power or 0) / 100 or 0
     stats.graze = player and math.floor(player.graze or 0) or 0
     stats.lives = session:life_count(player_id)
+    stats.spellcards = (session.bombs_left or {})[player_id] or 0
+    stats.max_point = runtime.point_rate or 10000
     -- Score counts the graze and the point items the player collected.
     stats.score = math.floor((stats.score or 0) + (player and 0 or 0))
 end

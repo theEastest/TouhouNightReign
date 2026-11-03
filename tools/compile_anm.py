@@ -40,6 +40,10 @@ def parse_spec(path):
         if line.startswith("Name: "):
             current["texture"] = line[len("Name: "):].strip()
             continue
+        offset = re.match(r"^(X-Offset|Y-Offset|LowResScale): (\d+)$", line)
+        if offset:
+            current[{"X-Offset": "offset_x", "Y-Offset": "offset_y", "LowResScale": "low_res_scale"}[offset[1]]] = int(offset[2])
+            continue
         sprite = re.match(r"^Sprite: (\d+) (\d+)\*(\d+)\+(-?\d+)\+(-?\d+)$", line)
         if sprite:
             current["sprites"].append({
@@ -117,6 +121,8 @@ def main():
             if not entry["texture"]:
                 continue
             lines.append('        { texture = "%s",' % entry["texture"].replace("\\", "/"))
+            lines.append("          offset_x = %d, offset_y = %d, low_res_scale = %d," %
+                         (entry.get("offset_x", 0), entry.get("offset_y", 0), entry.get("low_res_scale", 0)))
             lines.append("          sprites = {")
             for sprite in entry["sprites"]:
                 lines.append("            { x = %d, y = %d, w = %d, h = %d },"

@@ -68,6 +68,7 @@ local LEGACY_REPLAY_SPECS = {
     "legacy_replay_hud_spec", "legacy_replay_bullet_pattern_spec",
     "legacy_replay_controller_spec", "legacy_replay_select_quit_spec",
     "bullet_effects_spec",
+    "legacy_replay_dialogue_spec",
 }
 
 local function assert_equal(left, right, message)
@@ -88,6 +89,13 @@ StateAuthoritySpec(assert_equal, assert_true)
 NativeSyncProtocolSpec(assert_equal, assert_true)
 WeightRuntimeSpec(assert_equal, assert_true)
 WeaponRuntimeSpec(assert_equal, assert_true)
+require("weapon_contract_spec")(assert_equal, assert_true)
+require("p_gauge_spec")(assert_equal, assert_true)
+require("affix_runtime_spec")(assert_equal, assert_true)
+require("status_hud_spec")(assert_equal, assert_true)
+require("native_ufo_cleanup_spec")(assert_equal, assert_true)
+require("native_bullet_reference_spec")(assert_equal, assert_true)
+require("native_activity_compat_spec")(assert_equal, assert_true)
 SupportRuntimeSpec(assert_equal, assert_true)
 ModifierRuntimeSpec(assert_equal, assert_true)
 LoadoutCommitSpec(assert_equal, assert_true)

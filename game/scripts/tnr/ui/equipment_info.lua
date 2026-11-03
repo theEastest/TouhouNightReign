@@ -129,7 +129,7 @@ end
 
 --- Build the ordered player-facing lines for an equipment definition.
 --- Returns a list of { text = string, color = {r,g,b,a}? } entries.
-function EquipmentInfo.describe(definition)
+function EquipmentInfo.describe(definition, instance)
     local lines = {}
     if not definition then
         lines[#lines + 1] = { text = "没有选中物品", color = "muted" }
@@ -152,6 +152,13 @@ function EquipmentInfo.describe(definition)
     meta[#meta + 1] = "品质 " .. rarity_label
     lines[#lines + 1] = { text = table.concat(meta, "   "), color = "muted" }
 
+    for _,affix in ipairs(instance and instance.random_affixes or {}) do
+        local label=require("tnr.equipment.affix_catalog").label(affix)
+        local name,detail=label:match("^(.-) · (.*)$")
+        lines[#lines+1]={text="词条："..(name or label),color="active_line"}
+        if detail then lines[#lines+1]={text=detail,color="muted"} end
+    end
+    if definition.exclusive_affix then lines[#lines+1]={text="专属："..definition.exclusive_affix.name,color="active_line"} end
     local weight = number_text(definition.weight)
     if weight and tonumber(definition.weight) and tonumber(definition.weight) > 0 then
         lines[#lines + 1] = { text = "重量 " .. weight, color = "muted" }
@@ -225,7 +232,7 @@ function EquipmentInfo.describe_offer(session, offer)
     if offer.kind == "EQUIPMENT" then
         local definition = session and session.equipment_registry
             and session.equipment_registry:get(offer.definition_id) or nil
-        local lines = EquipmentInfo.describe(definition)
+        local lines = EquipmentInfo.describe(definition, offer)
         local price = tonumber(offer.price) or 0
         lines[#lines + 1] = { text = "价格 " .. price .. "G", color = "active_line" }
         return lines
@@ -273,7 +280,7 @@ function EquipmentInfo.describe_reward(session, choice)
     end
     local definition = session and session.equipment_registry
         and session.equipment_registry:get(choice.definition_id) or nil
-    return EquipmentInfo.describe(definition)
+    return EquipmentInfo.describe(definition, choice)
 end
 
 --- Describe a relic by id.

@@ -31,6 +31,7 @@ function Player.new(options)
         -- continuous value and picks a level from it.
         power = options.power or 0,
         focus = false,
+        focus_blend = 0,
         alive = true,
         invulnerable = 0,
         fire_timer = 0,
@@ -56,8 +57,8 @@ end
 function Player:power_level()
     local levels = self.definition.power_levels or 4
     -- The reference divides power into four steps for the fire pattern.
-    local level = math.floor((self.power or 0) / 100 * levels) + 1
-    return math.max(1, math.min(levels, level))
+    local level = math.floor((self.power or 0) / 100) + 1
+    return math.max(1, math.min(levels + 1, level))
 end
 
 --- Apply a movement input for one frame.
@@ -113,15 +114,15 @@ end
 function Player:option_positions()
     local options = self.definition.options
     if not options then return {} end
-    local focused = self.focus and options.focused or nil
+    local focused = options.focused
     local unfocused = options.unfocused
-    local level = self:power_level()
+    local level = self:power_level() - 1
+    if level == 0 then return {} end
     local target = (focused and focused[level]) or (unfocused and unfocused[level]) or {}
     -- No smooth state recorded, or no discrete layouts to blend between them.
     local blend = self.focus_blend
-    if blend == nil or blend <= 0 then return target end
-    local other = (self.focus and unfocused) or focused
-    local previous = other and other[level]
+    blend = blend or (self.focus and 1 or 0)
+    local previous = unfocused and unfocused[level]
     if not previous or #previous == 0 then return target end
     -- blend is 0 at the previous layout and 1 at the target layout.
     local result = {}
@@ -158,10 +159,15 @@ function Player:fire()
     local set = self:current_shooters()
     if not set then return {} end
     local bullets = {}
+    local options = self:option_positions()
     for _, source in ipairs(set.sources or {}) do
+        local interval = math.max(1, source.fire or 1)
+        local delay = source.delay or 0
+        local offset = options[source.option or 0] or {0,0}
+        if self.fire_timer >= delay and (self.fire_timer - delay) % interval == 0 then
         bullets[#bullets + 1] = {
-            x = self.x + (source.offset_x or 0),
-            y = self.y + (source.offset_y or 0),
+            x = self.x + offset[1] + (source.offset_x or 0),
+            y = self.y + offset[2] + (source.offset_y or 0),
             -- The reference angles are already in radians with -pi/2 meaning
             -- straight up.
             angle = source.angle or -math.pi / 2,
@@ -169,7 +175,9 @@ function Player:fire()
             damage = source.damage or 16,
             animation = source.animation,
         }
+        end
     end
+    self.fire_timer = self.fire_timer + 1
     self.shots_fired = self.shots_fired + 1
     return bullets
 end
@@ -180,16 +188,17 @@ function Player:distance_to_hitbox(x, y)
 end
 
 --- True when a point is inside the graze box but outside the hit box.
-function Player:grazes(x, y)
+function Player:grazes(x, y, bullet_radius)
     if self.invulnerable > 0 then return false end
     local distance = self:distance_to_hitbox(x, y)
-    return distance <= self.grazebox and distance > self.hitbox
+    local radius = bullet_radius or 0
+    return distance <= self.grazebox + radius and distance > self.hitbox + radius
 end
 
 --- True when a point hits the player.
-function Player:hits(x, y)
+function Player:hits(x, y, bullet_radius)
     if self.invulnerable > 0 or not self.alive then return false end
-    return self:distance_to_hitbox(x, y) <= self.hitbox
+    return self:distance_to_hitbox(x, y) <= self.hitbox + (bullet_radius or 0)
 end
 
 --- True when a point is within item collection range.

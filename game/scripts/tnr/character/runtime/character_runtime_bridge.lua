@@ -1,3 +1,5 @@
+local PGauge = require("tnr.character.runtime.p_gauge")
+local RNG = require("tnr.core.rng")
 local Immutable = require("tnr.core.immutable")
 local ReimuDefinition = require("tnr.character.reimu_definition")
 local WeightSpeedPolicy = require("tnr.character.runtime.weight_speed_policy")
@@ -143,6 +145,7 @@ function Bridge:create_runtime()
         support_manager = SupportRuntimeManager.new(player.loadout, self.registry, modifier_runtime),
         modifier_runtime = modifier_runtime,
         bridge = self,
+        p_gauge = PGauge.new(),
     }
 end
 
@@ -159,6 +162,8 @@ function Bridge:create_runtime_from_descriptor(descriptor)
                     instance_id = item.instance_id or (group .. "_" .. tostring(index)),
                     definition_id = item.definition_id,
                     owner_player_id = self.player_id,
+                    runtime_data = Immutable.copy(item.runtime_data or {}),
+                    random_affixes = Immutable.copy(item.random_affixes or {}),
                 }
             end
         end
@@ -171,6 +176,7 @@ function Bridge:create_runtime_from_descriptor(descriptor)
         support_manager = SupportRuntimeManager.new(loadout, self.registry, modifier_runtime),
         modifier_runtime = modifier_runtime,
         bridge = self,
+        p_gauge = PGauge.new(),
     }
 end
 
@@ -180,10 +186,41 @@ function Bridge:update(runtime, mode, firing, context)
     if context.paused then return {}, runtime.support_manager.last_entities or {} end
     context.player_id = self.player_id
     context.source_player_id = self.player_id
+    local gauge = runtime.p_gauge
+    if not runtime.affixes then runtime.affixes = require("tnr.equipment.runtime.affix_runtime").new(runtime,self:player(),self.session) end
+    local affixes=runtime.affixes
+    local moving = context.moving or (runtime.last_x ~= nil and
+        (runtime.last_x ~= context.x or runtime.last_y ~= context.y))
+    runtime.last_x, runtime.last_y = context.x, context.y
+    local cost = 0
+    for _, weapon in ipairs(runtime.weapon_manager.weapons) do
+        if weapon:is_active(mode) then
+            cost = cost + (tonumber((weapon.definition.metadata or {}).p_cost_per_second)
+                or PGauge.rarity_cost[weapon.definition.rarity] or 3.33) * affixes:cost(weapon)
+        end
+    end
+    for _, support in ipairs(runtime.support_manager.supports) do
+        local d = support.definition
+        if support:is_active(mode) and tostring(d.attack_mode or "INDEPENDENT"):upper() ~= "NONE" then
+            local id = mode == "LOW" and (d.low_weapon_definition_id or d.weapon_definition_id)
+                or (d.high_weapon_definition_id or d.weapon_definition_id)
+            local weapon = id and self.registry:get(id)
+            cost = cost + (tonumber((weapon and weapon.metadata or d.metadata or {}).p_cost_per_second)
+                or PGauge.rarity_cost[weapon and weapon.rarity or d.rarity] or 3.33)
+        end
+    end
+    runtime.p_rng = runtime.p_rng or RNG.new((tonumber(context.room_generation) or 1) * 97 + self.player_id)
+    gauge:step({ firing = firing, moving = moving, supports = #runtime.support_manager.supports,
+        cost = cost, attack_allowed = context.attack_allowed,
+        choose_hazard = function() return math.floor(runtime.p_rng:next_float() * 3) + 1 end })
+    if gauge.hot_frames > 0 then context.attack_allowed = false end
+    affixes:update(mode,firing,context.attack_allowed ~= false)
+    context.damage_multiplier = (context.damage_multiplier or 1) * gauge:damage_multiplier()
     local shots = runtime.weapon_manager:update(mode, firing, context)
     runtime.afterglow_invulnerability = runtime.weapon_manager:invulnerability_frames()
     local result = {}
     for _, shot in ipairs(shots) do
+        affixes:decorate(shot,runtime.weapon_manager:find(shot.source_instance_id))
         result[#result + 1] = ProjectileFactory.from_shot(
             shot, self.player_id, shot.source_instance_id or shot.instance_id)
     end
@@ -193,6 +230,8 @@ function Bridge:update(runtime, mode, firing, context)
     if context.attack_allowed == false then runtime.support_manager.last_modifier_context.clear_pulses = {} end
     local support_shots = runtime.support_manager:fire(mode, firing and context.attack_allowed ~= false, context)
     for _, shot in ipairs(support_shots) do
+        shot.damage = (shot.damage or 0) * gauge:damage_multiplier()
+        affixes:decorate(shot)
         result[#result + 1] = ProjectileFactory.from_shot(
             shot, self.player_id, shot.source_instance_id)
     end

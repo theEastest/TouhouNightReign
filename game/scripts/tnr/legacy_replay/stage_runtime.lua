@@ -17,6 +17,9 @@ local Sounds = require("tnr.legacy_replay.sounds")
 local PlayerAnimation = require("tnr.legacy_replay.player_animation")
 local Items = require("tnr.legacy_replay.items")
 local Interfaces = require("tnr.legacy_replay.interfaces")
+local BulletTypes = require("tnr.legacy_replay.data.th15_bullet_types")
+local BulletAnimation = require("tnr.legacy_replay.bullet_animation")
+local Dialogue = require("tnr.legacy_replay.dialogue")
 
 local StageRuntime = {}
 
@@ -69,6 +72,9 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
         STAGE_ARCHIVES[stage_key],
         stage_key .. "wl",
         stage_key .. "logo",
+        stage_key .. "bs",
+        stage_key .. "mbs",
+        stage_key .. "mbs2",
         "enemy",
         "bullet",
         "effect",
@@ -131,7 +137,7 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
                     texture_sizes[path] = texture_sizes[path] or { texture_w, texture_h }
                     for sprite_index, sprite in ipairs(entry.sprites or {}) do
                         local w, h = sprite.w, sprite.h
-                        local x, y = sprite.x, sprite.y
+                        local x, y = sprite.x + (entry.offset_x or 0), sprite.y + (entry.offset_y or 0)
                         -- Clamp a full-texture sprite to the real dimensions.
                         if texture_w > 0 and texture_h > 0 then
                             if x + w > texture_w then w = texture_w - x end
@@ -162,6 +168,8 @@ function StageRuntime.new(options)
         chunks = options.chunks or {},
         sprites_loaded = 0,
         frames = 0,
+        capture_frame = tonumber(os.getenv("TNR_REPLAY_CAPTURE_FRAME")),
+        point_rate = 10000,
     }, StageRuntime)
     -- Resolve a reference texture path to the image name of its first sprite.
     local function resolve(path)
@@ -212,6 +220,21 @@ function StageRuntime.new(options)
     self.items = Items.new({})
     self.effects = Effects.new({ anm = self.anm })
     self:create_players(options.character or "reimu")
+    self.adapter.player = self.players[self.session.roster:list()[1]]
+    local scenario = ({reimu = "a", marisa = "b", sanae = "c", reisen = "d"})[options.character or "reimu"]
+    local msg = options.msg or require("tnr.legacy_replay.data.th15_msg")
+    local script = msg[self.stage_key .. scenario]
+    if script then
+        self.dialogue = Dialogue.new({data = script, on_event = function(kind, value)
+            if kind == "complete" and value == 1 and self.dialogue.stage_end then
+                self.adapter.stage_ending_requested = true
+            end
+            if kind == "boss_music" and self.audio and self.audio.play_replay_bgm then
+                self.audio:play_replay_bgm(self.stage_key .. "boss")
+            end
+        end})
+        self.adapter.dialogue = self.dialogue
+    end
     return self
 end
 
@@ -235,6 +258,7 @@ function StageRuntime:create_players(character)
     for _, player_id in ipairs(self.session.roster:list()) do
         local player = Player.new({
             definition = definition,
+            power = math.min(400, self.session:get_power(player_id) * 100),
             -- Spread co-op players either side of centre.
             x = self.session.roster:is_coop() and (player_id == 1 and -48 or 48) or 0,
         })
@@ -260,11 +284,12 @@ end
 function StageRuntime:apply_input(player_id, input)
     local player = self.players[player_id]
     if not player or not player.alive then return end
+    if player_id == self.session.roster:list()[1] then self.dialogue_input = input end
     player:move(input.move_x, input.move_y, input.focus)
     player:update()
     -- Drive the ship animation from the same input the movement used.
     if self.player_animation then self.player_animation:update(input) end
-    if input.shoot then
+    if input.shoot and not (self.dialogue and self.dialogue.active) then
         local bullets = player:fire()
         if #bullets > 0 then self:play_sound(0) end
         for _, bullet in ipairs(bullets) do
@@ -294,6 +319,7 @@ end
 -- A hit costs a life, clears the nearby bullets and briefly invulnerates the
 -- ship, which is the reference behaviour.
 function StageRuntime:resolve_player_hits()
+    if self.dialogue and self.dialogue.active then return end
     local shots = self.adapter.shots
     if not shots then return end
     for _, player_id in ipairs(self.session.roster:list()) do
@@ -303,13 +329,19 @@ function StageRuntime:resolve_player_hits()
             -- Enemy bullets.
             for index = #shots, 1, -1 do
                 local shot = shots[index]
-                if not shot.player_bullet and player:hits(shot.x or 0, shot.y or 0) then
+                local descriptor = BulletTypes[shot.sprite or shot.anim or 0]
+                local radius = descriptor and descriptor.radius or 0
+                if not shot.player_bullet and player:hits(shot.x or 0, shot.y or 0, radius) then
                     hit = true
                     table.remove(shots, index)
-                elseif not shot.player_bullet and player:grazes(shot.x or 0, shot.y or 0) then
+                elseif not shot.player_bullet and player:grazes(shot.x or 0, shot.y or 0, radius) then
+                    shot.grazed_by = shot.grazed_by or {}
+                    if not shot.grazed_by[player_id] then
+                    shot.grazed_by[player_id] = true
                     -- Grazing is counted but does not cost a life.
                     player.graze = (player.graze or 0) + 1
                     self:play_sound(22)
+                    end
                 end
             end
             -- Enemy bodies.
@@ -381,6 +413,7 @@ end
 -- A shot is consumed on contact and applies its damage. The mode is notified so
 -- a classic run can award power on each hit.
 function StageRuntime:resolve_player_damage()
+    if self.dialogue and self.dialogue.active then return end
     local shots = self.adapter.shots
     if not shots then return end
     local kept = {}
@@ -388,7 +421,8 @@ function StageRuntime:resolve_player_damage()
         local hit = false
         if shot.player_bullet and shot.damage then
             for _, enemy in ipairs(self.adapter.enemies) do
-                if not enemy.legacy_dropped and enemy.hp and enemy.hp > 0 then
+                if not enemy.legacy_dropped and enemy.hp and enemy.hp > 0
+                        and (enemy.legacy_invulnerable_until or 0) <= (self.adapter.frame or 0) then
                     -- The hurtbox is stored as half widths, so the collision
                     -- radius is the larger dimension.
                     local box = enemy.legacy_hurtbox
@@ -416,6 +450,15 @@ end
 
 --- Start the stage's opening timeline.
 function StageRuntime:start()
+    local entry = self.stage_key .. ".main"
+    if self.adapter.runtime.chunks[entry] then
+        self.original_main = true
+        self.timeline_done = false
+        self.section_name = "main"
+        self.section_thread = self.adapter.runtime:spawn(entry)
+        self.adapter.runtime.threads[#self.adapter.runtime.threads+1] = self.section_thread
+        return true
+    end
     self.section_index = 0
     self.timeline_done = false
     return self:advance_section()
@@ -458,6 +501,15 @@ end
 --- Chain the next section once the current one finishes.
 function StageRuntime:_advance_timeline()
     if self.timeline_done then return end
+    if self.original_main then
+        -- The original main routine loops after requesting the ending dialog.
+        -- Completing helper wave routines alone must never clear the stage.
+        if self.adapter.stage_ending_requested then
+            self.timeline_done = true
+            self.on_clear = true
+        end
+        return
+    end
     local thread = self.section_thread
     if not thread then return end
     if thread.state ~= "finished" then return end
@@ -470,8 +522,12 @@ function StageRuntime:_advance_timeline()
 end
 
 function StageRuntime:update()
+    -- Opt-in developer capture: freeze simulation without relying on a short
+    -- synthetic key press being sampled by the game's input loop.
+    if self.capture_frame and self.frames >= self.capture_frame then return end
     self.frames = self.frames + 1
     self:sample_inputs()
+    if self.dialogue then self.dialogue:update(self.dialogue_input) end
     self.adapter:update()
     self.boss_ui:update()
     self.background:update()
@@ -481,12 +537,13 @@ function StageRuntime:update()
     -- scoring happen. This runs before the drop check so an enemy killed this
     -- frame drops on the same frame.
     self:resolve_player_damage()
+    self.adapter:advance_interrupts()
     -- Enemy bullets hit the player, which costs a life.
     self:resolve_player_hits()
     self:advance_respawns()
     -- An enemy that dies drops its reference drop table.
     for _, enemy in ipairs(self.adapter.enemies) do
-        if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped then
+        if enemy.hp and enemy.hp <= 0 and not enemy.legacy_dropped and not enemy.legacy_pending_interrupt then
             enemy.legacy_dropped = true
             self:play_sound(1)
             self.effects:spawn(Effects.KIND.ENEMY_DEATH, enemy.x or 0, enemy.y or 0)
@@ -503,6 +560,7 @@ function StageRuntime:update()
         local owner = self.items.player
         if owner then
             self.session.mode:on_item_collected(self.session, owner.player_id, item)
+            owner.power = math.min(400, self.session:get_power(owner.player_id) * 100)
             if item.kind == "point" then
                 local stats = self.stats or {}
                 self.stats = stats
@@ -552,7 +610,7 @@ function StageRuntime:draw()
     -- Enemies.
     for _, enemy in ipairs(self.adapter.enemies) do
         local player = enemy.legacy_anm
-        if player then
+        if player and enemy.legacy_body_visible ~= false then
             local sprite = player.sprites and player.sprites[player.sprite]
             if sprite then
                 local image = self:enemy_image(enemy)
@@ -590,8 +648,8 @@ function StageRuntime:draw()
             -- The colour index tints the sprite. Player shots are drawn without
             -- a tint so they keep their own colours.
             local tint
-            if shot.player_bullet then
-                tint = lstg.Color(255, 255, 255, 255)
+            if shot.player_bullet or BulletTypes[shot.sprite or shot.anim or 0] then
+                tint = lstg.Color(shot.legacy_bullet_animation and shot.legacy_bullet_animation.alpha or 255, 255, 255, 255)
             else
                 local c = Palette.unpack(Palette.tint(shot.color_index or 27, true))
                 tint = lstg.Color(c.a, c.r, c.g, c.b)
@@ -604,11 +662,13 @@ function StageRuntime:draw()
     -- Effects: the death burst and bullet break animations, drawn under the
     -- items so the pickups stay readable.
     for _, effect in ipairs(self.effects.list) do
-        local sprite, alpha = self.effects:sprite_for(effect)
+        local sprite, growth, alpha = self.effects:sprite_for(effect)
         local image = image_name("effect", effect.entry, sprite)
         local x = left + ((effect.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
         local y = top - (effect.y or 0) * BossUi.PLAYFIELD_SCALE
-        local r = 24 * (effect.scale or 1) * BossUi.PLAYFIELD_SCALE
+        -- The script ramps the scale, so the ring expands across its life
+        -- instead of sitting at one size.
+        local r = 8 * (growth or 1) * (effect.scale or 1) * BossUi.PLAYFIELD_SCALE
         lstg.SetImageState(image, "add+add", lstg.Color(alpha, 255, 255, 255))
         lstg.RenderRect(image, x - r, x + r, y - r, y + r)
     end
@@ -654,8 +714,66 @@ function StageRuntime:draw()
     if type(lstg.SetScissorRect) == "function" then
         pcall(lstg.SetScissorRect, 0, 1280, 0, 720)
     end
+    self:draw_dialogue()
     self.boss_ui:draw()
     self:draw_hud()
+end
+
+-- Text and source portrait presentation. Callout/portrait ANM transitions still
+-- require frame-matched visual validation; the MSG state is authoritative.
+function StageRuntime:draw_dialogue()
+    local dialog, g = self.dialogue, self.lstg
+    if not dialog or not dialog.active or not dialog.visible then return end
+    local left, right, bottom = BossUi.PLAYFIELD_LEFT, BossUi.PLAYFIELD_RIGHT, BossUi.PLAYFIELD_BOTTOM
+    for _, side in ipairs({"player", "enemy"}) do
+        if dialog.shown[side] then
+            local archive = side == "player" and self.primary_player_archive or STAGE_ARCHIVES[self.stage_key]
+            local entries = self.anm[archive] or {}
+            local first
+            for i, entry in ipairs(entries) do
+                if entry.texture and entry.texture:match("^face/[^/]+/face.*no%.png$") then first = i; break end
+            end
+            local index = first and first + (dialog.faces[side] or 0)
+            local entry = index and entries[index]
+            local body_index
+            for i, candidate in ipairs(entries) do
+                if candidate.texture and candidate.texture:match("^face/[^/]+/face.*bs%.png$") then body_index = i; break end
+            end
+            local body = body_index and entries[body_index]
+            if body and entry and entry.texture:match("^face/") then
+                local scale = BossUi.PLAYFIELD_SCALE / 2
+                local canvas_width = (body.offset_x or 0) + body.sprites[1].w
+                local origin_x = side == "player" and left - 70 or right - canvas_width * scale + 40
+                local top = bottom + 500
+                local light = dialog.focus == side and 255 or 96
+                local function part(part_index, part_entry)
+                    local rect = part_entry.sprites[1]
+                    if not rect or rect.w == 0 or rect.h == 0 then return end
+                    local x = origin_x + (part_entry.offset_x or 0) * scale
+                    local y = top - (part_entry.offset_y or 0) * scale
+                    local image = image_name(archive, part_index, 1)
+                    g.SetImageState(image, "", g.Color(255, light, light, light))
+                    g.RenderRect(image, x, x + rect.w * scale, y - rect.h * scale, y)
+                end
+                part(body_index, body)
+                if entry.texture ~= "face/dummy.png" then part(index, entry) end
+            end
+        end
+    end
+    if #dialog.lines > 0 and g.RenderTTF then
+        g.SetImageState("tnr-white", "", g.Color(215, 18, 22, 34))
+        g.RenderRect("tnr-white", left + 12, right - 12, bottom + 16, bottom + 126)
+        local row = 0
+        for _, line in ipairs(dialog.lines) do
+            -- Ruby annotation is preserved in the data, but needs a separate
+            -- small-text pass. Do not display its control syntax as dialogue.
+            if line:sub(1, 1) ~= "|" then
+                local y = bottom + 98 - row * 28
+                g.RenderTTF("Sans", line, left + 26, right - 26, y, y, 0, g.Color(255,255,255,255), 1.05)
+                row = row + 1
+            end
+        end
+    end
 end
 
 --- Resolve the image for an item from the item sheet.
@@ -690,8 +808,18 @@ end
 function StageRuntime:draw_hud()
     local lstg = self.lstg
     local stats = self.stats or {}
-    local label_x = 510
-    local value_x = 738
+    local label_x = 800
+    local value_x = 1100
+    local function sprite(index, left, right, bottom, top)
+        local image = image_name("front", 1, index)
+        lstg.SetImageState(image, "", lstg.Color(255,255,255,255))
+        lstg.RenderRect(image,left,right,bottom,top)
+    end
+    -- Border geometry comes from front00's four source strips.
+    sprite(1,160,208,0,720)
+    sprite(2,784,1120,0,720)
+    sprite(3,208,784,696,720)
+    sprite(4,208,784,0,24)
     -- Value column: the score and power rows share their space with the icon
     -- rows, so the icons sit in the gap between the label and the value, and the
     -- value is right aligned at the panel edge.
@@ -700,13 +828,14 @@ function StageRuntime:draw_hud()
         { "スコア", stats.score or 0, 636 },
         { "残り人数", nil, 596 },
         { "スペルカード", nil, 549 },
-        { "霊力", stats.power or 0, 492 },
+        { "霊力", string.format("%.2f/4.00", stats.power or 0), 492 },
         { "最大得点", stats.max_point or 0, 465 },
         { "グレイズ", stats.graze or 0, 444 },
     }
-    for _, row in ipairs(rows) do
-        lstg.RenderTTF("Sans", row[1], label_x, label_x, row[3], row[3], 0,
-            lstg.Color(255, 240, 236, 236), 0.8)
+    local label_sprites = {5,6,7,9,12,11,10}
+    for index, row in ipairs(rows) do
+        local width = index == 6 and 120 or 108
+        sprite(label_sprites[index],label_x,label_x+width,row[3],row[3]+27)
         if row[2] ~= nil then
             -- Numbers use the reference ascii glyphs, right aligned.
             self:draw_number(row[2], value_x, row[3])
@@ -714,8 +843,8 @@ function StageRuntime:draw_hud()
     end
     -- Life hearts and spell card stars, placed between the label and the value
     -- column exactly as the reference lays them out.
-    self:draw_life_icons(680, 592, stats.lives or 3, 8, BossUi.HEART_FIRST_SPRITE)
-    self:draw_life_icons(680, 545, stats.spellcards or 0, 5, BossUi.STAR_FIRST_SPRITE)
+    self:draw_life_icons(924, 592, stats.lives or 3, 8, BossUi.HEART_FIRST_SPRITE)
+    self:draw_life_icons(924, 545, stats.spellcards or 0, 5, BossUi.STAR_FIRST_SPRITE)
 end
 
 --- Draw a number using the reference ascii glyphs, right aligned at `right_x`.
@@ -861,6 +990,36 @@ function StageRuntime:bullet_image(shot)
     if shot.player_bullet then return self:player_bullet_image(shot) end
     local entries = self.anm.bullet
     if not entries then return nil end
+    local descriptor = BulletTypes[shot.sprite or shot.anim or 0]
+    if descriptor then
+        local color = math.max(0, math.min(15, math.floor(shot.color_index or 0)))
+        local global_sprite = descriptor.sprites[color + 1]
+        local info = self:bullet_anim_info(descriptor.script)
+        if info then
+            if not shot.legacy_bullet_animation then
+                local spawn_effect = shot.ex and shot.ex.flags == 2
+                shot.legacy_bullet_animation = BulletAnimation.new(info.script, descriptor, color, spawn_effect)
+            end
+            local animation = shot.legacy_bullet_animation
+            animation:advance_to(shot.anim_frame or 0)
+            global_sprite = animation:global_sprite()
+            shot.blend = animation.blend
+        end
+        if global_sprite and global_sprite >= 0 then
+            -- bullet.anm sprite IDs span archive entries; they are not local
+            -- to the entry that holds the animation. Colours select artwork.
+            local local_sprite = global_sprite + 1
+            for entry_index, entry in ipairs(entries) do
+                if local_sprite <= #entry.sprites then
+                    local rect = entry.sprites[local_sprite]
+                    local animation = shot.legacy_bullet_animation
+                    return image_name("bullet", entry_index, local_sprite), rect.w, rect.h,
+                        animation and animation.sx or 1, animation and animation.sy or 1
+                end
+                local_sprite = local_sprite - #entry.sprites
+            end
+        end
+    end
     -- The sprite family selects which sheet script to play; the colour index
     -- only tints the shape.
     local anim = shot.anim or 0

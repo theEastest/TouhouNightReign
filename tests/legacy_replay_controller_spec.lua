@@ -55,18 +55,21 @@ return function(assert_equal, assert_true)
     replay.character_cursor = 2
     assert_equal(replay:selected_character().key, "marisa", "the character reads back")
 
-    -- Effects: each kind resolves to an archive entry and ages out.
+    -- Effects: each kind resolves to an archive entry and plays its script.
     local Effects = require("tnr.legacy_replay.effects")
     local anm = require("tnr.legacy_replay.data.th15_anm")
     local effects = Effects.new({ anm = anm })
     local death = effects:spawn(Effects.KIND.ENEMY_DEATH, 0, 0)
     assert_true(death ~= nil, "the enemy death effect resolves")
-    assert_true(death.sprites > 1, "the death effect has several frames")
+    -- The reference's death effect runs for 81 frames and grows from half size
+    -- to five and a half, so the ring expands instead of blinking out.
+    assert_true(death.duration > 60, "the death effect lasts as long as the reference")
     assert_equal(effects:count(), 1, "the effect is tracked")
-    -- The sprite advances and the effect eventually expires.
-    local first_sprite = effects:sprite_for(death)
-    assert_true(first_sprite >= 1, "the first sprite is valid")
-    for _ = 1, Effects.ENEMY_DEATH_FRAMES + 2 do effects:update() end
+    local _, first_scale = effects:sprite_for(death)
+    death.timer = 30
+    local _, grown_scale = effects:sprite_for(death)
+    assert_true(grown_scale > first_scale, "the death effect grows across its life")
+    for _ = 1, death.duration + 2 do effects:update() end
     assert_equal(effects:count(), 0, "the effect expires")
     -- An unknown kind is refused rather than tracked.
     assert_true(effects:spawn("not_a_kind", 0, 0) == nil, "an unknown effect is refused")

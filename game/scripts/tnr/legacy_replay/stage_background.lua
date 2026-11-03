@@ -1,28 +1,15 @@
--- Stage background renderer for the legacy replay.
---
--- The reference background is a stack of scrolling layers described by the
--- stage std file. Each entry names a texture (through the stage wl animation
--- script index), a tile size and a list of FACE positions that tile the layer
--- horizontally across a scrolling world.
---
--- Each layer also runs its own animation script, and that script is what drives
--- the scroll: opcode 407 ramps the layer position over a frame count and
--- opcode 200 loops it. Reproducing that gives the original parallax rather than
--- a guessed uniform scroll speed.
---
--- Geometry is the measured reference playfield: 384x448 units rendered into a
--- 462x538.8 px region at (37.2, 556.8) in the 1280x720 canvas.
-
+-- STD scene geometry and ANM background layers. Visual parity remains under validation.
 local StageBackground = {}
+local StdCamera = require("tnr.legacy_replay.std_camera")
 
 StageBackground.__index = StageBackground
 
 local PLAYFIELD_WIDTH = 384
 local PLAYFIELD_HEIGHT = 448
-local CANVAS_SCALE = 720 / 960
-local SCALE = 616.0 / 384 * CANVAS_SCALE
-local FIELD_LEFT = 49.6 * CANVAS_SCALE
-local FIELD_TOP = 742.4 * CANVAS_SCALE
+local Geometry = require("tnr.legacy_replay.boss_ui")
+local SCALE = Geometry.PLAYFIELD_SCALE
+local FIELD_LEFT = Geometry.PLAYFIELD_LEFT
+local FIELD_TOP = Geometry.PLAYFIELD_TOP
 local FIELD_RIGHT = FIELD_LEFT + PLAYFIELD_WIDTH * SCALE
 local FIELD_BOTTOM = FIELD_TOP - PLAYFIELD_HEIGHT * SCALE
 
@@ -32,26 +19,15 @@ StageBackground.FIELD_TOP = FIELD_TOP
 StageBackground.FIELD_RIGHT = FIELD_RIGHT
 StageBackground.FIELD_BOTTOM = FIELD_BOTTOM
 
---- Per-stage fog tint, sampled from a capture of the original game.
--- The reference composites a coloured overlay over the playfield. Stage 1 uses
--- a magenta violet wash that turns the green forest canopy into the purple
--- scene the original shows. The colour and weight are solved from the captured
--- frame against the raw texture: forest RGB(82,137,80) becomes RGB(137,111,134)
--- under this overlay.
-local STAGE_TINT = {
-    st01 = { 203, 78, 199, 115 },
-}
+local STAGE_TINT = {}
+local interpolate = require("tnr.legacy_replay.interpolation")
 
 -- Layer animation opcodes.
-local OP_POS_RAMP = 407   -- ramp the layer position over N frames
-local OP_LOOP = 200       -- loop back a number of instructions
+local OP_LOOP = 200       -- jump to byte offset and timestamp
 local OP_STOP = 3
-local OP_SPRITE = 300
 local OP_ROTATE = 401
 local OP_ALPHA = 403
 local OP_BLEND = 302
-local OP_LAYER = 305
-local OP_MOVE = 409
 
 ---@param options table { lstg, anm, std, image_for, texture_sizes }
 function StageBackground.new(options)
@@ -72,6 +48,7 @@ function StageBackground:set_stage(stage_key)
     self.layers = {}
     self.tint = STAGE_TINT[stage_key]
     local std_entries = self.std[stage_key] or {}
+    self.camera = stage_key == "st01" and std_entries.timeline and StdCamera.new(std_entries.timeline) or nil
     local wl = self.anm[stage_key .. "wl"] or {}
     local function find_entry(script_index)
         for _, entry in ipairs(wl) do
@@ -91,12 +68,16 @@ function StageBackground:set_stage(stage_key)
         local unit_scale = (entry.width or 256) / math.max(1, texture_w)
         local layer = {
             texture = texture,
+            geometry = entry,
             unit_w = texture_w * unit_scale,
             unit_h = texture_h * unit_scale,
             script = script or {},
             base = index == 1,
             -- Layer animation state, advanced by the script each frame.
-            timer = 0,
+            timer = -1,
+            position = {0, 0, 0},
+            tweens = {},
+            offsets = {},
             pc = 1,
             rotation = 0,
             alpha = index == 1 and 255 or 192,
@@ -106,14 +87,12 @@ function StageBackground:set_stage(stage_key)
             loop_count = 0,
             finished = false,
         }
-        -- Read the static settings from the script before it starts running.
-        for _, instruction in ipairs(layer.script) do
-            if instruction.id == OP_ALPHA and instruction[1] then
-                layer.alpha = tonumber(instruction[1]) or layer.alpha
-            elseif instruction.id == OP_ROTATE and instruction[1] then
-                layer.rotation = tonumber(instruction[1]) or 0
-            end
+        local offset = 0
+        for pc, instruction in ipairs(layer.script) do
+            layer.offsets[offset] = pc
+            offset = offset + 8 + 4 * #instruction
         end
+        self:advance_layer(layer)
         self.layers[#self.layers + 1] = layer
     end
 end
@@ -123,57 +102,84 @@ end
 -- on, so this walks forward executing whatever is due and honours the loop
 -- opcode so a layer repeats forever like the reference.
 function StageBackground:advance_layer(layer)
-    if layer.finished then
-        -- A stopped layer still scrolls at whatever rate it had.
-        layer.scroll = layer.scroll + layer.scroll_speed
-        return
+    for key, tween in pairs(layer.tweens) do
+        tween.elapsed = math.min(tween.duration, tween.elapsed + 1)
+        local t = interpolate(tween.mode, tween.elapsed / tween.duration)
+        if key == "alpha" then
+            layer.alpha = tween.from + (tween.target - tween.from) * t
+        else
+            for i = 1, 3 do layer.position[i] = tween.from[i] + (tween.target[i] - tween.from[i]) * t end
+        end
+        if tween.elapsed == tween.duration then layer.tweens[key] = nil end
     end
+    if layer.finished then return end
     layer.timer = layer.timer + 1
-    local script = layer.script
-    local guard = 0
-    while layer.pc <= #script and guard < 64 do
-        guard = guard + 1
-        local instruction = script[layer.pc]
-        if instruction.time > layer.timer then break end
+    for _ = 1, 64 do
+        local instruction = layer.script[layer.pc]
+        if not instruction or instruction.time > layer.timer then return end
         layer.pc = layer.pc + 1
         local id = instruction.id
-        if id == OP_POS_RAMP then
-            -- 407(frames, mode, delta, ...): move the layer by delta units over
-            -- the given number of frames.
-            local frames = math.max(1, tonumber(instruction[1]) or 1)
-            local delta = tonumber(instruction[3]) or 0
-            layer.scroll_speed = delta / frames
-        elseif id == OP_MOVE then
-            local frames = math.max(1, tonumber(instruction[1]) or 1)
-            layer.scroll_speed = (tonumber(instruction[3]) or 0) / frames
-        elseif id == OP_ALPHA then
-            layer.alpha = tonumber(instruction[1]) or layer.alpha
-        elseif id == OP_ROTATE then
-            layer.rotation = tonumber(instruction[1]) or layer.rotation
-        elseif id == OP_BLEND then
-            layer.blend = tonumber(instruction[1])
+        if id == 407 or id == 409 then
+            local key = id == 407 and "position" or "alpha"
+            layer.tweens[key] = {
+                from = key == "alpha" and layer.alpha or {layer.position[1], layer.position[2], layer.position[3]},
+                target = key == "alpha" and instruction[3] or {instruction[3], instruction[4], instruction[5]},
+                elapsed = 0, duration = math.max(1, instruction[1]), mode = instruction[2],
+            }
+        elseif id == OP_ALPHA then layer.alpha = instruction[1]
+        elseif id == OP_ROTATE then layer.rotation = instruction[1]
+        elseif id == OP_BLEND then layer.blend = instruction[1]
         elseif id == OP_LOOP then
-            -- 200(offset, count): jump back offset instructions; a count of 0
-            -- loops forever.
-            local offset = tonumber(instruction[1]) or 0
-            local count = tonumber(instruction[2]) or 0
-            layer.loop_count = layer.loop_count + 1
-            if count == 0 or layer.loop_count < count then
-                layer.pc = math.max(1, layer.pc - offset)
-            else
-                layer.loop_count = 0
-            end
+            layer.pc = assert(layer.offsets[instruction[1]], "invalid background ANM byte offset")
+            layer.timer = instruction[2]
         elseif id == OP_STOP then
             layer.finished = true
+            return
         end
     end
-    layer.scroll = layer.scroll + layer.scroll_speed
+    error("background ANM instruction budget exhausted")
 end
 
 function StageBackground:update()
+    if self.camera then self.camera:update() end
     for _, layer in ipairs(self.layers) do
         self:advance_layer(layer)
     end
+end
+
+-- Render STD instances in world space. The engine clips the quads in the
+-- perspective viewport, so edge tiles retain their UVs instead of stretching.
+function StageBackground:draw_world()
+    local g, camera = self.lstg, self.camera
+    local p, d, up = camera.position, camera.direction, camera.up
+    g.SetViewport(FIELD_LEFT, FIELD_RIGHT, FIELD_BOTTOM, FIELD_TOP)
+    g.SetPerspective(p[1], p[2], p[3], p[1] + d[1], p[2] + d[2], p[3] + d[3],
+        up[1], up[2], up[3], camera.fov, PLAYFIELD_WIDTH / PLAYFIELD_HEIGHT, 1, 10000)
+    local fog = camera.fog
+    -- thtk prints the four colour bytes in memory order (BGRA).
+    g.SetFog(fog[5], fog[6], g.Color(255, fog[3], fog[2], fog[1]))
+    for _, layer in ipairs(self.layers) do
+        local image = self.image_for(layer.texture)
+        if image then
+            g.SetImageState(image, "", g.Color(layer.alpha or 255, 255, 255, 255))
+            for _, face in ipairs(layer.geometry.faces or {}) do
+                for _, quad in ipairs(layer.geometry.quads or {}) do
+                    local position = quad.position or {0, 0, 0}
+                    local x, y, z = face.x + position[1] + layer.position[1], face.y + position[2] + layer.position[2], face.z + position[3] + layer.position[3]
+                    local w, h = quad.width / 2, quad.height / 2
+                    local c, s = math.cos(layer.rotation or 0), math.sin(layer.rotation or 0)
+                    g.Render4V(image,
+                        x - w, y + h * c, z + h * s,
+                        x + w, y + h * c, z + h * s,
+                        x + w, y - h * c, z - h * s,
+                        x - w, y - h * c, z - h * s)
+                end
+            end
+        end
+    end
+    g.SetFog()
+    g.SetViewport(0, 1280, 0, 720)
+    g.SetOrtho(0, 1280, 0, 720)
 end
 
 --- Draw every layer, tiling each at its texture size and scrolling by its own
@@ -181,11 +187,16 @@ end
 function StageBackground:draw()
     local lstg = self.lstg
     if not lstg or #self.layers == 0 then return end
+    if self.camera and lstg.SetPerspective and lstg.Render4V and lstg.SetFog
+            and lstg.SetViewport and lstg.SetOrtho then
+        self:draw_world()
+        return
+    end
     if type(lstg.SetScissorRect) == "function" then
         pcall(lstg.SetScissorRect, FIELD_LEFT, FIELD_RIGHT, FIELD_BOTTOM, FIELD_TOP)
     end
-    -- Detail layers draw first so the base covers the gaps.
-    for index = #self.layers, 1, -1 do
+    -- Draw opaque geometry before translucent detail.
+    for index = 1, #self.layers do
         local layer = self.layers[index]
         local image = self.image_for(layer.texture)
         if image then

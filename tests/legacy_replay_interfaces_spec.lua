@@ -63,7 +63,7 @@ return function(assert_equal, assert_true)
     -- Classic mode tracks power on the session.
     solo_classic:add_power(1, 1.0)
     solo_classic:add_power(1, 0.5)
-    assert_true(math.abs(solo_classic:get_power(1) - 1.5) < 1e-6, "power accumulates")
+    assert_true(math.abs(solo_classic:get_power(1) - 2.5) < 1e-6, "power accumulates above the initial 1.00")
 
     -- HUD icon selection: six progressive frames, both rows present.
     assert_equal(BossUi.HEART_FIRST_SPRITE, 13, "the first heart sprite is index 13")
@@ -79,10 +79,11 @@ return function(assert_equal, assert_true)
     -- Movement easing curves, matching the reference formulas exactly.
     local Adapter = require("tnr.legacy_replay.adapter")
     assert_true(math.abs(Adapter.ease_fraction(0, 0.5) - 0.5) < 1e-6, "linear easing")
-    assert_true(math.abs(Adapter.ease_fraction(1, 0.5) - 0.75) < 1e-6, "decelerate easing")
-    assert_true(math.abs(Adapter.ease_fraction(2, 0.5) - (1 - 0.5 ^ 4)) < 1e-6, "decelerate fast easing")
-    assert_true(math.abs(Adapter.ease_fraction(3, 0.5) - 0.25) < 1e-6, "accelerate easing")
-    assert_true(math.abs(Adapter.ease_fraction(4, 0.5) - 0.5 ^ 4) < 1e-6, "accelerate fast easing")
+    assert_true(math.abs(Adapter.ease_fraction(1, 0.5) - 0.25) < 1e-6, "quadratic ease in")
+    assert_true(math.abs(Adapter.ease_fraction(2, 0.5) - 0.125) < 1e-6, "cubic ease in")
+    assert_true(math.abs(Adapter.ease_fraction(3, 0.5) - 0.0625) < 1e-6, "quartic ease in")
+    assert_true(math.abs(Adapter.ease_fraction(4, 0.5) - 0.75) < 1e-6, "quadratic ease out")
+    assert_true(math.abs(Adapter.ease_fraction(9, 0.75) - 0.125) < 1e-6, "cloud ease in/out at quarter time")
     -- Every curve reaches the destination at the end of the move.
     for mode = 0, 4 do
         assert_true(math.abs(Adapter.ease_fraction(mode, 0) - 1.0) < 1e-6,

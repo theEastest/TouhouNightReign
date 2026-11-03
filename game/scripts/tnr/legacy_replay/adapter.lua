@@ -14,6 +14,13 @@ local AnmPlayer = require("tnr.legacy_replay.anm_player")
 local Sounds = require("tnr.legacy_replay.sounds")
 
 local Adapter = {}
+local function angle_between(x1, y1, x2, y2)
+    local x, y = x2 - x1, y2 - y1
+    if math.atan2 then return math.atan2(y, x) end
+    if x > 0 then return math.atan(y / x) end
+    if x < 0 then return math.atan(y / x) + (y >= 0 and math.pi or -math.pi) end
+    return y > 0 and math.pi / 2 or (y < 0 and -math.pi / 2 or 0)
+end
 
 Adapter.__index = Adapter
 
@@ -56,30 +63,10 @@ end
 
 Adapter.resolve_arg = resolve_arg
 
--- Reference movement easing curves.
--- These are the exact factors the original applies while interpolating a move
--- over a fixed number of frames, taken from the game's movement update:
---   0 linear, 1 decelerate, 2 decelerate fast, 3 accelerate, 4 accelerate fast.
--- The input is the *remaining* fraction of the move, so each curve returns how
--- far along the path the object should be.
+-- TH15 uses the shared modern interpolator (remaining-time API retained).
+local interpolate = require("tnr.legacy_replay.interpolation")
 local function ease_fraction(mode, remaining)
-    local bc = remaining
-    if bc >= 1.0 then bc = 1.0 end
-    if mode == 1 then
-        return 1.0 - bc * bc
-    elseif mode == 2 then
-        local b2 = bc * bc
-        return 1.0 - b2 * b2
-    elseif mode == 3 then
-        local inv = 1.0 - bc
-        return inv * inv
-    elseif mode == 4 then
-        local inv = 1.0 - bc
-        local i2 = inv * inv
-        return i2 * i2
-    end
-    -- Linear.
-    return 1.0 - bc
+    return interpolate(mode, 1 - remaining)
 end
 
 Adapter.ease_fraction = ease_fraction
@@ -110,13 +97,13 @@ function Adapter.new(options)
         return minimum + math.random() * (maximum - minimum)
     end
     local function angle_to_player()
-        local player = host_ref.lstg and host_ref.lstg.player
+        local player = host_ref.player or (host_ref.lstg and host_ref.lstg.player)
         local boss = host_ref.boss_object
         if not player or not boss then return 0 end
         return math.atan(player.y - (boss.y or 0), player.x - (boss.x or 0))
     end
     local function globals_provider()
-        local player = host_ref.lstg and host_ref.lstg.player
+        local player = host_ref.player or (host_ref.lstg and host_ref.lstg.player)
         local boss = host_ref.boss_object
         local difficulty = host_ref.difficulty or EclRuntime.DIFFICULTY.NORMAL
         return {
@@ -182,6 +169,7 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
         object.hp = tonumber(hp) or object.hp or 50
         object.max_hp = object.hp
         object.legacy_ecl = routine
+        object.legacy_body_visible = false
         -- Attach the animation player for the stage's enemy archive.
         local archive, archive_name, entry_index = self:enemy_archive()
         if archive then
@@ -274,6 +262,7 @@ function Adapter:build_instructions()
         if not player then return end
         local slot = resolve_arg(thread, args and args[1], 0) or 0
         if slot ~= 0 then return end
+        thread.object.legacy_body_visible = true
         player:play(resolve_arg(thread, args and args[2], 0) or 0)
     end
     instructions.anmSetSprite = function(thread, runtime, args)
@@ -293,10 +282,18 @@ function Adapter:build_instructions()
         local sprite = resolve_arg(thread, args and args[2], nil)
         if sprite == nil then sprite = resolve_arg(thread, args and args[1], 0) end
         player.sprite = (tonumber(sprite) or 0) + 1
+        thread.object.legacy_body_visible = true
     end
     instructions.anmPlay = function(thread, runtime, args)
         local player = thread.object and thread.object.legacy_anm
-        if player then player:play(resolve_arg(thread, args and args[2], 0) or 0) end
+        local slot = resolve_arg(thread, args and args[1], 0)
+        if player and slot == 0 then
+            thread.object.legacy_body_visible = true
+            player:play(resolve_arg(thread, args and args[2], 0) or 0)
+        elseif thread.object then
+            thread.object.legacy_overlay_scripts = thread.object.legacy_overlay_scripts or {}
+            thread.object.legacy_overlay_scripts[slot] = resolve_arg(thread, args and args[2], 0)
+        end
     end
     instructions.setHitbox = function(thread, runtime, args)
         if thread.object then
@@ -325,6 +322,7 @@ function Adapter:build_instructions()
     -- `moveVelTime(time, mode, angle, speed)` both select an easing curve from
     -- their second argument.
     local function start_velocity_move(object, angle, speed)
+        object.legacy_velocity_tween = nil
         object.legacy_angle = resolve_angle(angle, object.legacy_angle)
         object.legacy_speed = tonumber(speed) or 0
         object.legacy_vx = math.cos(object.legacy_angle) * object.legacy_speed
@@ -333,6 +331,7 @@ function Adapter:build_instructions()
     end
 
     local function start_time_move(object, frames, raw_mode, target_x, target_y, angle, speed)
+        object.legacy_velocity_tween = nil
         local mode = tonumber(raw_mode) or 0
         local start_x = object.x or 0
         local start_y = object.y or 0
@@ -382,12 +381,17 @@ function Adapter:build_instructions()
     instructions.moveVelTime = function(thread, runtime, args)
         local object = thread.object
         if not object then return end
-        start_time_move(object,
-            EclRuntime.evaluate_expression(thread, tostring(args[1] or "0")),
-            args[2],
-            nil, nil,
-            EclRuntime.evaluate_expression(thread, tostring(args[3] or "0")),
-            EclRuntime.evaluate_expression(thread, tostring(args[4] or "0")))
+        local frames = math.max(1, resolve_arg(thread, args[1], 1))
+        local speed = resolve_arg(thread, args[4], object.legacy_speed or 0)
+        if speed <= SENTINEL then speed = object.legacy_speed or 0 end
+        object.legacy_velocity_tween = {
+            total = frames, remaining = frames,
+            mode = resolve_arg(thread, args[2], 0),
+            start_angle = object.legacy_angle or 0,
+            end_angle = resolve_angle(resolve_arg(thread, args[3], SENTINEL), object.legacy_angle),
+            start_speed = object.legacy_speed or 0, end_speed = speed,
+        }
+        object.legacy_move = nil
     end
     instructions.movePosTime = function(thread, runtime, args)
         local object = thread.object
@@ -486,42 +490,42 @@ function Adapter:build_instructions()
             if self_ref.boss_ui then self_ref.boss_ui.visible = false end
         end
     end
-    instructions.setInvuln = function() end
+    instructions.setInvuln = function(thread, runtime, args)
+        if thread.object then
+            thread.object.legacy_invulnerable_until = (self_ref.frame or 0) + resolve_arg(thread, args[1], 0)
+        end
+    end
     instructions.flagSet = function() end
     instructions.flagClear = function() end
     instructions.setInterrupt = function() end
-    instructions.setTimeout = function() end
+    instructions.setTimeout = function(thread, runtime, args)
+        if thread.object then
+            thread.object.legacy_timeouts = thread.object.legacy_timeouts or {}
+            thread.object.legacy_timeouts[resolve_arg(thread,args[1],0)] = args[2]
+        end
+    end
     instructions.setChapter = function() end
     instructions.lifeSet = function(thread, runtime, args)
         local value = tonumber(args and args[1]) or 0
         if thread.object then thread.object.hp = value end
         if self_ref.boss_ui then self_ref.boss_ui:set_health(value, self_ref.boss_ui.health_max) end
     end
-    instructions.dialogWait = function() end
-    instructions.bossWait = function(thread, runtime)
-        -- Block until the boss this section spawned has been defeated. The
-        -- reference uses this to hold the stage timeline while a mid-boss or
-        -- boss fights, so the sections and the stage clear depend on the fight.
-        --
-        -- The boss is created asynchronously, so the first few frames may run
-        -- before it exists. Wait for it to appear before waiting for it to die,
-        -- otherwise the timeline would run straight past the fight.
-        local boss = self_ref.boss_object
-        if not boss then
-            self_ref.boss_expected = true
-            self_ref.boss_wait_frames = (self_ref.boss_wait_frames or 0) + 1
-            -- Give the asynchronous spawn a generous window to arrive; if no
-            -- boss ever appears, do not stall the stage forever.
-            if self_ref.boss_wait_frames > 600 then
-                self_ref.boss_wait_frames = 0
-                return
-            end
-            thread.pc = thread.pc - 1
-            thread.wait = 1
+    instructions.dialogWait = function(thread)
+        local dialog = self_ref.dialogue
+        if not dialog or not dialog.active then thread.dialog_wait_generation = nil; return end
+        if thread.dialog_wait_generation == nil then thread.dialog_wait_generation = dialog.generation end
+        if thread.dialog_wait_generation ~= dialog.generation then
+            thread.dialog_wait_generation = nil
             return
         end
-        self_ref.boss_wait_frames = 0
-        if (boss.hp or 0) > 0 then
+        thread.pc = thread.pc - 1
+        thread.wait = 1
+    end
+    instructions.bossWait = function(thread, runtime)
+        -- HP reaching zero can start another phase. Only the script's
+        -- setBoss(-1)/delete releases the stage's boss wait.
+        local boss = self_ref.boss_object
+        if boss and not boss.legacy_deleted then
             thread.pc = thread.pc - 1
             thread.wait = 1
         end
@@ -801,8 +805,11 @@ function Adapter:build_instructions()
         -- setBoss(0) starts the fight, setBoss(-1) ends it.
         local value = tonumber(args and args[1]) or 0
         if value >= 0 then
+            self_ref.boss_object = thread.object
+            if thread.object then thread.object.legacy_is_boss = true end
             if self_ref.boss_ui then self_ref.boss_ui:begin(100, {}) end
         else
+            if self_ref.boss_object == thread.object then self_ref.boss_object = nil end
             if self_ref.boss_ui then self_ref.boss_ui.visible = false end
         end
     end
@@ -838,6 +845,8 @@ function Adapter:build_instructions()
             finish = tonumber(args and args[3]) or 0,
             routine = tostring(args and args[4] or ""),
             fired = false,
+            registered_frame = self_ref.frame or 0,
+            id = id,
         }
     end
     instructions.spell = function(thread, runtime, args)
@@ -855,8 +864,17 @@ function Adapter:build_instructions()
     instructions.ins_570 = function() end
     instructions.nop = function() end
     instructions.debug22 = function() end
-    instructions.timerReset = function() end
-    instructions.dialogRead = function() end
+    instructions.timerReset = function(thread)
+        if thread.object then thread.object.legacy_timer_start = self_ref.frame or 0 end
+    end
+    instructions.dialogRead = function(thread, runtime, args)
+        self_ref.dialog_request = resolve_arg(thread,args[1],0)
+        if self_ref.dialogue then self_ref.dialogue:start(self_ref.dialog_request)
+        else
+            runtime.unhandled = runtime.unhandled or {}
+            runtime.unhandled["missing_dialogue"] = (runtime.unhandled["missing_dialogue"] or 0) + 1
+        end
+    end
     instructions.funcSet = function() end
     instructions.funcCall = function() end
     instructions.spec1 = function() end
@@ -959,7 +977,11 @@ function Adapter:build_instructions()
     end
     instructions.stars = function() end
     instructions.laserCancel = function() end
-    instructions.killAllAsync = function() end
+    instructions.killAllAsync = function(thread, runtime)
+        for _, child in ipairs(runtime.threads) do
+            if child ~= thread and child.object == thread.object and child.async then child.state = "finished" end
+        end
+    end
 
     -- --- item drops ---------------------------------------------------------
     instructions.dropItems = function() end
@@ -1222,10 +1244,6 @@ function Adapter:create_enemy(thread, runtime, args)
 end
 
 --- Angle from (x1, y1) to (x2, y2), using the engine helper when present.
-local function angle_between(x1, y1, x2, y2)
-    if type(atan2) == "function" then return atan2(y2 - y1, x2 - x1) end
-    return math.atan(y2 - y1, x2 - x1)
-end
 
 --- Fire the configured bullet group through the THlib bullet styles.
 --- Fire the configured group using the reference pattern geometry.
@@ -1237,7 +1255,7 @@ function Adapter:fire_bullet_group(thread, group_index)
     local group = groups[tonumber(group_index) or 0]
     local object = thread.object
     if not group or not object then return end
-    local player = self.lstg and self.lstg.player
+    local player = self.player or (self.lstg and self.lstg.player)
     local aim = 0
     if player then
         aim = angle_between(object.x, object.y, player.x, player.y)
@@ -1404,13 +1422,24 @@ function Adapter:advance_interrupts()
         if interrupts then
             local hp = enemy.hp or 0
             for _, entry in pairs(interrupts) do
-                if not entry.fired and hp <= entry.start and entry.routine ~= "" then
+                local elapsed = (self.frame or 0) - (enemy.legacy_timer_start or entry.registered_frame or 0)
+                local timed_out = entry.finish > 0 and elapsed >= entry.finish
+                if not entry.fired and (hp <= entry.start or timed_out) and entry.routine ~= "" then
                     entry.fired = true
+                    local routine = timed_out and enemy.legacy_timeouts and enemy.legacy_timeouts[entry.id] or entry.routine
+                    for _, active in ipairs(self.runtime.threads) do
+                        if active.object == enemy then active.state = "finished" end
+                    end
                     -- Run the subroutine on the enemy's own thread context.
-                    local thread = self.runtime:spawn(entry.routine, enemy.legacy_thread)
+                    local thread = self.runtime:spawn(routine, enemy.legacy_thread)
+                    thread.ints, thread.floats = {TIMEOUT=timed_out and 1 or 0}, {}
+                    enemy.legacy_globals = enemy.legacy_globals or {}
+                    enemy.legacy_globals.TIMEOUT = timed_out and 1 or 0
                     thread.object = enemy
                     thread.runtime = self.runtime
                     self.runtime.threads[#self.runtime.threads + 1] = thread
+                    enemy.legacy_pending_interrupt = true
+                    break
                 end
             end
         end
@@ -1423,6 +1452,16 @@ end
 -- exactly, including clamping to the destination when the timer expires. A
 -- velocity move simply integrates the velocity.
 function Adapter:advance_enemy_movement(enemy)
+    local velocity = enemy.legacy_velocity_tween
+    if velocity then
+        velocity.remaining = velocity.remaining - 1
+        local progress = ease_fraction(velocity.mode, velocity.remaining / velocity.total)
+        enemy.legacy_angle = velocity.start_angle + (velocity.end_angle - velocity.start_angle) * progress
+        enemy.legacy_speed = velocity.start_speed + (velocity.end_speed - velocity.start_speed) * progress
+        enemy.legacy_vx = math.cos(enemy.legacy_angle) * enemy.legacy_speed
+        enemy.legacy_vy = math.sin(enemy.legacy_angle) * enemy.legacy_speed
+        if velocity.remaining <= 0 then enemy.legacy_velocity_tween = nil end
+    end
     local move = enemy.legacy_move
     if move then
         move.remaining = move.remaining - 1
@@ -1451,7 +1490,11 @@ function Adapter:advance_enemy_movement(enemy)
 end
 
 function Adapter:update()
+    self.frame = (self.frame or 0) + 1
     self.runtime:update()
+    for _, enemy in ipairs(self.enemies) do
+        if (enemy.hp or 0) > 0 then enemy.legacy_pending_interrupt = nil end
+    end
     self:advance_shots()
     self:advance_interrupts()
     -- Prune enemies the scripts deleted or that have left the field. The
@@ -1459,7 +1502,7 @@ function Adapter:update()
     -- which is what keeps a scrolling wave from accumulating on screen.
     local kept = {}
     for _, enemy in ipairs(self.enemies) do
-        local alive = not enemy.legacy_deleted and (enemy.hp or 1) > 0
+        local alive = not enemy.legacy_deleted and ((enemy.hp or 1) > 0 or enemy.legacy_pending_interrupt)
         if alive then
             -- Enemies are created with auto_delete on, which in the reference
             -- means they leave once well outside the field. The boss is created
@@ -1470,6 +1513,9 @@ function Adapter:update()
             end
         end
         if not alive then
+            for _, thread in ipairs(self.runtime.threads) do
+                if thread.object == enemy then thread.state = "finished" end
+            end
             -- A boss leaving play clears the tracking so the next section waits
             -- for its own boss.
             if self.boss_object == enemy then self.boss_object = nil end

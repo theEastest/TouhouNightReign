@@ -106,6 +106,16 @@ local function resolve(thread, token)
     if literal ~= nil then return literal end
     if type(token) ~= "string" then return 0 end
     local kind, name = token:match("^([$%%])([A-Za-z_][A-Za-z0-9_]*)$")
+    local object = thread.object
+    if name and object then
+        local globals = object.legacy_globals or {}
+        if globals[name] ~= nil then return globals[name] end
+        if name=="ABS_X" or name=="FINAL_X" or name=="ABS_X2" or name=="FINAL_X2" then return object.x or 0 end
+        if name=="ABS_Y" or name=="FINAL_Y" or name=="ABS_Y2" or name=="FINAL_Y2" then return object.y or 0 end
+        if name=="ABS_ANGLE" then return object.legacy_angle or 0 end
+        if name=="ABS_SPEED" then return object.legacy_speed or 0 end
+        if name=="TIME" then return (thread.runtime.frame or 0)-(object.legacy_timer_start or 0) end
+    end
     if kind == "$" then
         local value = thread.ints[name]
         if value ~= nil then return value end
@@ -147,20 +157,34 @@ local function evaluate_condition(thread, text)
         return value ~= 0
     end
 
-    -- Parenthesised comparison: (X == Y), (X >= Y), (X <= Y), (X != Y)
-    local left, op, right = text:match("^%(?%s*(.-)%s*(==|~=|<|>|<=|>=)%s*(.-)%s*%)?$")
-    if op then
-        local lv, rv = resolve(thread, left), resolve(thread, right)
-        if op == "==" then return lv == rv end
-        if op == "~=" then return lv ~= rv end
-        if op == "<" then return lv < rv end
-        if op == ">" then return lv > rv end
-        if op == "<=" then return lv <= rv end
-        if op == ">=" then return lv >= rv end
+    -- Lua patterns do not support regex alternation. Split operators only at
+    -- depth zero, then recursively evaluate grouped boolean expressions.
+    local depth, outer = 0, text:sub(1,1) == "("
+    for i=1,#text do
+        local c=text:sub(i,i)
+        if c=="(" then depth=depth+1 elseif c==")" then depth=depth-1 end
+        if depth==0 and i<#text then outer=false end
+    end
+    if outer then return evaluate_condition(thread,text:sub(2,-2)) end
+    for _, op in ipairs({"||", "&&", "==", "!=", "<=", ">=", "<", ">"}) do
+        depth=0
+        for i=1,#text do
+            local c=text:sub(i,i)
+            if c=="(" then depth=depth+1 elseif c==")" then depth=depth-1 end
+            if depth==0 and text:sub(i,i+#op-1)==op then
+                local left,right=text:sub(1,i-1),text:sub(i+#op)
+                if op=="||" then return evaluate_condition(thread,left) or evaluate_condition(thread,right) end
+                if op=="&&" then return evaluate_condition(thread,left) and evaluate_condition(thread,right) end
+                local lv,rv=EclRuntime.evaluate_expression(thread,left),EclRuntime.evaluate_expression(thread,right)
+                if op=="==" then return lv==rv elseif op=="!=" then return lv~=rv
+                elseif op=="<=" then return lv<=rv elseif op==">=" then return lv>=rv
+                elseif op=="<" then return lv<rv else return lv>rv end
+            end
+        end
     end
 
     -- Plain value: non-zero is true.
-    return resolve(thread, text) ~= 0
+    return EclRuntime.evaluate_expression(thread, text) ~= 0
 end
 
 EclRuntime.evaluate_condition = evaluate_condition
@@ -174,6 +198,14 @@ local function apply_assignment(thread, target, operator, expression)
         kind, name = target:match("^([$%%])([A-Za-z_][A-Za-z0-9_]*)%[")
     end
     local value = EclRuntime.evaluate_expression(thread, expression)
+    if name and thread.object and EclRuntime.GLOBAL_VALUES and EclRuntime.GLOBAL_VALUES[name] then
+        local globals = thread.object.legacy_globals or {}
+        thread.object.legacy_globals = globals
+        local current = resolve(thread, target)
+        if operator=="+=" then value=current+value elseif operator=="-=" then value=current-value end
+        globals[name] = kind=="$" and math.floor(value) or value
+        return
+    end
     if kind == "$" then
         local current = thread.ints[name] or 0
         if operator == "+=" then value = current + value
@@ -191,16 +223,17 @@ end
 function EclRuntime.evaluate_expression(thread, expression)
     expression = tostring(expression):gsub("^%s+", ""):gsub("%s+$", "")
     -- Handle helper wrappers such as _f(-192) and [-1.0f] operand brackets.
-    expression = expression:gsub("_f%((.-)%)", "%1")
+    expression = expression:gsub("_f%(", "(")
     expression = expression:gsub("^%[(.*)%]$", "%1")
     -- Split on the lowest-precedence operator present.
-    for _, ops in ipairs({ { "+", "-" }, { "*", "/" } }) do
+    for _, ops in ipairs({ { "+", "-" }, { "*", "/", "%" } }) do
         local depth = 0
         for index = #expression, 1, -1 do
             local ch = expression:sub(index, index)
             if ch == ")" then depth = depth + 1
             elseif ch == "(" then depth = depth - 1
-            elseif depth == 0 and (ch == ops[1] or ch == ops[2]) and index > 1 then
+            elseif depth == 0 and (ch == ops[1] or ch == ops[2] or ch == ops[3]) and index > 1
+                and not (ch == "%" and expression:sub(index+1,index+1):match("[%a_]")) then
                 local head = expression:sub(1, index - 1)
                 local tail = expression:sub(index + 1)
                 local left = EclRuntime.evaluate_expression(thread, head)
@@ -208,6 +241,7 @@ function EclRuntime.evaluate_expression(thread, expression)
                 if ch == "+" then return left + right end
                 if ch == "-" then return left - right end
                 if ch == "*" then return left * right end
+                if ch == "%" then return right == 0 and 0 or left % right end
                 if ch == "/" then
                     if right == 0 then return 0 end
                     return left / right
@@ -218,6 +252,7 @@ function EclRuntime.evaluate_expression(thread, expression)
     -- Strip one layer of parentheses.
     local inner = expression:match("^%((.*)%)$")
     if inner then return EclRuntime.evaluate_expression(thread, inner) end
+    if expression:sub(1,1)=="-" then return -EclRuntime.evaluate_expression(thread,expression:sub(2)) end
     return resolve(thread, expression)
 end
 
@@ -233,7 +268,9 @@ local function op_ins(thread, runtime, name, args)
     -- recognise it here; otherwise a routine that loops back on itself spins
     -- forever inside one step.
     if name == "wait" or name == "waitf" then
-        local frames = math.floor(resolve(thread, (args or {})[1] or 0))
+        local operand = (args or {})[1] or 0
+        local frames = math.floor(type(operand)=="table" and resolve(thread,operand)
+            or EclRuntime.evaluate_expression(thread,tostring(operand)))
         thread.wait = math.max(0, frames)
         return true
     end
@@ -255,12 +292,14 @@ end
 -- the budget turns that into a resumable state instead.
 local STEPS_PER_FRAME = 4096
 local function step(thread, runtime)
+    if thread.last_step_frame == runtime.frame and runtime.frame ~= nil then return false end
+    thread.last_step_frame = runtime.frame
     local budget = STEPS_PER_FRAME
     while true do
         if thread.state == STATE_FINISHED then return false end
         if thread.wait > 0 then
             thread.wait = thread.wait - 1
-            return true
+            if thread.wait > 0 then return true end
         end
         -- Fire any deferred async calls whose delay has elapsed.
         if thread.deferred then
@@ -282,6 +321,9 @@ local function step(thread, runtime)
         budget = budget - 1
         local routine = runtime.chunks[thread.routine]
         if not routine then
+            runtime.unhandled = runtime.unhandled or {}
+            local key = "missing_routine:" .. thread.routine
+            runtime.unhandled[key] = (runtime.unhandled[key] or 0) + 1
             thread.state = STATE_FINISHED
             return false
         end
@@ -293,12 +335,22 @@ local function step(thread, runtime)
         thread.pc = thread.pc + 1
         local op = instruction[1]
 
-        if op == "ins" then
+        local difficulty_key = ({"E","N","H","L","O"})[(runtime.difficulty or 1)+1]
+        if thread.diff_branch and op~="diff" and op~="diff_end"
+            and not thread.diff_branch:find(difficulty_key,1,true) then
+            -- Instructions can be difficulty-masked, not just stack values.
+        elseif op == "ins" then
             op_ins(thread, runtime, instruction[2], instruction[3])
             if thread.wait > 0 then return true end
         elseif op == "wait" then
             thread.wait = math.max(0, math.floor(resolve(thread, (instruction[2] or {})[1] or 0)))
             if thread.wait > 0 then return true end
+        elseif op == "params" then
+            for index, name in ipairs(instruction[2] or {}) do
+                local value = (thread.arguments or {})[index] or 0
+                thread.ints[name] = value
+                thread.floats[name] = value
+            end
         elseif op == "label" or op == "var" or op == "value" or op == "raw" then
             -- No runtime effect.
         elseif op == "diff" then
@@ -333,14 +385,14 @@ local function step(thread, runtime)
                 runtime:call(thread, instruction[2], true)
             end
         elseif op == "label_offset" then
-            -- Positional branch labels (`+1:`) mark the start of a delay slot;
-            -- they carry no runtime behaviour of their own.
+            thread.wait = math.max(0, tonumber(instruction[2]) or 0)
+            if thread.wait > 0 then return true end
         elseif op == "ret" then
             -- Routine return: the thread ends here.
             thread.state = STATE_FINISHED
             return false
         elseif op == "call" then
-            runtime:call(thread, instruction[2], instruction[3])
+            runtime:call(thread, instruction[2], instruction[3], instruction[4])
             -- A synchronous call parks the caller. Stop stepping it now; the
             -- scheduler resumes it once the callee has returned.
             if thread.pending_call then return true end
@@ -359,12 +411,21 @@ EclRuntime.step = step
 -- names. A call inside "st01.X" that names "MainSub00" must therefore resolve
 -- to "st01.MainSub00" first.
 function EclRuntime:resolve_routine(name, caller)
-    if self.chunks[name] then return name end
+    if name:find("%.") and self.chunks[name] then return name end
     local namespace = caller and caller.routine and caller.routine:match("^([^%.]+)%.")
     if namespace then
         local qualified = namespace .. "." .. name
         if self.chunks[qualified] then return qualified end
+        local stage = namespace:match("^(st%d%d)")
+        local imports = self.chunks.__imports or {}
+        for _, module in ipairs(imports[namespace] or imports[stage] or {}) do
+            qualified = module .. "." .. name
+            if self.chunks[qualified] then return qualified end
+        end
+        -- Never borrow a same-named routine from an unrelated stage.
+        return namespace .. "." .. name
     end
+    if self.chunks[name] then return name end
     -- Fall back to any namespace that defines the bare name. Stage-local
     -- routines are usually called from within the same stage, but an enemy can
     -- also be created by a shared helper, where no caller context exists.
@@ -431,8 +492,17 @@ function EclRuntime:spawn(routine_name, parent)
 end
 
 --- Non-blocking call: push a new thread for an async subroutine.
-function EclRuntime:call(caller, routine_name, async)
+function EclRuntime:call(caller, routine_name, async, operands)
     local thread = self:spawn(routine_name, caller)
+    thread.async = async == true
+    thread.arguments = {}
+    for index, operand in ipairs(operands or {}) do
+        thread.arguments[index] = type(operand)=="table" and resolve(caller,operand)
+            or EclRuntime.evaluate_expression(caller, tostring(operand))
+    end
+    -- Local arguments and temporaries belong to the invocation. Concurrent
+    -- attack routines must not overwrite the movement routine's locals.
+    thread.ints, thread.floats = {}, {}
     if async then
         self.threads[#self.threads + 1] = thread
         return thread
@@ -464,6 +534,7 @@ end
 
 --- Advance every live thread by one frame.
 function EclRuntime:update()
+    self.frame = (self.frame or 0) + 1
     local index = 1
     while index <= #self.threads do
         local thread = self.threads[index]
