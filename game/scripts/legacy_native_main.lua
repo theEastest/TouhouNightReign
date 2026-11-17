@@ -72,6 +72,10 @@ local FloorBonus = require("tnr.battle.floor_bonus")
 DialogOverride = require("tnr.stages.dialog_override")
 local native_room_music_hint
 local native_room_generation = 0
+local native_selection = {
+    history = require("tnr.stages.selection_history").new(),
+    run_key = nil,
+}
 -- Shared TNR encounter identity used on the wire. The native counter remains
 -- local; this value prevents previous-room packets from being applied.
 local native_external_room_generation = nil
@@ -1446,6 +1450,18 @@ local function seeded_value(seed, salt)
     return (math.floor(tonumber(seed) or 1) + salt * 1103515245 + 12345) % 2147483647
 end
 
+function native_selection.reset_for_run(run_seed, run_generation)
+    local key = tostring(math.floor(tonumber(run_seed) or 1)) .. ":" .. tostring(math.floor(tonumber(run_generation) or 0))
+    if key ~= native_selection.run_key then
+        native_selection.history:reset()
+        native_selection.run_key = key
+    end
+end
+
+function native_selection.pick_unused(bucket, entries, seed, salt, key_fn)
+    return native_selection.history:pick(bucket, entries, seed, salt, key_fn)
+end
+
 local legacy_enemy_wave_catalog = require("tnr.stages.legacy_enemy_waves")
 local legacy_stage_music = require("tnr.stages.legacy_stage_music")
 
@@ -1697,41 +1713,72 @@ local function valid_catalog_card(card, require_spell)
         and type(native_card.init) == "function"
 end
 
-local function catalog_cards(require_spell, elite_only, pool_filter)
-    local module_name = require_spell and "tnr.training.card_training_catalog"
-        or "tnr.training.nonspell_training_catalog"
-    local source = require(module_name)
+function native_selection.boss_mode(legacy_boss)
+    local name = tostring(legacy_boss or ""):lower()
+    if name:match(":normal$") or name:match("normal$") or name:match("n$") or name:find("norm", 1, true) then
+        return "normal"
+    end
+    if name:match(":lunatic$") or name:match("lunatic$") or name:match("l$") or name:find("luna", 1, true) then
+        return "lunatic"
+    end
+    return nil
+end
+
+local function catalog_cards(require_spell, elite_only, pool_filter, options)
+    options = options or {}
+    local sources
+    if require_spell == nil then
+        sources = {
+            require("tnr.training.card_training_catalog"),
+            require("tnr.training.nonspell_training_catalog"),
+        }
+    else
+        local module_name = require_spell and "tnr.training.card_training_catalog"
+            or "tnr.training.nonspell_training_catalog"
+        sources = { require(module_name) }
+    end
     local result = {}
-    for _, card in ipairs(source) do
-        local class = _editor_class and _editor_class[card.legacy_boss]
-        if valid_catalog_card(card, require_spell)
-                and (not elite_only or (class and #class.cards < 3))
-                and (not pool_filter or pool_filter(card.legacy_boss)) then
-            result[#result + 1] = card
+    for _, source in ipairs(sources) do
+        for _, card in ipairs(source) do
+            local class = _editor_class and _editor_class[card.legacy_boss]
+            local class_mode = native_selection.boss_mode(card.legacy_boss)
+            local mode_matches = not options.difficulty_mode
+                or class_mode == options.difficulty_mode
+                or (not options.require_known_mode and class_mode == nil)
+            local health_matches = not options.max_hp or (tonumber(card.hp) or math.huge) <= options.max_hp
+            local time_spell_matches = not options.exclude_time_spells
+                or card.is_spell ~= true or card.time_spell ~= true
+            if valid_catalog_card(card, require_spell)
+                    and (not elite_only or (class and #class.cards < 3))
+                    and (not pool_filter or pool_filter(card.legacy_boss))
+                    and mode_matches and health_matches and time_spell_matches then
+                result[#result + 1] = card
+            end
         end
     end
     table.sort(result, function(left, right) return left.id < right.id end)
     return result
 end
 
-local function select_catalog_card(seed, require_spell, elite_only, salt, pool_filter)
-    local pool = catalog_cards(require_spell, elite_only, pool_filter)
+local function select_catalog_card(seed, require_spell, elite_only, salt, pool_filter, options)
+    options = options or {}
+    local pool = catalog_cards(require_spell, elite_only, pool_filter, options)
     if #pool == 0 and elite_only then
-        pool = catalog_cards(require_spell, false, pool_filter)
-    end
-    if #pool == 0 and pool_filter then
-        -- The floor pool may not contain a usable card for this room type;
-        -- widen to the full catalog rather than failing the room.
-        pool = catalog_cards(require_spell, elite_only)
-    end
-    if #pool == 0 and elite_only then
-        pool = catalog_cards(require_spell, false)
+        -- Widen only the card-count heuristic; keep the floor pool and all
+        -- safety/mode filters intact. Never silently select a hard card from
+        -- an unrelated floor just because the elite subset is sparse.
+        pool = catalog_cards(require_spell, false, pool_filter, options)
     end
     if #pool == 0 then
         return nil, nil, nil
     end
-    local index = (seeded_value(seed, salt or 0) % #pool) + 1
-    local card = pool[index]
+    local unused_cards = native_selection.history:filter("cards", pool, function(card) return card.id end)
+    local unused_classes = native_selection.history:filter("boss_classes", unused_cards,
+        function(card) return card.legacy_boss end)
+    local candidates = #unused_classes > 0 and unused_classes or unused_cards
+    local card = native_selection.pick_unused("cards", candidates, seed, salt or 0, function(entry) return entry.id end)
+    if not card then return nil, nil, nil end
+    native_selection.history:mark("boss_classes", card.legacy_boss)
     local class = _editor_class[card.legacy_boss]
     return card, class, tonumber(card.legacy_card_slot)
 end
@@ -1893,32 +1940,9 @@ local function native_apply_boss_status(boss, snapshot, allow_dead)
     end
 end
 
-local function select_catalog_wave(seed)
-    local source = require("tnr.training.enemy_training_catalog")
-    local pool = {}
-    for _, wave in ipairs(source) do
-        if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= 10
-                and type(wave.members) == "table" and #wave.members > 0 then
-            local has_loaded_class = false
-            for _, member in ipairs(wave.members) do
-                if type(member) == "table" and _editor_class[member.class_name] then
-                    has_loaded_class = true
-                    break
-                end
-            end
-            if has_loaded_class then
-                pool[#pool + 1] = wave
-            end
-        end
-    end
-    if #pool == 0 then return nil end
-    table.sort(pool, function(left, right) return left.id < right.id end)
-    return pool[(seeded_value(seed, 17) % #pool) + 1]
-end
-
 -- Ordinary rooms select a wave whose content-based difficulty tier matches the
--- node's six-band progression. Falls back to the nearest available band so a
--- thin band can never leave the room empty.
+-- node's six-band progression. Source Normal/Lunatic mode is an independent
+-- floor rule; selected atoms and source stages are drawn without replacement.
 local WaveDifficulty = require("tnr.stages.wave_difficulty")
 -- Formal rooms must last at least this long. The catalog stores short atoms;
 -- the selector concatenates them until the target is reached, which keeps the
@@ -1981,57 +2005,81 @@ local function concatenate_wave_atoms(atoms)
     }
 end
 
-local function select_catalog_wave_for_band(seed, band)
+function native_selection.unused_wave_candidates(pool)
+    local unused = native_selection.history:filter("waves", pool, function(wave) return wave.id end)
+    local fresh_stages = native_selection.history:filter("wave_stages", unused,
+        function(wave) return wave.legacy_stage or wave.source_stage or wave.id end)
+    return #fresh_stages > 0 and fresh_stages or unused
+end
+
+function native_selection.mark_wave_stage(wave)
+    native_selection.history:mark("wave_stages", wave.legacy_stage or wave.source_stage or wave.id)
+end
+
+local function select_catalog_wave_for_band(seed, band, floor)
     local source = require("tnr.training.enemy_training_catalog")
     local target = math.max(1, math.min(6, math.floor(tonumber(band) or 1)))
+    floor = math.max(1, math.min(3, math.floor(tonumber(floor) or 1)))
     local by_band = {}
+    local all = {}
     for _, wave in ipairs(source) do
         if wave.legacy_exact == true and (tonumber(wave.duration_seconds) or 0) >= WAVE_ATOM_MIN_SECONDS
-                and wave_has_loaded_class(wave) then
+                and wave_has_loaded_class(wave) and WaveDifficulty.wave_allowed_on_floor(wave, floor) then
             local tier = WaveDifficulty.tier_of(wave)
             by_band[tier] = by_band[tier] or {}
             by_band[tier][#by_band[tier] + 1] = wave
+            all[#all + 1] = wave
         end
     end
-    -- Prefer the exact band; otherwise widen outward until a tier is found.
-    local chosen
+    -- Prefer an unused atom in the exact content tier, then widen to the
+    -- nearest unused tier. If a source mode has a thin tier, widen within that
+    -- same source mode before ever reusing a room.
+    local chosen, chosen_tier
     for offset = 0, 5 do
         for _, candidate in ipairs({ target - offset, target + offset }) do
-            if not chosen and by_band[candidate] and #by_band[candidate] > 0 then
-                chosen = by_band[candidate]
+            local tier_pool = by_band[candidate]
+            local available = tier_pool and native_selection.unused_wave_candidates(tier_pool) or nil
+            if not chosen and available and #available > 0 then
+                chosen, chosen_tier = tier_pool, candidate
             end
         end
         if chosen then break end
     end
-    if not chosen then return select_catalog_wave(seed) end
-    table.sort(chosen, function(left, right) return left.id < right.id end)
-    local picked = chosen[(seeded_value(seed, 29 + target) % #chosen) + 1]
+    if not chosen then
+        chosen = all
+        chosen_tier = target
+    end
+    local initial_pool = native_selection.unused_wave_candidates(chosen)
+    if #initial_pool == 0 then initial_pool = native_selection.unused_wave_candidates(all) end
+    if #initial_pool == 0 then return nil end
+    local picked = native_selection.pick_unused("waves", initial_pool, seed, 29 + target,
+        function(wave) return wave.id end)
+    if not picked then return nil end
+    native_selection.mark_wave_stage(picked)
     local total = math.max(1, math.floor(tonumber(picked.duration_frames) or 0))
     if total >= WAVE_MIN_FRAMES then
         return picked
     end
-    -- Concatenate more atoms from the same band until the formal wave reaches
-    -- the minimum length. Random draws make two runs differ even when they
-    -- start from the same atom.
+    -- Concatenate distinct atoms. The previous selector sampled this list
+    -- with replacement, so the same wave could appear twice in one room.
     local atoms = { picked }
-    local total_picks = 1
     local guard = 0
-    -- Each additional atom needs an independent draw. seeded_value is affine
-    -- in the seed, so reusing one salt for every pick would make the second and
-    -- third atoms perfectly correlated with the first and collapse the
-    -- combination space. Mix the pick index into the seed itself instead.
     local draw_seed = seed
     while total < WAVE_MIN_FRAMES and guard < 16 do
         guard = guard + 1
-        total_picks = total_picks + 1
         draw_seed = draw_seed * 1103515245 + 12345
         draw_seed = draw_seed % 2147483647
-        local index = (seeded_value(draw_seed, 131 + target * 7) % #chosen) + 1
-        local extra = chosen[index]
+        local available = native_selection.unused_wave_candidates(chosen)
+        if #available == 0 then available = native_selection.unused_wave_candidates(all) end
+        if #available == 0 then break end
+        local extra = native_selection.pick_unused("waves", available, draw_seed, 131 + target * 7 + guard,
+            function(wave) return wave.id end)
+        if not extra then break end
+        native_selection.mark_wave_stage(extra)
         atoms[#atoms + 1] = extra
         total = total + math.max(1, math.floor(tonumber(extra.duration_frames) or 0))
     end
-    return concatenate_wave_atoms(atoms)
+    return #atoms == 1 and picked or concatenate_wave_atoms(atoms)
 end
 
 local function select_native_nonspell(class)
@@ -2090,7 +2138,9 @@ local function patch_loader(name)
     local function file_exists(path)
         return lstg.FileManager
             and type(lstg.FileManager.FileExist) == "function"
-            and lstg.FileManager.FileExist(path)
+            -- Project assets may come from a mounted resource/archive rather
+            -- than a loose file in the current working directory.
+            and lstg.FileManager.FileExist(path, true)
     end
 
     lstg[name] = function(resource, path, ...)
@@ -2954,12 +3004,13 @@ do
         return true, wave
     end
 
-    local function bridge_start_room(room_type, seed, floor, band)
+    local function bridge_start_room(room_type, seed, floor, band, run_seed, run_generation)
         native_reset_aggro()
         native_room_generation = native_room_generation + 1
         room_type = tostring(room_type or "enemy"):lower()
         native_room_seed = tonumber(seed) or 1
         native_room_floor = math.max(1, math.min(3, math.floor(tonumber(floor) or 1)))
+        native_selection.reset_for_run(run_seed or native_room_seed, run_generation)
         native_room_band = tonumber(band)
             or ((native_room_floor - 1) * 2 + 1)
         native_pick_random_focus()
@@ -2989,35 +3040,68 @@ do
         native_authoritative_enemy_states = nil
         native_authoritative_enemy_initialized = {}
         native_last_applied_enemy_kill_generation = 0
+        local selection_options = {}
+        if native_room_floor == 1 then
+            selection_options = {
+                difficulty_mode = "normal",
+                max_hp = 1200,
+                exclude_time_spells = true,
+            }
+        elseif native_room_floor == 3 then
+            selection_options = {
+                difficulty_mode = "lunatic",
+                require_known_mode = true,
+            }
+        end
         if room_type == "boss" then
             native_direct_card = false
-            -- Select a real imported spell from this floor's fixed boss pool.
-            -- The selected class keeps its complete original card sequence.
+            -- Select from the fixed boss pool, respecting the floor's source
+            -- difficulty and no-repeat history. Floor 1 plays only the chosen
+            -- safe card; later floors retain that boss's full native sequence.
             local BossPools = require("tnr.stages.boss_pools")
             local floor = native_room_floor
-            local selected_card, selected_class = select_catalog_card(native_room_seed, true, false, 31,
-                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end)
+            local selected_card, selected_class, selected_slot = select_catalog_card(native_room_seed, true, false, 31,
+                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end, selection_options)
             native_boss_class = selected_class
             if selected_class then native_index_dialog_blocks(selected_card and selected_card.legacy_boss, selected_class) end
-            native_card_list = native_boss_class and native_boss_class.cards or nil
+            if native_room_floor == 1 then
+                native_card_list = build_native_card_sequence(selected_class, selected_slot)
+            else
+                native_card_list = native_boss_class and native_boss_class.cards or nil
+            end
             native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
         elseif room_type == "elite" then
             native_direct_card = false
             local BossPools = require("tnr.stages.boss_pools")
             local floor = native_room_floor
-            local selected_card, selected_class = select_catalog_card(native_room_seed, true, true, 47,
-                function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end)
+            local spell_requirement = true
+            if floor == 1 then spell_requirement = nil end
+            local selected_card, selected_class, selected_slot = select_catalog_card(native_room_seed,
+                spell_requirement, true, 47,
+                function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end,
+                selection_options)
             native_boss_class = selected_class
             if selected_class then native_index_dialog_blocks(selected_card and selected_card.legacy_boss, selected_class) end
-            native_card_list = native_boss_class and native_boss_class.cards or nil
+            if floor == 1 then
+                native_card_list = build_native_card_sequence(selected_class, selected_slot)
+            else
+                native_card_list = native_boss_class and native_boss_class.cards or nil
+            end
             native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             if not native_boss_class then
-                local fallback_card, fallback_class, fallback_slot =
-                    select_catalog_card(native_room_seed, true, false, 53,
-                        function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end)
+                local fallback_requirement = false
+                if floor == 1 then fallback_requirement = nil end
+                local fallback_card, fallback_class, fallback_slot = select_catalog_card(native_room_seed,
+                    fallback_requirement, false, 53,
+                    function(legacy_boss) return BossPools.is_floor_elite(legacy_boss, floor) end,
+                    selection_options)
                 native_boss_class = fallback_class
                 if fallback_class then native_index_dialog_blocks(fallback_card and fallback_card.legacy_boss, fallback_class) end
-                native_card_list = fallback_class and fallback_class.cards or nil
+                if floor == 1 then
+                    native_card_list = build_native_card_sequence(fallback_class, fallback_slot)
+                else
+                    native_card_list = fallback_class and fallback_class.cards or nil
+                end
                 native_room_music_hint = native_boss_class and native_boss_class.bgm or nil
             end
         else
@@ -3029,7 +3113,7 @@ do
             local BossPools = require("tnr.stages.boss_pools")
             local floor = native_room_floor
             local nonspell, selected_class, nonspell_slot = select_catalog_card(native_room_seed, false, false, 61,
-                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end)
+                function(legacy_boss) return BossPools.is_floor_boss(legacy_boss, floor) end, selection_options)
             native_boss_class = selected_class
             if selected_class then native_index_dialog_blocks(nonspell and nonspell.legacy_boss, selected_class) end
             native_card_list = build_native_card_sequence(selected_class, nonspell_slot)
@@ -3039,7 +3123,7 @@ do
             -- Pick a wave whose content tier matches the node's six-band
             -- difficulty progression. The wave retains original constructor
             -- arguments and spawn timing.
-            local original_wave = select_catalog_wave_for_band(native_room_seed, native_room_band)
+            local original_wave = select_catalog_wave_for_band(native_room_seed, native_room_band, floor)
             native_enemy_specs = build_native_enemy_specs(original_wave, native_room_seed)
             native_room_music_hint = music_for_legacy_stage(original_wave
                 and (original_wave.source_stage or original_wave.legacy_stage))
@@ -3095,6 +3179,33 @@ do
     end
     TNRNativeLegacy = {
         clear_room_objects = native_clear_room_objects,
+        accept_reality = function(start_buffs)
+            if not native_player or native_coop_enabled then
+                return false, "仅单人普通战斗可使用"
+            end
+            local remaining = tonumber(lstg and lstg.var and lstg.var.lifeleft)
+                or tonumber(native_player_state and native_player_state.life) or 0
+            if remaining <= 0 then return false, "没有可用残机" end
+            remaining = math.max(0, remaining - 1)
+            if lstg and lstg.var then lstg.var.lifeleft = remaining end
+            if native_player_state then native_player_state.life = remaining end
+            native_clear_enemy_bullets()
+            for player_id, snapshot in pairs(start_buffs or {}) do
+                local driver = native_runtime_drivers[tonumber(player_id)]
+                if driver and snapshot.affixes and driver.affixes then
+                    driver.affixes:apply_snapshot(snapshot.affixes)
+                end
+                if driver and snapshot.p_gauge and driver.p_gauge then
+                    driver.p_gauge:apply_snapshot(snapshot.p_gauge)
+                end
+            end
+            native_reset_bomb_charge()
+            native_set_player_alive()
+            native_player.__death_state = 0
+            native_player.slow = 0
+            native_respawn_frames[native_local_player_id] = 0
+            return true, remaining
+        end,
         set_authority = function(is_host)
             native_network_authority_host = is_host ~= false
             native_disable_client_enemy_collisions()
@@ -3537,6 +3648,8 @@ do
                 room_type = native_mode,
                 frame_count = current and tonumber(current.frame_count) or 0,
                 player_dead = native_player ~= nil and native_player.death and native_player.death > 0,
+                life_remaining = not native_coop_enabled and lstg and lstg.var
+                    and tonumber(lstg.var.lifeleft) or (native_player_state and native_player_state.life),
                 coop_enabled = native_coop_enabled,
                 respawn_frames = { [1] = native_respawn_frames[1] or 0, [2] = native_respawn_frames[2] or 0 },
                 team_lives = native_team_lives,

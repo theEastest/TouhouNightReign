@@ -103,6 +103,8 @@ function StageAdapter:_build_character_runtimes()
             error("character runtime build returned no runtime for player " .. tostring(player_id), 0)
         end
         runtime.bridge = bridge
+        runtime.affixes = runtime.affixes or require("tnr.equipment.runtime.affix_runtime").new(
+            runtime, session_player, self.session)
         self.character_bridges[player_id] = bridge
         self.character_runtimes[player_id] = runtime
     end
@@ -123,6 +125,13 @@ function StageAdapter:start(encounter)
     self.stage_score = 0
     self.stage_money = 0
     self:_build_character_runtimes()
+    self.stage_start_buffs = {}
+    for player_id, runtime in pairs(self.character_runtimes) do
+        self.stage_start_buffs[player_id] = {
+            p_gauge = runtime.p_gauge and runtime.p_gauge:to_table() or nil,
+            affixes = runtime.affixes and runtime.affixes:to_table() or nil,
+        }
+    end
     self.native_preflight = NativeResourcePreflight.run(".", { encounter and encounter.id })
     self.battle:begin(encounter)
     if self.native_bridge and self.native_bridge.start_room and encounter.type ~= "TRAINING" then
@@ -140,7 +149,8 @@ function StageAdapter:start(encounter)
         if self.native_bridge.set_player_state then
             self.native_bridge.set_player_state(self.session:get_player(self.session.local_player_id or 1))
         end
-        self.native_bridge.start_room(room_type, encounter.content_seed or self.session.run_seed or 1, floor, band)
+        self.native_bridge.start_room(room_type, encounter.content_seed or self.session.run_seed or 1, floor, band,
+            encounter.run_seed or self.session.run_seed, encounter.run_generation or self.session.run_generation)
         if self.audio and self.native_bridge.get_music_hint then
             local hint = self.native_bridge.get_music_hint()
             if hint then self.audio:play_original(hint) end
@@ -1097,6 +1107,10 @@ function StageAdapter:update(input)
                 adapter:set_team_life(state.team_lives)
             end
             local local_id = self.session.local_player_id or 1
+            if not state.coop_enabled and state.life_remaining ~= nil then
+                local player = self.session:get_player(local_id)
+                if player then player.life = math.max(0, tonumber(state.life_remaining) or 0) end
+            end
             local local_snapshot = state.player and {
                 alive = (tonumber(state.player.death) or 0) <= 0 and state.player.hide ~= true,
                 respawning = (state.respawn_frames and (state.respawn_frames[local_id] or 0) or 0) > 0,
@@ -1134,6 +1148,8 @@ function StageAdapter:update(input)
                 self.training_result = { clear_state = false, kind = self.training_kind, target_id = self.training_target_id }
                 self.session.run_state = require("tnr.core.constants").run_states.CARD_TRAINING_FAILED
             else
+                self.failed_native_room = true
+                self.failed_battle_active = self.battle.active
                 self:complete(false, { reward_eligible = false })
             end
         elseif self.training_mode and self.training_kind == "enemy"
@@ -1833,6 +1849,14 @@ function StageAdapter:render()
                 lstg.RenderRect(image, runtime_player.x - hitbox * 2, runtime_player.x + hitbox * 2, runtime_player.y - hitbox * 2, runtime_player.y + hitbox * 2)
             end
         end
+        if player_state and player_state.alive and runtime_player.focus then
+            lstg.SetImageState(image, "", lstg.Color(150, 255, 96, 132))
+            lstg.RenderRect(image, runtime_player.x - 5, runtime_player.x + 5,
+                runtime_player.y - 5, runtime_player.y + 5)
+            lstg.SetImageState(image, "", lstg.Color(255, 255, 226, 236))
+            lstg.RenderRect(image, runtime_player.x - 2, runtime_player.x + 2,
+                runtime_player.y - 2, runtime_player.y + 2)
+        end
         for _, support in ipairs(runtime_player.support_entities or {}) do
             if player_state and player_state.alive and lstg.Render then
                 local support_image = runtime_player.focus and (character_prefix .. "-blue") or (character_prefix .. "-red")
@@ -1967,6 +1991,51 @@ end
 
 function StageAdapter:get_battle_manager()
     return self.battle
+end
+
+function StageAdapter:accept_reality()
+    local player_id = self.session.local_player_id or 1
+    local player = self.session:get_player(player_id)
+    if not player or (self.session.player_count or 1) ~= 1
+            or (tonumber(player.life) or 0) <= 0 then
+        return false, "没有可用残机"
+    end
+    local remaining
+    if self.failed_native_room and self.native_bridge and self.native_bridge.accept_reality then
+        local ok, value = self.native_bridge.accept_reality(self.stage_start_buffs or {})
+        if not ok then return false, value or "复活失败" end
+        remaining = tonumber(value)
+    elseif self.runtime and self.runtime.players and self.runtime.players[player_id] then
+        remaining = math.max(0, (tonumber(player.life) or 0) - 1)
+        player.life = remaining
+        local runtime_player = self.runtime.players[player_id]
+        runtime_player.alive = true
+        runtime_player.invulnerable = 180
+        runtime_player.focus = false
+        self.runtime.bullets = {}
+        for id, snapshot in pairs(self.stage_start_buffs or {}) do
+            local runtime = self.character_runtimes[id]
+            if runtime and snapshot.affixes and runtime.affixes then
+                runtime.affixes:apply_snapshot(snapshot.affixes)
+            end
+            if runtime and snapshot.p_gauge and runtime.p_gauge then
+                runtime.p_gauge:apply_snapshot(snapshot.p_gauge)
+            end
+        end
+    else
+        return false, "当前战斗无法继续"
+    end
+    if remaining ~= nil then player.life = math.max(0, remaining) end
+    player.alive = true
+    player.respawning = false
+    player.respawn_timer = 0
+    self.battle.active = self.failed_battle_active
+    self.failed_battle_active = nil
+    self.failed_native_room = false
+    self.session.battle_result = nil
+    self.session.run_state = require("tnr.core.constants").run_states.ENCOUNTER
+    self.native_active = self.native_bridge ~= nil and true or false
+    return true
 end
 
 function StageAdapter:complete(clear_state, options)

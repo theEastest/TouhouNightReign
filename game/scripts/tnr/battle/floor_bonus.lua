@@ -15,13 +15,13 @@ local FloorBonus = {}
 FloorBonus.boss = {
     [1] = 0.80,
     [2] = 1.00,
-    [3] = 1.30,
+    [3] = 1.40,
 }
 
 FloorBonus.enemy = {
     [1] = 1.00,
     [2] = 1.00,
-    [3] = 1.20,
+    [3] = 1.30,
 }
 
 local function clamp_floor(floor)

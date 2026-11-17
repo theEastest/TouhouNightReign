@@ -6,6 +6,7 @@ return function(assert_equal, assert_true)
         GetResourceStatus = function() return status end,
         SetResourceStatus = function(value) status = value end,
         LoadSound = function(id) events[#events + 1] = "load-sound:" .. id end,
+        PlaySound = function(id) events[#events + 1] = "sound:" .. id end,
         LoadMusic = function(id) events[#events + 1] = "load-music:" .. id end,
         EnumRes = function() return { "old-global" }, { "old-stage" } end,
         StopMusic = function(id) events[#events + 1] = "stop:" .. id end,
@@ -17,7 +18,20 @@ return function(assert_equal, assert_true)
     local audio = AudioManager.new(fake)
     audio:load()
     assert_true(audio.loaded["music:menu"] ~= nil, "menu BGM is loaded")
+    assert_true(audio.loaded.ui_move ~= nil, "UI cursor sound is loaded")
+    assert_true(audio.loaded.ui_confirm ~= nil, "UI confirm sound is loaded")
+    assert_true(audio.loaded.ui_cancel ~= nil, "UI cancel sound is loaded")
     assert_equal(status, "stage", "resource status is restored after audio loading")
+    audio:play("ui_move")
+    audio:play("ui_confirm")
+    audio:play("ui_cancel")
+    local ui_sounds = {}
+    for _, event in ipairs(events) do
+        if event:sub(1, 6) == "sound:" then ui_sounds[#ui_sounds + 1] = event end
+    end
+    assert_equal(table.concat(ui_sounds, ","),
+        "sound:tnr:ui_move,sound:tnr:ui_confirm,sound:tnr:ui_cancel",
+        "menu navigation, confirm and cancel sounds use distinct IDs")
     assert_true(audio:play_music("menu"), "menu BGM starts")
     assert_true(audio:play_original("BGM-YEWAN"), "reference BGM starts")
     local stopped_global, stopped_stage = false, false

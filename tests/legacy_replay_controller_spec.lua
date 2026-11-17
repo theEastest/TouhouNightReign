@@ -78,14 +78,14 @@ return function(assert_equal, assert_true)
     local effects = Effects.new({ anm = anm })
     local death = effects:spawn(Effects.KIND.ENEMY_DEATH, 0, 0)
     assert_true(death ~= nil, "the enemy death effect resolves")
-    -- The reference's death effect runs for 81 frames and grows from half size
-    -- to five and a half, so the ring expands instead of blinking out.
-    assert_true(death.duration > 60, "the death effect lasts as long as the reference")
+    -- The source atlas is only 64px per sprite, so the death flash stays short
+    -- and is capped before the image becomes visibly soft.
+    assert_true(death.duration <= 30, "the death flash is shortened")
     assert_equal(effects:count(), 1, "the effect is tracked")
     local _, first_scale = effects:sprite_for(death)
-    death.timer = 30
+    death.timer = 20
     local _, grown_scale = effects:sprite_for(death)
-    assert_true(grown_scale > first_scale, "the death effect grows across its life")
+    assert_true(grown_scale > first_scale and grown_scale <= 3.0, "the death effect grows without enlarging the low-res sprite")
     for _ = 1, death.duration + 2 do effects:update() end
     assert_equal(effects:count(), 0, "the effect expires")
     -- An unknown kind is refused rather than tracked.

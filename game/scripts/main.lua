@@ -83,6 +83,32 @@ function GameInit()
         end
         if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
     end)
+    -- High-resolution, text-free seal icons for the route map. Keep the atlas
+    -- in the global pool because the map is rebuilt after each room transition.
+    _G.__tnr_map_node_icons_loaded = false
+    pcall(function()
+        local set_status = lstg.SetResourceStatus
+        local get_status = lstg.GetResourceStatus
+        local previous
+        if type(get_status) == "function" then previous = get_status() end
+        if type(set_status) == "function" then pcall(set_status, "global") end
+        lstg.LoadTexture("tnr-map-node-icons-texture", "assets/ui/map-node-icons.png", false)
+        local texture_ok, width, height = true, 1024, 128
+        if type(lstg.GetTextureSize) == "function" then
+            texture_ok, width, height = pcall(lstg.GetTextureSize, "tnr-map-node-icons-texture")
+        end
+        local all_loaded = texture_ok and (tonumber(width) or 0) >= 1024 and (tonumber(height) or 0) >= 128
+        local icon_names = { "start", "enemy", "elite", "boss", "shop", "event", "current", "unvisited" }
+        if all_loaded then
+            for index, name in ipairs(icon_names) do
+                local loaded = pcall(lstg.LoadImage, "tnr-map-node-" .. name,
+                    "tnr-map-node-icons-texture", (index - 1) * 128, 0, 128, 128, 64, 64)
+                if not loaded then all_loaded = false; break end
+            end
+        end
+        _G.__tnr_map_node_icons_loaded = all_loaded
+        if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
+    end)
     -- Money pickup animation: a five-frame coin spin, one 32x32 frame per
     -- column. Loaded into the global pool so it survives the per-stage resource
     -- reset that would otherwise evict it before the first room starts.

@@ -13,6 +13,7 @@ local StageRuntime = require("tnr.legacy_replay.stage_runtime")
 local Interfaces = require("tnr.legacy_replay.interfaces")
 local InputBridge = require("tnr.legacy_replay.input_bridge")
 local Player = require("tnr.legacy_replay.player")
+local DynamicEnemyHp = require("tnr.legacy_replay.dynamic_enemy_hp")
 
 local Replay = {}
 
@@ -156,6 +157,7 @@ function Replay:reset_progress()
     self.saved_score=nil
     self.saved_money=nil
     self.equipment_signature=nil
+    self.dynamic_hp_baseline_dps=nil
 end
 
 function Replay:apply_training(player_id,player)
@@ -191,6 +193,17 @@ function Replay:start_stage()
         self.progress_key=progress_key
     end
     self.last_result=nil
+
+    local equipment_session = mode.key == "modern" and self:get_equipment_session() or nil
+    local hp_measurement = equipment_session and DynamicEnemyHp.measure(equipment_session,
+        self.network_config and self.network_config.loadouts,
+        self.network_config and self.network_config.characters) or nil
+    if hp_measurement and self.dynamic_hp_baseline_dps == nil then
+        -- The loadout at the beginning of the run is the 0.5x reference point.
+        self.dynamic_hp_baseline_dps = hp_measurement.total_dps
+    end
+    local enemy_hp_multiplier = hp_measurement
+        and DynamicEnemyHp.multiplier(hp_measurement, self.dynamic_hp_baseline_dps) or 0.5
 
     -- Load the stage's textures and sprites. This is the slow step, so it runs
     -- once when the stage starts rather than every frame.
@@ -228,7 +241,8 @@ function Replay:start_stage()
         chunks = self.chunks,
         sht = self.sht,
         session = session,
-        equipment_session = mode.key=="modern" and self:get_equipment_session() or nil,
+        equipment_session = equipment_session,
+        enemy_hp_multiplier = enemy_hp_multiplier,
         character = self.network_config and self.network_config.characters[1] or character.key,
         texture_sizes = StageRuntime.texture_sizes,
         audio = self.audio,

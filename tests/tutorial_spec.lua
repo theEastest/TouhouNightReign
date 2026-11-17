@@ -11,6 +11,7 @@ return function(eq, yes)
         SetViewport = function() end, SetScissorRect = function() end, SetOrtho = function() end, Render = function() end }
     local renderer = Renderer.new(mock, 1280, 720); renderer.white = "white"
     eq(renderer:menu_hit_test(160, 80), 11, "tutorial occupies the eleventh menu cell")
+    eq(renderer:menu_hit_test(300, 80), nil, "unused bottom-right menu cell is not clickable")
     eq(renderer:tutorial_hit_test(120, 90), "prev", "previous button hit test")
     eq(renderer:tutorial_hit_test(1100, 90), "next", "next button hit test")
     eq(renderer:tutorial_hit_test(1100, 610), "exit", "exit button hit test")

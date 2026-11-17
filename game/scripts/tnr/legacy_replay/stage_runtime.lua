@@ -234,6 +234,7 @@ function StageRuntime.new(options)
         difficulty = options.difficulty,
         boss_ui = self.boss_ui,
         stage_key = self.stage_key,
+        enemy_hp_multiplier = options.enemy_hp_multiplier,
         seed = options.seed,
         random = options.random,
     })
@@ -246,11 +247,11 @@ function StageRuntime.new(options)
     -- reference's numeric effect ids, so the translation happens here.
     self.audio = options.audio
     self.sound_paths = self.sound_paths or {}
-    self.adapter.on_sound = function(path)
+    self.adapter.on_sound = function(path, volume)
         self.played_sounds = self.played_sounds or {}
         self.played_sounds[#self.played_sounds + 1] = path
         if self.audio and self.audio.play_effect then
-            self.audio:play_effect(path)
+            self.audio:play_effect(path, volume)
         end
     end
     -- The adapter resolves enemy sprites from the stage's own archive.
@@ -1494,6 +1495,16 @@ function StageRuntime:draw()
                 local h = 48 * BossUi.PLAYFIELD_SCALE
                 lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
                 lstg.RenderRect(image, left_x - w * 0.5, left_x + w * 0.5, top_y - h*.5, top_y+h*.5)
+            end
+            -- Show TH15's tiny collision point only while focused. It is
+            -- intentionally drawn over the ship so the player can see the
+            -- exact point hidden by the sprite.
+            if player.focus then
+                local marker = "tnr-white"
+                lstg.SetImageState(marker, "", lstg.Color(150, 255, 96, 132))
+                lstg.RenderRect(marker, left_x - 4, left_x + 4, top_y - 4, top_y + 4)
+                lstg.SetImageState(marker, "", lstg.Color(255, 255, 226, 236))
+                lstg.RenderRect(marker, left_x - 1.5, left_x + 1.5, top_y - 1.5, top_y + 1.5)
             end
         end
     end

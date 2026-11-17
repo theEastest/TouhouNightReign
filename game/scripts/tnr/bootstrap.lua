@@ -1191,6 +1191,8 @@ function Bootstrap:open_replay_select()
     self.replay.mode_cursor = 1
     self.replay.character_cursor = 1
     self.replay.player_count_cursor = 1
+    self.scroll_states.replay_select_x = nil
+    self.scroll_states.replay_select_y = nil
     self.replay.message = nil
     -- Load the shared data up front so the select screen can show a clear
     -- message instead of failing when a stage starts.
@@ -1226,6 +1228,7 @@ end
 --- Drive the replay select screen input.
 function Bootstrap:_update_replay_select(player_input)
     local replay = self.replay
+    self.scroll_states = self.scroll_states or {}
     if self.preparation_overlay then
         self:_update_replay_loadout(player_input)
         return false
@@ -1235,24 +1238,65 @@ function Bootstrap:_update_replay_select(player_input)
         self:open_preparation_overlay()
         return false
     end
-    local fields = { "stage", "player_count", "mode", "character" }
-    if (player_input.move_x or 0) ~= 0 then
-        local index = 1
-        for position, name in ipairs(fields) do
-            if name == self.replay_field then index = position break end
-        end
-        index = ((index - 1 + player_input.move_x) % #fields) + 1
-        self.replay_field = fields[index]
+    local fields = replay.network_lobby and { "stage", "mode", "character" }
+        or { "stage", "player_count", "mode", "character" }
+    local field = self.replay_field or "stage"
+    local field_index = 1
+    for position, name in ipairs(fields) do
+        if name == field then field_index = position break end
     end
-    if (player_input.move_y or 0) ~= 0 then
-        local field = self.replay_field or "stage"
-        local counts = {
-            stage = #replay:stage_list(),
-            player_count = #replay.PLAYER_COUNTS,
-            mode = #replay.MODES,
-            character = #replay.CHARACTERS,
-        }
-        replay:move_cursor(field, -player_input.move_y, counts[field] or 1)
+    local x_scroll = self.scroll_states.replay_select_x
+    if not x_scroll then
+        x_scroll = ScrollState.new(#fields, #fields, field_index, 60, 30, true)
+        self.scroll_states.replay_select_x = x_scroll
+    end
+    x_scroll:set_count(#fields, #fields)
+    x_scroll:set_cursor(field_index)
+    local next_field_index = x_scroll:update(player_input.move_x or 0)
+    if next_field_index ~= field_index then
+        self.replay_field = fields[next_field_index]
+        field = self.replay_field
+        local y_scroll = self.scroll_states.replay_select_y
+        if y_scroll then y_scroll:update(0) end
+    end
+
+    local counts = {
+        stage = #replay:stage_list(),
+        player_count = #replay.PLAYER_COUNTS,
+        mode = #replay.MODES,
+        character = #replay.CHARACTERS,
+    }
+    local cursor_name = field .. "_cursor"
+    local current = replay[cursor_name] or 1
+    local y_scroll = self.scroll_states.replay_select_y
+    if not y_scroll then
+        y_scroll = ScrollState.new(counts[field], counts[field], current, 60, 30, true)
+        self.scroll_states.replay_select_y = y_scroll
+    end
+    y_scroll:set_count(counts[field], counts[field])
+    y_scroll:set_cursor(current)
+    local next_cursor = y_scroll:update(-(player_input.move_y or 0))
+    if next_cursor ~= current then replay:move_cursor(field, next_cursor - current, counts[field]) end
+
+    if self.input and self.input.get_mouse_position and self.renderer and self.renderer.replay_select_hit_test then
+        local mouse_x, mouse_y = self.input:get_mouse_position()
+        local hit = self.renderer:replay_select_hit_test(mouse_x, mouse_y, replay)
+        if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed
+                or player_input.mouse_primary_down) then
+            if hit.action == "start" then
+                if player_input.mouse_primary_pressed then self:start_replay_stage() end
+            elseif hit.field then
+                if hit.field ~= self.replay_field then
+                    self.replay_field = hit.field
+                    y_scroll:update(0)
+                end
+                if player_input.mouse_primary_pressed then
+                    local mouse_cursor = replay[hit.field .. "_cursor"] or 1
+                    replay:move_cursor(hit.field, hit.index - mouse_cursor, counts[hit.field])
+                    y_scroll:set_cursor(hit.index)
+                end
+            end
+        end
     end
     if player_input.confirm then
         -- Starting a stage is not the menu's quit signal. The main menu uses a
@@ -1319,7 +1363,23 @@ function Bootstrap:_scroll_step(key, cursor, count, visible, direction)
     end
     state:set_count(count, visible)
     state:set_cursor(cursor)
-    return state:update(-(direction or 0))
+    local next_cursor = state:update(-(direction or 0))
+    if next_cursor ~= cursor then
+        self:_play_ui_sound("ui_move")
+    end
+    return next_cursor
+end
+
+function Bootstrap:_play_ui_sound(key)
+    if not self.audio or type(self.audio.play) ~= "function" then return end
+    if key == "ui_move" then
+        local tick = self.ui_update_count or 0
+        if self.ui_last_move_sound_tick and tick - self.ui_last_move_sound_tick < 7 then
+            return
+        end
+        self.ui_last_move_sound_tick = tick
+    end
+    self.audio:play(key)
 end
 
 function Bootstrap:_scroll_drag(key, cursor, count, visible, x, y, left, right, bottom, top)
@@ -1412,12 +1472,21 @@ function Bootstrap:_failure_option_count()
     if (self.session.player_count or 1) > 1 and self.battle_sync and self.battle_sync:is_networked() then
         return 3
     end
+    local player = self.session:get_player(self.session.local_player_id or 1)
+    if (self.session.player_count or 1) == 1 and player and (tonumber(player.life) or 0) > 0
+            and self.stage_adapter and self.stage_adapter.accept_reality then
+        return 3
+    end
     return 2
 end
 
 function Bootstrap:_failure_choice(index)
     if index == 1 then return "RETRY_ENCOUNTER" end
-    if index == 2 and self:_failure_option_count() == 3 then return "RESTART_RUN" end
+    if index == 2 and (self.session.player_count or 1) > 1
+            and self.battle_sync and self.battle_sync:is_networked() then
+        return "RESTART_RUN"
+    end
+    if index == 2 and self:_failure_option_count() == 3 then return "ACCEPT_REALITY" end
     return "RETURN_MENU"
 end
 
@@ -1436,6 +1505,9 @@ function Bootstrap:_handle_battle_failure_action(choice)
         end
         self.stage_adapter:reset_for_new_run()
         self:start_game(seed)
+    elseif choice == "ACCEPT_REALITY" then
+        local ok = self.stage_adapter:accept_reality()
+        if ok then self.failure_cursor = 1 end
     elseif choice == "RETURN_MENU" then
         self:return_to_menu()
     end
@@ -1443,7 +1515,7 @@ end
 
 function Bootstrap:_choose_battle_failure(index)
     local choice = self:_failure_choice(index)
-    if self:_failure_option_count() == 3 then
+    if (self.session.player_count or 1) > 1 and self.battle_sync and self.battle_sync:is_networked() then
         self.transport:send({
             type = Command.BATTLE_FAILURE_VOTE,
             choice = choice,
@@ -1502,6 +1574,7 @@ function Bootstrap:update()
     if not self.initialized then
         self:init()
     end
+    self.ui_update_count = (self.ui_update_count or 0) + 1
     local inputs = self:_poll_inputs()
     local player_input = inputs[self.session.local_player_id] or inputs[1]
     if not player_input then
@@ -1511,6 +1584,15 @@ function Bootstrap:update()
         end
     end
     player_input = player_input or self.input:poll(self.session.local_player_id)
+    local ui_state = self.session.run_state ~= Constants.run_states.ENCOUNTER
+        and self.session.run_state ~= Constants.run_states.REPLAY_STAGE
+    if ui_state then
+        if player_input.confirm or player_input.tab then
+            self:_play_ui_sound("ui_confirm")
+        elseif player_input.cancel then
+            self:_play_ui_sound("ui_cancel")
+        end
+    end
     if self.replay_network and self.replay_network:update(player_input) then return false end
     self:_update_ui_mouse()
     self.ui_mouse_down = player_input.mouse_primary_down == true
@@ -1725,15 +1807,23 @@ function Bootstrap:update()
             local menu_cursor = self.menu_cursor or 1
             local column = (menu_cursor - 1) % GRID_COLUMNS
             local row = math.floor((menu_cursor - 1) / GRID_COLUMNS)
+            local function columns_in_row(value)
+                return value == GRID_ROWS - 1 and 2 or GRID_COLUMNS
+            end
             if (player_input.move_y or 0) ~= 0 then
                 row = (row - player_input.move_y) % GRID_ROWS
                 if row < 0 then row = row + GRID_ROWS end
+                column = math.min(column, columns_in_row(row) - 1)
             end
             if (player_input.move_x or 0) ~= 0 then
-                column = (column + player_input.move_x) % GRID_COLUMNS
-                if column < 0 then column = column + GRID_COLUMNS end
+                local columns = columns_in_row(row)
+                column = (column + player_input.move_x) % columns
+                if column < 0 then column = column + columns end
             end
             self.menu_cursor = row * GRID_COLUMNS + column + 1
+            if self.menu_cursor ~= menu_cursor then
+                self:_play_ui_sound("ui_move")
+            end
             if self.input.get_mouse_position and self.renderer and self.renderer.menu_hit_test then
                 local mouse_x, mouse_y = self.input:get_mouse_position()
                 local hit = self.renderer:menu_hit_test(mouse_x, mouse_y)
@@ -1763,6 +1853,7 @@ function Bootstrap:update()
         self:_update_pending_acquisition(player_input)
     elseif self.session.run_state == Constants.run_states.MAP then
         local equipment_locked = self.session.preparation and self.session.preparation.selected_node_id ~= nil
+        local previous_map_cursor = self.map_scene.cursor_node_id
         local equipment_button_hit = false
         if self.input.get_mouse_position and self.renderer and self.renderer.map_equipment_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
@@ -1797,6 +1888,9 @@ function Bootstrap:update()
             else
                 self.map_scene.cursor_node_id = nil
             end
+        end
+        if self.map_scene.cursor_node_id ~= previous_map_cursor then
+            self:_play_ui_sound("ui_move")
         end
     elseif self.preparation_overlay or self.session.run_state == Constants.run_states.MAP_PREPARATION then
         self:_update_preparation(player_input, self.preparation_overlay)
@@ -2050,6 +2144,10 @@ function Bootstrap:render()
     elseif (self.session.run_state == Constants.run_states.ENCOUNTER or self.session.run_state == Constants.run_states.CARD_TRAINING) and self.stage_adapter:is_fallback_active() then
         self.stage_adapter:render()
     elseif self.renderer then
+        self.session.failure_option_count = self.session.run_state == Constants.run_states.RUN_FAILED
+            and self:_failure_option_count() or nil
+        self.session.failure_networked = (self.session.player_count or 1) > 1
+            and self.battle_sync and self.battle_sync:is_networked() or false
         self.renderer.replay_field=self.replay_field
         local cursor = (self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED or self.session.run_state == Constants.run_states.RUN_FAILED) and self.failure_cursor or self.training_cursor
         self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog, self.catalog_cursor, self.catalog_entries, self.preparation_overlay, self.character_cursor, self.character_catalog, self.tutorial_page)

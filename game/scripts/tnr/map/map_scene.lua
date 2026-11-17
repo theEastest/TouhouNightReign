@@ -30,7 +30,7 @@ function MapScene:get_view()
             links = node.links,
             visited = node.visited,
             content_seed = node.content_seed,
-            selectable = current ~= nil and current:is_linked(id),
+            selectable = current ~= nil and map:is_adjacent(id),
             -- The first prototype intentionally exposes the whole route graph.
             revealed = true,
         }
@@ -46,11 +46,11 @@ function MapScene:get_view()
 end
 
 function MapScene:get_selectable_nodes()
-    local current = self.session.map and self.session.map:get_current_node()
+    local map = self.session.map
     local result = {}
-    if current then
-        for _, node_id in ipairs(current.links) do
-            result[#result + 1] = self.session.map:get_node(node_id)
+    if map then
+        for _, node_id in ipairs(map:get_forward_links()) do
+            result[#result + 1] = map:get_node(node_id)
         end
     end
     table.sort(result, function(a, b) return a.id < b.id end)

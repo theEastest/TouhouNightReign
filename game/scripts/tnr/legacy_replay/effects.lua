@@ -35,6 +35,8 @@ local DEFAULT_DURATION = 81
 local DEFAULT_GROWTH_FRAMES = 30
 local DEFAULT_START_SCALE = 0.5
 local DEFAULT_END_SCALE = 5.5
+local ENEMY_DEATH_DURATION = 27
+local ENEMY_DEATH_END_SCALE = 3.0
 
 Effects.EFFECT_TEXTURES = EFFECT_TEXTURES
 Effects.EFFECT_SCRIPTS = EFFECT_SCRIPTS
@@ -120,6 +122,14 @@ function Effects:spawn(kind, x, y, scale)
     local info = self:entry_for(kind)
     if not info then return nil end
     local timeline = read_timeline(info.script)
+    if kind == Effects.KIND.ENEMY_DEATH then
+        -- The archive's 64x64 ring was enlarged to an 88px radius and left on
+        -- screen for 81 frames. Keep the imported animation, but cap both its
+        -- lifetime and scale so the low-resolution source does not dominate.
+        timeline.duration = math.min(timeline.duration, ENEMY_DEATH_DURATION)
+        timeline.growth_frames = math.min(timeline.growth_frames, 18)
+        timeline.end_scale = math.min(timeline.end_scale, ENEMY_DEATH_END_SCALE)
+    end
     local effect = {
         kind = kind,
         x = x, y = y,

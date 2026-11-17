@@ -7,14 +7,16 @@ local WaveDifficulty = require("tnr.stages.wave_difficulty")
 local Generator = {}
 
 local DEFAULTS = {
-    node_count = 24,
-    min_boss_hops = 6,
+    -- Keep roughly the previous node density after adding three route
+    -- columns, so the map still offers several meaningful paths per column.
+    node_count = 35,
+    min_boss_hops = 10,
     min_node_spacing = 0.06,
     max_links = 4,
-    enemy_ratio = 0.55,
-    elite_ratio = 0.12,
-    event_ratio = 0.20,
-    shop_ratio = 0.10,
+    enemy_ratio = 0.67,
+    elite_ratio = 0.18,
+    event_ratio = 0.08,
+    shop_ratio = 0.07,
     ordinary_stage_variants = 6,
     floor = 1,
 }
@@ -42,16 +44,29 @@ end
 -- graph itself has a stable left-to-right direction instead of relying on
 -- random coordinates.
 local function make_layout(rng, count)
-    local layer_count = math.min(8, count)
+    local layer_count = math.min(11, count)
     layer_count = math.max(7, layer_count)
     local layers = { { 1 } }
     local remaining = count - 2
     local middle_layers = layer_count - 2
     local base = math.floor(remaining / middle_layers)
     local extra = remaining % middle_layers
+    local extra_layers = {}
+    for layer_index = 1, middle_layers do
+        extra_layers[#extra_layers + 1] = layer_index
+    end
+    rng:shuffle(extra_layers)
+    local layer_sizes = {}
+    for layer_index = 1, middle_layers do
+        layer_sizes[layer_index] = base
+    end
+    for index = 1, extra do
+        local layer_index = extra_layers[index]
+        layer_sizes[layer_index] = layer_sizes[layer_index] + 1
+    end
     local next_id = 2
     for layer_index = 1, middle_layers do
-        local layer_size = base + (layer_index <= extra and 1 or 0)
+        local layer_size = layer_sizes[layer_index]
         local layer = {}
         for _ = 1, layer_size do
             layer[#layer + 1] = next_id
@@ -92,6 +107,9 @@ end
 local function connect_layers(rng, nodes, source_ids, target_ids, max_links)
     local source_count = #source_ids
     local target_count = #target_ids
+    local incoming_count = {}
+    local max_incoming = target_count == 1 and max_links or math.min(2, max_links - 1)
+    for _, target_id in ipairs(target_ids) do incoming_count[target_id] = 0 end
     local function mapped_index(index, from_count, to_count)
         if from_count <= 1 or to_count <= 1 then
             return 1
@@ -100,13 +118,21 @@ local function connect_layers(rng, nodes, source_ids, target_ids, max_links)
     end
     local function connect(source_index, target_index)
         if target_index < 1 or target_index > target_count then
-            return
+            return false
         end
         local source = nodes[source_ids[source_index]]
         local target = nodes[target_ids[target_index]]
-        if #source.links < max_links and #target.links < max_links then
-            add_edge(nodes, source.id, target.id)
+        -- Keep at most two incoming routes per room. That leaves room for a
+        -- forward exit under the four-link cap, including when a 3-node layer
+        -- fans out into a 4-node layer.
+        if incoming_count[target.id] < max_incoming
+                and #source.links < max_links and #target.links < max_links then
+            if add_edge(nodes, source.id, target.id) then
+                incoming_count[target.id] = incoming_count[target.id] + 1
+                return true
+            end
         end
+        return false
     end
 
     -- Primary monotonic connections preserve vertical order and guarantee
@@ -118,12 +144,36 @@ local function connect_layers(rng, nodes, source_ids, target_ids, max_links)
     for target_index = 1, target_count do
         connect(mapped_index(target_index, target_count, source_count), target_index)
     end
-    -- Add sparse parallel choices. The +1 target remains monotonic, so it
-    -- cannot introduce a crossing with the primary edges.
+    -- If a reverse edge hit a saturated source in a custom map config, attach
+    -- any still-unserved destination to the nearest source that has capacity.
+    -- With the default 3/4-node layers this is normally a no-op.
+    for target_index, target_id in ipairs(target_ids) do
+        if incoming_count[target_id] == 0 then
+            local preferred = mapped_index(target_index, target_count, source_count)
+            local connected = connect(preferred, target_index)
+            local distance = 1
+            while not connected and distance < source_count do
+                for _, source_index in ipairs({ preferred - distance, preferred + distance }) do
+                    if source_index >= 1 and source_index <= source_count then
+                        connected = connect(source_index, target_index)
+                        if connected then break end
+                    end
+                end
+                distance = distance + 1
+            end
+        end
+    end
+    -- StS/FTL maps tend to offer one or two forward choices per room. Give
+    -- each layer pair a randomized branch direction, then add optional
+    -- adjacent choices on that side. A shared direction preserves vertical
+    -- order, so lines stay non-crossing while the graph forms varied fans,
+    -- joins and splits instead of repeating the same diagonal motif.
+    local branch_direction = rng:chance(0.5) and 1 or -1
     for source_index = 1, source_count do
         local primary = mapped_index(source_index, source_count, target_count)
-        if primary < target_count and rng:chance(0.45) then
-            connect(source_index, primary + 1)
+        local alternate = primary + branch_direction
+        if alternate >= 1 and alternate <= target_count and rng:chance(0.62) then
+            connect(source_index, alternate)
         end
     end
 end
@@ -167,26 +217,44 @@ local function assign_types(rng, nodes, config)
     end
     rng:shuffle(candidates)
 
-    local event_count = math.min(#candidates, math.max(1, math.floor(#candidates * config.event_ratio + 0.5)))
-    local shop_count = math.min(#candidates - event_count, math.max(1, math.floor(#candidates * config.shop_ratio + 0.5)))
-    local cursor = 1
-    for _ = 1, event_count do
-        nodes[candidates[cursor]].type = Constants.node_types.EVENT
-        cursor = cursor + 1
+    -- Ratios are shares of the same interior-node pool. The previous code
+    -- assigned events/shops/elites first, then split the remainder only
+    -- between enemies and events, making events appear far more often than
+    -- their configured 20% weight.
+    local entries = {
+        { type = Constants.node_types.ENEMY, weight = math.max(0, tonumber(config.enemy_ratio) or 0) },
+        { type = Constants.node_types.ELITE, weight = math.max(0, tonumber(config.elite_ratio) or 0) },
+        { type = Constants.node_types.EVENT, weight = math.max(0, tonumber(config.event_ratio) or 0) },
+        { type = Constants.node_types.SHOP, weight = math.max(0, tonumber(config.shop_ratio) or 0) },
+    }
+    local total_weight = 0
+    for _, entry in ipairs(entries) do total_weight = total_weight + entry.weight end
+    if total_weight <= 0 then
+        entries[1].weight, entries[2].weight, entries[3].weight, entries[4].weight = 0.67, 0.18, 0.08, 0.07
+        total_weight = 1
     end
-    for _ = 1, shop_count do
-        nodes[candidates[cursor]].type = Constants.node_types.SHOP
-        cursor = cursor + 1
+    local counts, remainders, assigned = {}, {}, 0
+    for index, entry in ipairs(entries) do
+        local exact = #candidates * entry.weight / total_weight
+        counts[index] = math.floor(exact)
+        assigned = assigned + counts[index]
+        remainders[#remainders + 1] = { index = index, fraction = exact - counts[index] }
     end
-    local elite_count = math.max(1, math.floor(#candidates * config.elite_ratio + 0.5))
-    for _ = 1, elite_count do
-        if cursor <= #candidates then
-            nodes[candidates[cursor]].type = Constants.node_types.ELITE
-            cursor = cursor + 1
-        end
+    table.sort(remainders, function(left, right)
+        if left.fraction ~= right.fraction then return left.fraction > right.fraction end
+        return left.index < right.index
+    end)
+    for index = 1, #candidates - assigned do
+        local entry_index = remainders[((index - 1) % #remainders) + 1].index
+        counts[entry_index] = counts[entry_index] + 1
     end
-    for index = cursor, #candidates do
-        nodes[candidates[index]].type = rng:chance(config.enemy_ratio) and Constants.node_types.ENEMY or Constants.node_types.EVENT
+    local assigned_types = {}
+    for index, entry in ipairs(entries) do
+        for _ = 1, counts[index] do assigned_types[#assigned_types + 1] = entry.type end
+    end
+    rng:shuffle(assigned_types)
+    for index, node_id in ipairs(candidates) do
+        nodes[node_id].type = assigned_types[index]
     end
 end
 

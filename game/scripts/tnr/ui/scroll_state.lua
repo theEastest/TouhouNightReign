@@ -13,13 +13,16 @@ local function clamp(value, low, high)
     return value
 end
 
-function ScrollState.new(item_count, visible_count, cursor)
+function ScrollState.new(item_count, visible_count, cursor, initial_delay, repeat_rate, repeat_on_delay)
     local self = setmetatable({
         item_count = math.max(0, tonumber(item_count) or 0),
         visible_count = math.max(1, tonumber(visible_count) or 1),
         cursor = math.max(1, tonumber(cursor) or 1),
         hold_direction = 0,
         hold_frames = 0,
+        initial_delay = math.max(0, tonumber(initial_delay) or INITIAL_DELAY),
+        repeat_rate = math.max(1, tonumber(repeat_rate) or REPEAT_RATE),
+        repeat_on_delay = repeat_on_delay == true,
     }, ScrollState)
     self.cursor = clamp(self.cursor, 1, math.max(1, self.item_count))
     return self
@@ -58,8 +61,9 @@ function ScrollState:update(direction)
         return self:_move_once(direction)
     end
     self.hold_frames = self.hold_frames + 1
-    if self.hold_frames > INITIAL_DELAY
-            and (self.hold_frames - INITIAL_DELAY) % REPEAT_RATE == 0 then
+    local elapsed = self.hold_frames - self.initial_delay
+    local reached_delay = self.repeat_on_delay and elapsed >= 0 or elapsed > 0
+    if reached_delay and elapsed % self.repeat_rate == 0 then
         return self:_move_once(direction)
     end
     return self.cursor

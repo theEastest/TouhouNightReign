@@ -112,4 +112,23 @@ function WaveDifficulty.band_for(floor, progress)
     return (floor - 1) * 2 + half + 1
 end
 
+--- Source mode used for ordinary-wave selection on the opening and final floors.
+function WaveDifficulty.source_mode_for_floor(floor)
+    floor = math.max(1, math.min(3, math.floor(tonumber(floor) or 1)))
+    if floor == 1 then return "normal" end
+    if floor == 3 then return "lunatic" end
+    return nil
+end
+
+--- Keep source-mode difficulty separate from the content-density tier.
+--- Normal catalog waves carry source difficulty 1..3; Lunatic carries 4..6.
+function WaveDifficulty.wave_allowed_on_floor(wave, floor)
+    local mode = WaveDifficulty.source_mode_for_floor(floor)
+    if not mode then return true end
+    local difficulty = type(wave) == "table" and tonumber(wave.difficulty) or nil
+    if difficulty == nil then return false end
+    if mode == "normal" then return difficulty <= 3 end
+    return difficulty >= 4
+end
+
 return WaveDifficulty

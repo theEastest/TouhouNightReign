@@ -65,6 +65,7 @@ function GameSession.new(options)
         map_config = options.map_config,
         default_seed = options.run_seed,
         run_seed = nil,
+        run_generation = 0,
         run_state = Constants.run_states.MENU,
         -- The run is split into three floors (like a Slay-the-Spire act): each
         -- floor has its own map, its own boss pool and its own difficulty
@@ -183,6 +184,7 @@ function GameSession:start_new(run_seed, floor)
         run_seed = (seconds * 1103515245 + micros) % 2147483647
     end
     self.run_seed = math.floor(run_seed)
+    self.run_generation = (self.run_generation or 0) + 1
     self.run_state = Constants.run_states.MAP
     -- A fresh run always starts at floor 1 unless a floor is explicitly given
     -- (for example when a debug command jumps straight to a later floor).
@@ -460,6 +462,8 @@ function GameSession:_advance_node(node, player_id)
             stage_id = definition.stage_id,
             reward_table = definition.reward_table,
             content_seed = node.content_seed,
+            run_seed = self.run_seed,
+            run_generation = self.run_generation,
             floor = self.floor,
             band = node.band,
             room_generation = string.format("%s:%s:%s", tostring(self.run_seed), tostring(node.id), tostring(node.content_seed or "0")),
@@ -489,7 +493,7 @@ function GameSession:select_node(node_id, player_id)
     end
     if self.preparation_required and not self._committing_prepared then
         node_id = tonumber(node_id)
-        if not node_id or not self.map:is_adjacent(node_id) then return nil, "节点不是当前节点的相邻节点" end
+        if not node_id or not self.map:is_adjacent(node_id) then return nil, "只能选择下一层的相邻节点，不能回头" end
         self.preparation:set_selected_node(node_id)
         self.run_state = Constants.run_states.MAP_PREPARATION
         self:emit(Event.PREPARATION_CHANGED, { open = true, selected_node_id = node_id })
@@ -564,7 +568,7 @@ function GameSession:enter_preparation(selected_node_id)
     if selected_node_id ~= nil then
         selected_node_id = tonumber(selected_node_id)
         if not selected_node_id or not self.map:is_adjacent(selected_node_id) then
-            return nil, "节点不是当前节点的相邻节点"
+            return nil, "整备只能选择下一层的相邻节点，不能回头"
         end
         self.preparation:set_selected_node(selected_node_id)
     end
@@ -1090,6 +1094,8 @@ function GameSession:debug_goto(node_id)
             stage_id = definition.stage_id,
             reward_table = definition.reward_table,
             content_seed = node.content_seed,
+            run_seed = self.run_seed,
+            run_generation = self.run_generation,
             floor = self.floor,
             band = node.band,
             room_generation = string.format("%s:%s:%s", tostring(self.run_seed), tostring(node.id), tostring(node.content_seed or "0")),

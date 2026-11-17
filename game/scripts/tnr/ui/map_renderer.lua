@@ -9,20 +9,31 @@ local WeaponPreview = require("tnr.ui.weapon_preview")
 local MapRenderer = {}
 MapRenderer.__index = MapRenderer
 
+local MAP_ICON_IMAGES = {
+    START = "tnr-map-node-start",
+    ENEMY = "tnr-map-node-enemy",
+    ELITE = "tnr-map-node-elite",
+    BOSS = "tnr-map-node-boss",
+    SHOP = "tnr-map-node-shop",
+    EVENT = "tnr-map-node-event",
+    CURRENT = "tnr-map-node-current",
+    UNVISITED = "tnr-map-node-unvisited",
+}
+
 local TYPE_META = {
-    ELITE = { label = "精英", glyph = "A", color = { 255, 220, 126, 58 } },
-    START = { label = "起点", glyph = "S", color = { 255, 236, 236, 240 } },
-    ENEMY = { label = "战斗", glyph = "E", color = { 255, 238, 92, 92 } },
-    BOSS = { label = "首领", glyph = "B", color = { 255, 247, 151, 58 } },
-    SHOP = { label = "商店", glyph = "$", color = { 255, 112, 220, 145 } },
-    EVENT = { label = "事件", glyph = "?", color = { 255, 86, 180, 238 } },
+    ELITE = { label = "精英", icon = "ELITE", color = { 255, 231, 177, 91 } },
+    START = { label = "起点", icon = "START", color = { 255, 236, 236, 240 } },
+    ENEMY = { label = "战斗", icon = "ENEMY", color = { 255, 224, 91, 112 } },
+    BOSS = { label = "首领", icon = "BOSS", color = { 255, 245, 174, 105 } },
+    SHOP = { label = "商店", icon = "SHOP", color = { 255, 155, 211, 186 } },
+    EVENT = { label = "事件", icon = "EVENT", color = { 255, 143, 191, 231 } },
 }
 
 local COLORS = {
     background = { 255, 9, 13, 25 },
-    map_panel = { 220, 20, 26, 43 },
-    panel = { 242, 15, 19, 32 },
-    panel_border = { 190, 110, 122, 154 },
+    map_panel = { 152, 11, 15, 31 },
+    panel = { 188, 10, 13, 28 },
+    panel_border = { 168, 139, 78, 91 },
     muted = { 190, 164, 172, 190 },
     text = { 255, 245, 241, 236 },
     accent = { 255, 235, 105, 110 },
@@ -68,7 +79,166 @@ local function draw_line(lstg, image, values, x1, y1, x2, y2, thickness)
 end
 
 local function draw_diamond(lstg, image, values, x, y, radius)
-    draw_rect(lstg, image, values, x - radius, x + radius, y - radius, y + radius)
+    radius = math.max(0.8, tonumber(radius) or 1)
+    local bands = math.max(1, math.min(10, math.ceil(radius / 2.2)))
+    for band = 0, bands - 1 do
+        local low = -radius + 2 * radius * band / bands
+        local high = -radius + 2 * radius * (band + 1) / bands
+        local middle = (low + high) * 0.5
+        local half_width = math.max(0.8, radius - math.abs(middle))
+        draw_rect(lstg, image, values, x - half_width, x + half_width, y + low, y + high)
+    end
+end
+
+local function draw_polygon(lstg, image, values, points)
+    if not lstg.Render4V or #points < 3 then return end
+    lstg.SetImageState(image, "", color(lstg, values))
+    local origin = points[1]
+    for index = 2, #points - 1 do
+        local first, second = points[index], points[index + 1]
+        lstg.Render4V(image,
+            origin[1], origin[2], 0.5,
+            first[1], first[2], 0.5,
+            second[1], second[2], 0.5,
+            second[1], second[2], 0.5)
+    end
+end
+
+local function draw_circle(lstg, image, values, x, y, radius, segments)
+    radius = math.max(0.5, tonumber(radius) or 1)
+    local points = {}
+    for index = 0, (segments or 24) - 1 do
+        local angle = index * math.pi * 2 / (segments or 24)
+        points[#points + 1] = { x + math.cos(angle) * radius, y + math.sin(angle) * radius }
+    end
+    draw_polygon(lstg, image, values, points)
+end
+
+local function draw_ring(lstg, image, values, x, y, inner, outer, segments)
+    if not lstg.Render4V then return end
+    segments = segments or 32
+    lstg.SetImageState(image, "", color(lstg, values))
+    for index = 0, segments - 1 do
+        local a1, a2 = index * math.pi * 2 / segments, (index + 1) * math.pi * 2 / segments
+        local c1, s1, c2, s2 = math.cos(a1), math.sin(a1), math.cos(a2), math.sin(a2)
+        lstg.Render4V(image,
+            x + c1 * outer, y + s1 * outer, 0.5,
+            x + c2 * outer, y + s2 * outer, 0.5,
+            x + c2 * inner, y + s2 * inner, 0.5,
+            x + c1 * inner, y + s1 * inner, 0.5)
+    end
+end
+
+local function draw_ellipse(lstg, image, values, x, y, rx, ry, angle)
+    local points = {}
+    angle = angle or 0
+    for index = 0, 15 do
+        local theta = index * math.pi * 2 / 16
+        local px, py = math.cos(theta) * rx, math.sin(theta) * ry
+        points[#points + 1] = {
+            x + px * math.cos(angle) - py * math.sin(angle),
+            y + px * math.sin(angle) + py * math.cos(angle),
+        }
+    end
+    draw_polygon(lstg, image, values, points)
+end
+
+local function draw_medallion(lstg, image, x, y, radius, values, selected)
+    draw_circle(lstg, image, { 238, 7, 10, 23 }, x, y, radius)
+    draw_ring(lstg, image, values, x, y, radius - 1.8, radius, 32)
+    draw_ring(lstg, image, { selected and 170 or 95, 255, 220, 178 }, x, y, radius - 4.2, radius - 3.6, 32)
+    -- Tiny four-point ornaments bring the nodes closer to the title page seals.
+    for index = 0, 3 do
+        local angle = math.pi * 0.25 + index * math.pi * 0.5
+        local ox, oy = math.cos(angle) * (radius - 2.1), math.sin(angle) * (radius - 2.1)
+        draw_ellipse(lstg, image, { 195, 255, 220, 175 }, x + ox, y + oy, 1.25, 0.65, angle)
+    end
+end
+
+-- Small, text-free pictograms keep route nodes legible and tie their shapes
+-- to shrine, moon and festival motifs from the title illustration.
+local function draw_map_glyph(lstg, image, kind, x, y, values, scale)
+    scale = tonumber(scale) or 1
+    local ink = { 255, 255, 235, 202 }
+    local function bar(left, right, bottom, top, color_values)
+        draw_rect(lstg, image, color_values or ink, left, right, bottom, top)
+    end
+    local function stroke(x1, y1, x2, y2, width, color_values)
+        local dx, dy = x2 - x1, y2 - y1
+        local length = math.sqrt(dx * dx + dy * dy)
+        if length <= 0 then return end
+        local half = (width or 2) * 0.5
+        local nx, ny = -dy / length * half, dx / length * half
+        draw_polygon(lstg, image, color_values or ink, {
+            { x1 + nx, y1 + ny }, { x2 + nx, y2 + ny },
+            { x2 - nx, y2 - ny }, { x1 - nx, y1 - ny },
+        })
+    end
+    local function petal(px, py, radius, angle)
+        draw_ellipse(lstg, image, ink, px, py, radius * 0.72, radius * 0.43, angle or 0)
+    end
+
+    if kind == "START" then
+        -- Lacquered torii gate with a gently crowned lintel.
+        stroke(x - 5.6 * scale, y + 3.3 * scale, x + 5.6 * scale, y + 3.3 * scale, 1.55 * scale)
+        stroke(x - 5.5 * scale, y + 3.3 * scale, x - 4.3 * scale, y + 4.4 * scale, 1.15 * scale)
+        stroke(x + 4.3 * scale, y + 4.4 * scale, x + 5.5 * scale, y + 3.3 * scale, 1.15 * scale)
+        stroke(x - 3.5 * scale, y + 1.0 * scale, x + 3.5 * scale, y + 1.0 * scale, 1.2 * scale)
+        stroke(x - 2.9 * scale, y - 4.1 * scale, x - 2.9 * scale, y + 2.4 * scale, 1.35 * scale)
+        stroke(x + 2.9 * scale, y - 4.1 * scale, x + 2.9 * scale, y + 2.4 * scale, 1.35 * scale)
+    elseif kind == "ENEMY" then
+        -- Crossed spirit blades, complete with guards and bright pommels.
+        stroke(x - 4.7 * scale, y - 4.8 * scale, x + 3.8 * scale, y + 3.7 * scale, 1.45 * scale)
+        stroke(x - 3.8 * scale, y + 3.7 * scale, x + 4.7 * scale, y - 4.8 * scale, 1.45 * scale)
+        stroke(x - 4.6 * scale, y - 1.5 * scale, x - 1.7 * scale, y - 4.4 * scale, 1.2 * scale)
+        stroke(x + 1.7 * scale, y - 4.4 * scale, x + 4.6 * scale, y - 1.5 * scale, 1.2 * scale)
+        draw_circle(lstg, image, { 255, 255, 165, 133 }, x, y, 1.25 * scale, 16)
+    elseif kind == "ELITE" then
+        -- Four-petal imperial seal, centered with a tiny lacquer bead.
+        for index = 0, 3 do
+            local angle = index * math.pi * 0.5
+            petal(x + math.cos(angle) * 3.1 * scale,
+                y + math.sin(angle) * 3.1 * scale, 2.8 * scale, angle)
+        end
+        draw_circle(lstg, image, { 255, 255, 198, 137 }, x, y, 1.45 * scale, 16)
+    elseif kind == "BOSS" then
+        -- Three-point crown over a crescent-shaped moon.
+        stroke(x - 5 * scale, y - 2 * scale, x - 3.3 * scale, y + 4.2 * scale, 1.25 * scale)
+        stroke(x - 3.3 * scale, y + 4.2 * scale, x, y + 0.8 * scale, 1.25 * scale)
+        stroke(x, y + 0.8 * scale, x + 3.3 * scale, y + 4.2 * scale, 1.25 * scale)
+        stroke(x + 3.3 * scale, y + 4.2 * scale, x + 5 * scale, y - 2 * scale, 1.25 * scale)
+        stroke(x - 5 * scale, y - 2 * scale, x + 5 * scale, y - 2 * scale, 1.25 * scale)
+        draw_ring(lstg, image, { 255, 255, 195, 128 }, x, y - 3.4 * scale, 1.0 * scale, 2.0 * scale, 16)
+    elseif kind == "SHOP" then
+        -- A warm paper lantern, with visible frame and a hanging tassel.
+        stroke(x, y + 5 * scale, x, y + 3.8 * scale, 1.1 * scale)
+        stroke(x - 3.8 * scale, y + 3.7 * scale, x + 3.8 * scale, y + 3.7 * scale, 1.1 * scale)
+        draw_ellipse(lstg, image, { 255, 255, 192, 126 }, x, y, 2.8 * scale, 3.2 * scale, 0)
+        stroke(x - 2.8 * scale, y + 2.4 * scale, x - 2.8 * scale, y - 2.2 * scale, 0.9 * scale)
+        stroke(x + 2.8 * scale, y + 2.4 * scale, x + 2.8 * scale, y - 2.2 * scale, 0.9 * scale)
+        stroke(x - 2.1 * scale, y - 3.2 * scale, x + 2.1 * scale, y - 3.2 * scale, 1.0 * scale)
+        stroke(x, y - 3.2 * scale, x, y - 5 * scale, 1.0 * scale)
+        stroke(x - 1.6 * scale, y + 1.0 * scale, x + 1.6 * scale, y + 1.0 * scale, 0.75 * scale)
+    elseif kind == "EVENT" then
+        -- Five rounded sakura petals and a warm seed at the center.
+        for petal_index = 0, 4 do
+            local angle = (petal_index - 0.5) * math.pi * 2 / 5 + math.pi * 0.5
+            petal(x + math.cos(angle) * 3.0 * scale,
+                y + math.sin(angle) * 3.0 * scale, 2.7 * scale, angle)
+        end
+        draw_circle(lstg, image, { 255, 255, 198, 137 }, x, y, 1.4 * scale, 16)
+    elseif kind == "CURRENT" then
+        draw_ring(lstg, image, ink, x, y, 2.8 * scale, 4.2 * scale, 20)
+        draw_circle(lstg, image, { 255, 255, 198, 137 }, x, y, 1.25 * scale, 16)
+        for petal_index = 0, 3 do
+            local angle = petal_index * math.pi * 0.5
+            petal(x + math.cos(angle) * 5 * scale,
+                y + math.sin(angle) * 5 * scale, 1.7 * scale, angle)
+        end
+    elseif kind == "UNVISITED" then
+        draw_ring(lstg, image, ink, x, y, 2.6 * scale, 3.8 * scale, 20)
+        draw_circle(lstg, image, ink, x, y, 1.0 * scale, 16)
+    end
 end
 
 function MapRenderer.new(lstg, width, height)
@@ -200,7 +370,25 @@ function MapRenderer:draw_standard_backdrop()
     if TitleAssets.bg then
         self:draw_image("tnr-title-bg", 0, self.width, 0, self.height)
     end
-    draw_rect(self.lstg, self.white, { 204, 7, 11, 23 }, 0, self.width, 0, self.height)
+    -- Keep enough of the title illustration visible to carry its moonlit
+    -- shrine mood into the menus. Text-bearing panels supply the contrast.
+    draw_rect(self.lstg, self.white, { 118, 7, 11, 23 }, 0, self.width, 0, self.height)
+    self.ui_time = (self.ui_time or 0) + 1 / 60
+    local t = self.ui_time
+    for index = 1, 16 do
+        local phase = t * 1.7 + index * 2.13
+        local x = ((index * 137 + t * (16 + index % 5 * 5)) % (self.width + 36)) - 18
+        local y = ((index * 83 - t * (10 + index % 4 * 4)) % (self.height + 36)) - 18
+        local alpha = 22 + math.floor((0.5 + 0.5 * math.sin(phase)) * 38)
+        local dx, dy = math.cos(phase) * 3, math.sin(phase) * 1.5
+        local petal = index % 3 == 0
+            and { alpha, 184, 202, 255 }
+            or { alpha, 255, 174, 193 }
+        draw_line(self.lstg, self.white, petal, x - dx, y - dy, x + dx, y + dy, 1.6)
+        if index % 2 == 0 then
+            draw_diamond(self.lstg, self.white, { alpha + 10, 244, 225, 202 }, x, y, 1.2)
+        end
+    end
     local red = { 180, 150, 42, 55 }
     draw_rect(self.lstg, self.white, red, 36, 114, self.height - 35, self.height - 33)
     draw_rect(self.lstg, self.white, red, 36, 38, self.height - 90, self.height - 33)
@@ -208,15 +396,64 @@ function MapRenderer:draw_standard_backdrop()
     draw_rect(self.lstg, self.white, red, self.width - 38, self.width - 36, 33, 90)
 end
 
-function MapRenderer:draw_panel(left, right, bottom, top)
+function MapRenderer:draw_panel(left, right, bottom, top, fill_alpha)
     local lstg = self.lstg
     local image = self.white
-    draw_rect(lstg, image, { 180, 0, 0, 0 }, left + 4, right + 4, bottom - 4, top - 4)
-    draw_rect(lstg, image, COLORS.panel, left, right, bottom, top)
-    draw_line(lstg, image, COLORS.panel_border, left, bottom, right, bottom, 1)
-    draw_line(lstg, image, COLORS.panel_border, right, bottom, right, top, 1)
-    draw_line(lstg, image, COLORS.panel_border, right, top, left, top, 1)
-    draw_line(lstg, image, COLORS.panel_border, left, top, left, bottom, 1)
+    if right <= left or top <= bottom then return end
+    draw_rect(lstg, image, { 48, 0, 0, 0 }, left + 5, right + 5, bottom - 5, top - 5)
+    draw_rect(lstg, image, { 48, 25, 18, 36 }, left, right, bottom, top)
+    local fill = COLORS.panel
+    if fill_alpha then fill = { fill_alpha, COLORS.panel[2], COLORS.panel[3], COLORS.panel[4] } end
+    draw_rect(lstg, image, fill, left + 2, right - 2, bottom + 2, top - 2)
+
+    -- Lacquered frame with shrine-rope red corner marks and moon-silver rails.
+    local rail = COLORS.panel_border
+    draw_rect(lstg, image, rail, left + 5, right - 5, bottom + 2, bottom + 3.2)
+    draw_rect(lstg, image, rail, left + 5, right - 5, top - 3.2, top - 2)
+    draw_rect(lstg, image, rail, left + 2, left + 3.2, bottom + 5, top - 5)
+    draw_rect(lstg, image, rail, right - 3.2, right - 2, bottom + 5, top - 5)
+
+    local span = math.min(24, (right - left) * 0.16, (top - bottom) * 0.3)
+    local inset = 4
+    local crimson = { 225, 204, 82, 100 }
+    local moon = { 205, 222, 190, 158 }
+    -- Each corner uses two short bars, like the cut ends of a paper charm.
+    for _, corner in ipairs({
+        { left + inset, bottom + inset, 1, 1 },
+        { left + inset, top - inset, 1, -1 },
+        { right - inset, bottom + inset, -1, 1 },
+        { right - inset, top - inset, -1, -1 },
+    }) do
+        local x, y, sx, sy = corner[1], corner[2], corner[3], corner[4]
+        draw_rect(lstg, image, crimson, math.min(x, x + sx * span), math.max(x, x + sx * span), y - 1, y + 1)
+        draw_rect(lstg, image, crimson, x - 1, x + 1, math.min(y, y + sy * span), math.max(y, y + sy * span))
+        draw_diamond(lstg, image, moon, x, y, 2.1)
+    end
+end
+
+-- Animated moonlit accents shared by modern map, reward, catalog and equipment
+-- screens. Small particles stay behind text; focus frames carry the motion so
+-- the active control remains easy to follow.
+function MapRenderer:draw_focus_frame(left, right, bottom, top, phase)
+    if not self.white or right <= left or top <= bottom then return end
+    local t = self.ui_time or 0
+    phase = tonumber(phase) or 0
+    local pulse = 0.5 + 0.5 * math.sin(t * 3.2 + phase)
+    local edge = { 145 + math.floor(pulse * 85), 235, 105, 110 }
+    draw_rect(self.lstg, self.white, edge, left, right, bottom, bottom + 1.5)
+    draw_rect(self.lstg, self.white, edge, left, right, top - 1.5, top)
+    draw_rect(self.lstg, self.white, edge, left, left + 1.5, bottom, top)
+    draw_rect(self.lstg, self.white, edge, right - 1.5, right, bottom, top)
+
+    local span = right - left
+    local glint_width = math.min(58, span * 0.22)
+    local travel = ((t * 150 + phase * 37) % (span + glint_width)) - glint_width
+    local glint_left = math.max(left, left + travel)
+    local glint_right = math.min(right, left + travel + glint_width)
+    if glint_right > glint_left then
+        draw_rect(self.lstg, self.white, { 65 + math.floor(pulse * 65), 255, 210, 192 },
+            glint_left, glint_right, top - 4, top - 2)
+    end
 end
 
 function MapRenderer:list_window(cursor, count, visible)
@@ -257,33 +494,49 @@ function MapRenderer:draw_legend()
     local left, right, bottom, top = 24, 205, 185, 595
     self:draw_panel(left, right, bottom, top)
     self:draw_text("节点图例", left + 18, top - 20, 1.15, COLORS.text, 0)
+    draw_rect(self.lstg, self.white, { 195, 201, 73, 91 }, left + 14, right - 14, top - 36, top - 34)
     self:draw_text("当前路线", left + 18, top - 58, 0.72, COLORS.muted, 0)
+    draw_line(self.lstg, self.white, { 200, 233, 194, 163 }, left + 103, top - 57, right - 18, top - 57, 2.5)
+    local route_glow = (self.ui_time or 0) * 34 % math.max(1, right - left - 125)
+    draw_diamond(self.lstg, self.white, { 220, 255, 211, 183 }, left + 103 + route_glow, top - 57, 3)
     local rows = {
-        { "精英", "A", TYPE_META.ELITE.color },
-        { "当前节点", "●", { 255, 255, 255, 255 } },
-        { "未访问", "◆", { 190, 170, 175, 190 } },
-        { "战斗", "E", TYPE_META.ENEMY.color },
-        { "首领", "B", TYPE_META.BOSS.color },
-        { "商店", "$", TYPE_META.SHOP.color },
-        { "事件", "?", TYPE_META.EVENT.color },
+        { "精英", "ELITE", TYPE_META.ELITE.color },
+        { "当前节点", "CURRENT", { 255, 255, 255, 255 } },
+        { "未访问", "UNVISITED", { 190, 170, 175, 190 } },
+        { "战斗", "ENEMY", TYPE_META.ENEMY.color },
+        { "首领", "BOSS", TYPE_META.BOSS.color },
+        { "商店", "SHOP", TYPE_META.SHOP.color },
+        { "事件", "EVENT", TYPE_META.EVENT.color },
     }
     for index, row in ipairs(rows) do
         local y = top - 96 - (index - 1) * 38
-        draw_diamond(self.lstg, self.white, row[3], left + 28, y, 9)
-        self:draw_text(row[2], left + 28, y + 1, 0.78, COLORS.text, 1 + 4)
+        if index > 1 then
+            draw_rect(self.lstg, self.white, { 58, 210, 151, 144 }, left + 14, right - 14, y + 17, y + 18)
+        end
+        if _G.__tnr_map_node_icons_loaded then
+            self:draw_image(MAP_ICON_IMAGES[row[2]], left + 17, left + 39, y - 11, y + 11)
+        else
+            draw_medallion(self.lstg, self.white, left + 28, y, 9, row[3], row[2] == "CURRENT")
+            draw_map_glyph(self.lstg, self.white, row[2], left + 28, y, row[3], 0.92)
+        end
         self:draw_text(row[1], left + 52, y + 1, 0.82, COLORS.text, 0)
     end
+    draw_rect(self.lstg, self.white, { 118, 189, 55, 80 }, left + 14, left + 17, bottom + 16, bottom + 40)
     self:draw_text("悬停查看路线", left + 18, bottom + 26, 0.68, COLORS.muted, 0)
 end
 
 function MapRenderer:draw_header(session)
     local player = session:get_player(1)
     self:draw_panel(24, self.width - 24, self.height - 86, self.height - 20)
-    self:draw_text("探索地图", 48, self.height - 45, 1.4, COLORS.text, 0)
-    self:draw_text("TouHouNightReign", self.width * 0.5, self.height - 62, 1.0, COLORS.accent, 1 + 4)
+    draw_diamond(self.lstg, self.white, { 190, 218, 83, 100 }, 48, self.height - 53, 18)
+    draw_diamond(self.lstg, self.white, { 255, 12, 17, 31 }, 48, self.height - 53, 13)
+    self:draw_text("月", 48, self.height - 58, 0.72, { 255, 241, 212, 179 }, 1 + 4)
+    self:draw_text("探索地图", 75, self.height - 45, 1.32, COLORS.text, 0)
+    self:draw_text("TOUHOU NIGHT REIGN  ·  六面巡游", self.width * 0.5, self.height - 54, 0.74, COLORS.accent, 1 + 4)
     local hud = string.format("生命 %d   炸弹 %d   金钱 %d   总分 %d", player.life, player.bomb, player.money, player.score)
     -- Leave the top-right equipment button clear of the status HUD.
     self:draw_text(hud, self.width - 170, self.height - 48, 0.82, COLORS.text, 2)
+    draw_rect(self.lstg, self.white, { 112, 207, 80, 96 }, 52, self.width - 175, self.height - 78, self.height - 76)
 end
 
 function MapRenderer:draw_footer(message)
@@ -318,12 +571,32 @@ function MapRenderer:draw_map(view)
                 local target = node_positions[linked_id]
                 local linked = view.nodes[linked_id]
                 local values = COLORS.dim_line
-                if node.id == view.current_node_id or linked_id == view.current_node_id then
+                -- Only outgoing links from the current layer are active.
+                -- The incoming edge remains visible as a visited connection,
+                -- but it must not look like a selectable return route.
+                local path_from_current = node.id == view.current_node_id
+                    and linked ~= nil and linked.x > node.x
+                if path_from_current then
                     values = COLORS.active_line
                 elseif node.visited and linked and linked.visited then
                     values = COLORS.visited_line
                 end
-                draw_line(self.lstg, self.white, values, source.x, source.y, target.x, target.y, node.id == view.current_node_id and 5 or 4)
+                if path_from_current then
+                    draw_line(self.lstg, self.white, { 64, 190, 64, 82 }, source.x, source.y, target.x, target.y, 9)
+                    draw_line(self.lstg, self.white, values, source.x, source.y, target.x, target.y, 3.6)
+                else
+                    draw_line(self.lstg, self.white, values, source.x, source.y, target.x, target.y, 3.0)
+                end
+                if path_from_current then
+                    local phase = (self.ui_time or 0) * 0.42
+                    for trail = 0, 2 do
+                        local progress = (phase - trail * 0.055) % 1
+                        local x = source.x + (target.x - source.x) * progress
+                        local y = source.y + (target.y - source.y) * progress
+                        draw_diamond(self.lstg, self.white,
+                            { 90 + trail * 12, 255, 224 - trail * 18, 198 }, x, y, 2.2 - trail * 0.35)
+                    end
+                end
             end
         end
     end
@@ -343,12 +616,30 @@ function MapRenderer:draw_map(view)
             outer = { 130, meta.color[2], meta.color[3], meta.color[4] }
         end
         if is_current or is_hovered then
-            draw_diamond(self.lstg, self.white, { 80, outer[2], outer[3], outer[4] }, position.x, position.y, is_current and 29 or 25)
+            local pulse = 0.5 + 0.5 * math.sin((self.ui_time or 0) * 3 + node.id)
+            local radius = (is_current and 25 or 22) + pulse * (is_current and 3 or 2)
+            draw_circle(self.lstg, self.white,
+                { 34 + math.floor(pulse * 18), outer[2], outer[3], outer[4] }, position.x, position.y, radius)
+            draw_ring(self.lstg, self.white,
+                { 105 + math.floor(pulse * 80), 255, is_current and 213 or 188, is_current and 175 or 150 },
+                position.x, position.y, radius - 1.2, radius, 32)
+            if is_current then
+                for petal = 1, 4 do
+                    local angle = (self.ui_time or 0) * 1.15 + petal * math.pi * 0.5
+                    local orbit = 31 + pulse * 3
+                    draw_ellipse(self.lstg, self.white, { 180, 255, 190, 202 },
+                        position.x + math.cos(angle) * orbit, position.y + math.sin(angle) * orbit,
+                        2.3, 1.15, angle)
+                end
+            end
         end
-        draw_diamond(self.lstg, self.white, outer, position.x, position.y, is_current and 21 or 17)
-        draw_diamond(self.lstg, self.white, { 255, 19, 23, 38 }, position.x, position.y, is_current and 14 or 11)
-        self:draw_text(meta.glyph, position.x, position.y - 6, is_current and 1.4 or 1.1, outer, 1 + 4)
-        self:draw_text(meta.label, position.x, position.y - 34, 1.05, is_current and COLORS.text or COLORS.muted, 1 + 4)
+        if _G.__tnr_map_node_icons_loaded then
+            self:draw_image(MAP_ICON_IMAGES[meta.icon], position.x - 23, position.x + 23,
+                position.y - 23, position.y + 23)
+        else
+            draw_medallion(self.lstg, self.white, position.x, position.y, is_current and 18.5 or 16.5, outer, is_current or is_hovered)
+            draw_map_glyph(self.lstg, self.white, meta.icon, position.x, position.y, outer, 1.32)
+        end
         local voters = node_vote_labels[node.id]
         if voters and #voters > 0 then
             local labels = {}
@@ -357,6 +648,77 @@ function MapRenderer:draw_map(view)
             end
             local vote_color = #voters > 1 and COLORS.accent or (voters[1] == 1 and COLORS.p1_vote or COLORS.p2_vote)
             self:draw_text(table.concat(labels, " + "), position.x, position.y + 32, 0.8, vote_color, 1 + 4)
+        end
+    end
+    self:draw_flooded_layers(view, node_positions, left, right, bottom, top)
+end
+
+-- Earlier layers are no longer reachable once the player moves forward.
+-- A moving deep-blue tide covers them and leaves the current/future route clear.
+function MapRenderer:draw_flooded_layers(view, node_positions, left, right, bottom, top)
+    local current_node
+    for _, node in ipairs(view.nodes or {}) do
+        if node.id == view.current_node_id then
+            current_node = node
+            break
+        end
+    end
+    if not current_node then return end
+    local previous_layer_x
+    for _, node in ipairs(view.nodes or {}) do
+        if node.x < current_node.x
+                and (not previous_layer_x or node.x > previous_layer_x) then
+            previous_layer_x = node.x
+        end
+    end
+    if not current_node or not previous_layer_x then return end
+    local current_position = node_positions[current_node.id]
+    if not current_position then return end
+
+    local layer_gap = (current_node.x - previous_layer_x) * (right - left)
+    if layer_gap <= 0 then return end
+    local center = current_position.x - layer_gap * 0.5
+    local amplitude = math.min(12, layer_gap * 0.17)
+    local time = self.ui_time or 0
+    local function front_at(y)
+        local phase = y * 0.018 + time * 1.35
+        return center + math.sin(phase) * amplitude
+            + math.sin(phase * 0.47 + time * 0.62) * amplitude * 0.22
+    end
+
+    local strips = 42
+    local strip_height = (top - bottom) / strips
+    for index = 0, strips - 1 do
+        local y0 = bottom + index * strip_height
+        local y1 = y0 + strip_height + 0.6
+        local y_mid = (y0 + y1) * 0.5
+        local tide = 0.5 + 0.5 * math.sin(time * 1.1 + y_mid * 0.025)
+        local alpha = 143 + math.floor(tide * 16)
+        draw_rect(self.lstg, self.white, { alpha, 3, 18, 62 }, left, front_at(y_mid), y0, y1)
+    end
+
+    -- A dark trough and a thin blue crest make the flood boundary read as a
+    -- moving wave at map scale. The short inner strokes suggest flowing water.
+    local samples = 48
+    local previous_x, previous_y
+    for index = 0, samples do
+        local y = bottom + (top - bottom) * index / samples
+        local x = front_at(y)
+        if previous_x then
+            draw_line(self.lstg, self.white, { 145, 9, 38, 92 },
+                previous_x - 5, previous_y, x - 5, y, 4.2)
+            draw_line(self.lstg, self.white, { 188, 52, 139, 215 },
+                previous_x, previous_y, x, y, 2.4)
+        end
+        previous_x, previous_y = x, y
+    end
+    for band = 1, 6 do
+        local y = bottom + band * (top - bottom) / 7 + math.sin(time * 0.7 + band) * 7
+        local available = math.max(1, math.floor(front_at(y) - left - 40))
+        local x = left + 10 + ((time * 31 + band * 61) % available)
+        local finish = math.min(front_at(y) - 8, x + 18 + (band % 3) * 8)
+        if finish > x then
+            draw_line(self.lstg, self.white, { 72, 55, 147, 207 }, x, y, finish, y + 2, 1.8)
         end
     end
 end
@@ -385,17 +747,20 @@ function MapRenderer:render_map(view, session, mouse_x, mouse_y)
     lstg.SetScissorRect(0, self.width, 0, self.height)
     lstg.SetOrtho(0, self.width, 0, self.height)
     self:draw_standard_backdrop()
-    draw_rect(lstg, self.white, COLORS.map_panel, 214, self.width - 24, 92, self.height - 96)
+    -- A faint moonlit chart border frames the route while leaving the title
+    -- illustration visible through its glass-dark center.
+    self:draw_panel(214, self.width - 24, 92, self.height - 96, 112)
     self:draw_header(session)
     local button_left, button_right = self.width - 154, self.width - 74
     local button_bottom, button_top = self.height - 76, self.height - 30
     local locked = session.preparation and session.preparation.selected_node_id ~= nil
     local hovered = self:map_equipment_hit_test(mouse_x, mouse_y)
-    local button_color = locked and { 100, 80, 86, 100 } or (hovered and { 255, 235, 105, 105 } or { 210, 24, 29, 62 })
-    draw_rect(lstg, self.white, button_color, button_left, button_right, button_bottom, button_top)
-    draw_line(lstg, self.white, hovered and COLORS.text or COLORS.panel_border, button_left, button_bottom, button_right, button_bottom, hovered and 2 or 1)
-    draw_line(lstg, self.white, hovered and COLORS.text or COLORS.panel_border, button_left, button_top, button_right, button_top, hovered and 2 or 1)
-    self:draw_text("i", (button_left + button_right) * 0.5, button_bottom + 23, 0.9, locked and COLORS.muted or COLORS.text, 1 + 4)
+    local button_color = locked and { 100, 80, 86, 100 } or (hovered and { 255, 235, 105, 105 } or { 210, 204, 82, 100 })
+    local button_x, button_y = (button_left + button_right) * 0.5, (button_bottom + button_top) * 0.5
+    if hovered then draw_diamond(lstg, self.white, { 65, 255, 130, 133 }, button_x, button_y, 24) end
+    draw_diamond(lstg, self.white, button_color, button_x, button_y, 20)
+    draw_diamond(lstg, self.white, locked and { 205, 22, 25, 42 } or { 230, 22, 25, 42 }, button_x, button_y, 15)
+    self:draw_text("装", button_x, button_y - 5, 0.76, locked and COLORS.muted or COLORS.text, 1 + 4)
     self:draw_text("Seed: " .. tostring(session.run_seed or "-"), 48, 96, 0.72, COLORS.muted, 0)
     self:draw_legend()
     self:draw_map(view)
@@ -672,8 +1037,12 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
             local left = group.x + (index - 1) * (slot_w + gap)
             local instance = loadout and loadout[group.key] and loadout[group.key][index]
             local active = instance and instance ~= false
-            draw_rect(lstg, self.white, selected(group.key, index) and { 255, 95, 80, 78 } or { 205, 31, 40, 42 },
+            local is_selected = selected(group.key, index)
+            draw_rect(lstg, self.white, is_selected and { 255, 95, 80, 78 } or { 205, 31, 40, 42 },
                 left, left + slot_w, group.y, group.y + slot_h)
+            if is_selected and not replay_equipment then
+                self:draw_focus_frame(left, left + slot_w, group.y, group.y + slot_h, index + #group.key)
+            end
             draw_rect(lstg, self.white, active and { 220, 78, 88, 82 } or { 150, 80, 90, 45 },
                 left + 4, left + slot_w - 4, group.y + 4, group.y + slot_h - 4)
             self:draw_text(tostring(index), left + 9, group.y + slot_h - 17, 0.58, COLORS.accent, 0)
@@ -701,6 +1070,9 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
         local row = rows[cursor or 1]
         local active = row and row.kind == "inventory" and row.index == index
         draw_rect(lstg, self.white, active and { 255, 95, 80, 76 } or { 205, 31, 40, 42 }, left, left + 175, bottom, bottom + card_height)
+        if active and not replay_equipment then
+            self:draw_focus_frame(left, left + 175, bottom, bottom + card_height, index * 0.4)
+        end
         self:draw_text(string.format("%d  %s", index, name_of(instance)), left + 8, bottom + card_height / 2, 0.53,
             active and COLORS.text or COLORS.muted, 0)
     end
@@ -713,6 +1085,9 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
     local detail_left = replay_equipment and 846 or 678
     local detail_bottom = replay_equipment and 396 or 350
     self:draw_panel(detail_left, self.width - 80, detail_bottom, 628)
+    if not replay_equipment then
+        self:draw_focus_frame(detail_left, self.width - 80, detail_bottom, 628, 1.2)
+    end
     self:draw_text("装备信息", detail_left + 20, 602, 0.86, COLORS.accent, 0)
     local row = rows[cursor or 1]
     local hover_row = self:preparation_hit_test(mouse_x, mouse_y, #rows, cursor or 1, loadout)
@@ -757,7 +1132,9 @@ function MapRenderer:menu_hit_test(x, y)
         return nil
     end
     local row = 3 - row_from_bottom
-    return row * 3 + column + 1
+    local index = row * 3 + column + 1
+    if index > 11 then return nil end
+    return index
 end
 
 function MapRenderer:network_menu_hit_test(x, y, item_count)
@@ -956,10 +1333,11 @@ end
 
 function MapRenderer:render_battle_failed(session, cursor)
     local lstg = self.lstg
-    local multiplayer = (session.player_count or 1) > 1
     local options = { "重试本关" }
-    if multiplayer then
+    if session.failure_networked then
         options[#options + 1] = "重新开始联机游玩"
+    elseif (session.failure_option_count or 2) == 3 then
+        options[#options + 1] = "接受现实（消耗1命继续）"
     end
     options[#options + 1] = "返回主菜单"
     lstg.BeginScene()
@@ -970,7 +1348,8 @@ function MapRenderer:render_battle_failed(session, cursor)
     self:draw_standard_backdrop()
     draw_rect(lstg, self.white, { 195, 12, 15, 29 }, 280, self.width - 280, 145, self.height - 145)
     self:draw_text("战斗失败", self.width * 0.5, self.height - 210, 1.5, COLORS.text, 1 + 4)
-    self:draw_text(multiplayer and "P1/P2 请选择相同的处理方式" or "请选择下一步操作", self.width * 0.5, self.height - 255, 0.85, COLORS.muted, 1 + 4)
+    self:draw_text(session.failure_networked and "P1/P2 请选择相同的处理方式" or "请选择下一步操作",
+        self.width * 0.5, self.height - 255, 0.85, COLORS.muted, 1 + 4)
     for index, label in ipairs(options) do
         local bottom = 360 - (index - 1) * 68
         local selected = index == (cursor or 1)
@@ -978,7 +1357,8 @@ function MapRenderer:render_battle_failed(session, cursor)
         self:draw_text(selected and ">" or "", 420, bottom + 25, 0.8, COLORS.accent, 1 + 4)
         self:draw_text(label, self.width * 0.5, bottom + 25, 0.92, selected and COLORS.text or COLORS.muted, 1 + 4)
     end
-    self:draw_text("方向键选择   Enter 确认   Esc 返回主菜单", self.width * 0.5, 64, 0.75, COLORS.muted, 1 + 4)
+    self:draw_text(session.failure_networked and "方向键选择   Enter 确认   Esc 返回主菜单"
+        or "接受现实会清除弹幕、保留敌人并恢复本关初始增益", self.width * 0.5, 64, 0.68, COLORS.muted, 1 + 4)
     lstg.EndScene()
 end
 
@@ -988,6 +1368,7 @@ end
 -- is drawn. The selected cell is highlighted with a frame and a lift.
 function MapRenderer:render_menu(menu_cursor, session)
     local lstg = self.lstg
+    self.ui_time = (self.ui_time or 0) + 1 / 60
     lstg.BeginScene()
     lstg.RenderClear(color(lstg, COLORS.background))
     lstg.SetViewport(0, self.width, 0, self.height)
@@ -1011,26 +1392,28 @@ function MapRenderer:render_menu(menu_cursor, session)
         self:draw_image("tnr-title-logo", logo_left, logo_left + logo_w, logo_top - logo_h, logo_top)
     end
 
-    -- Menu: a three by four grid in the bottom-left corner. The ninth cell is
-    -- the legacy replay entry, whose dedicated icon is still a placeholder.
+    -- Eleven active menu items fill the three-by-four grid. The last row has
+    -- two entries; the unused bottom-right cell stays open as breathing room.
     local cell = 104
     local gap = 6
     local grid_left = 44
     local grid_bottom = 36
     local REPLAY_INDEX = 10
-    for index = 1, 12 do
+    local time = self.ui_time or 0
+    for index = 1, 11 do
         local column = (index - 1) % 3
         local row = math.floor((index - 1) / 3)
         local left = grid_left + column * (cell + gap)
         local bottom = grid_bottom + (3 - row) * (cell + gap)
         local selected = index == (menu_cursor or 1)
-        local grow = selected and 5 or 0
+        local pulse = 0.5 + 0.5 * math.sin(time * 3.1)
+        local grow = selected and (3 + pulse * 3) or 0
         local image_name = "tnr-title-icon-" .. index
         local entry = TitleAssets.get(image_name)
         local size = entry and { entry.width, entry.height } or nil
         if selected then
             -- Highlight frame behind the selected icon.
-            draw_rect(lstg, self.white, { 190, 214, 62, 44 },
+            draw_rect(lstg, self.white, { 150 + math.floor(pulse * 70), 214, 62, 44 },
                 left - 6, left + cell + 6, bottom - 6, bottom + cell + 6)
             draw_line(lstg, self.white, COLORS.accent, left - 6, bottom - 6, left + cell + 6, bottom - 6, 2)
             draw_line(lstg, self.white, COLORS.accent, left - 6, bottom + cell + 6, left + cell + 6, bottom + cell + 6, 2)
@@ -1059,12 +1442,24 @@ function MapRenderer:render_menu(menu_cursor, session)
             end
             self:draw_text("新手教程", left + cell * 0.5, bottom + 12, 0.62, COLORS.text, 1 + 4)
         elseif index == REPLAY_INDEX then
-            -- Placeholder for the legacy replay entry until its art arrives.
-            draw_rect(lstg, self.white, { 210, 30, 36, 50 }, left, left + cell, bottom, bottom + cell)
-            self:draw_text("旧作\n重演", left + cell * 0.5, bottom + cell * 0.5, 0.8,
-                selected and COLORS.text or COLORS.muted, 1 + 4)
-        else
-            draw_rect(lstg, self.white, { 200, 30, 36, 50 }, left, left + cell, bottom, bottom + cell)
+            draw_rect(lstg, self.white, { 225, 19, 23, 38 }, left, left + cell, bottom, bottom + cell)
+            local cx, cy = left + cell * 0.5, bottom + 63
+            local orbit = 29 + pulse * 2
+            for segment = 0, 15 do
+                local a1 = segment * math.pi * 2 / 16
+                local a2 = (segment + 1) * math.pi * 2 / 16
+                draw_line(lstg, self.white, { 130, 125, 151, 210 },
+                    cx + math.cos(a1) * orbit, cy + math.sin(a1) * orbit,
+                    cx + math.cos(a2) * orbit, cy + math.sin(a2) * orbit, 1.3)
+            end
+            draw_diamond(lstg, self.white, { 255, 242, 220, 170 }, cx, cy, 15 + pulse)
+            draw_diamond(lstg, self.white, { 255, 30, 36, 55 }, cx + 7, cy + 5, 14)
+            for star = 1, 3 do
+                local angle = time * 0.8 + star * math.pi * 2 / 3
+                draw_diamond(lstg, self.white, { 205, 255, 178, 190 },
+                    cx + math.cos(angle) * 37, cy + math.sin(angle) * 37, 2)
+            end
+            self:draw_text("旧作重演", cx, bottom + 13, 0.59, selected and COLORS.text or COLORS.muted, 1 + 4)
         end
     end
     lstg.EndScene()
@@ -1116,115 +1511,138 @@ function MapRenderer:render_tutorial(page_index, mouse_x, mouse_y)
     lstg.EndScene()
 end
 
---- Legacy replay selection screen.
--- Three columns: stage, ruleset and character, with the current pick highlighted.
--- The icons for these entries are still placeholders drawn from text, which the
--- owner will replace with art.
-function MapRenderer:render_replay_select(replay, cursor_field)
+local function replay_select_geometry(width, height)
+    local left, gap = 52, 14
+    local available = width - left * 2 - gap * 3
+    local widths = { available * 0.35, available * 0.16, available * 0.22, available * 0.27 }
+    local columns, x = {}, left
+    for index, field in ipairs({ "stage", "player_count", "mode", "character" }) do
+        columns[field] = { left = x, right = x + widths[index], top = height - 145, bottom = 135 }
+        x = x + widths[index] + gap
+    end
+    return {
+        columns = columns,
+        row_y = function(index) return height - 221 - (index - 1) * 49 end,
+        start = { left = width * 0.5 - 128, right = width * 0.5 + 128, bottom = 78, top = 120 },
+    }
+end
+
+function MapRenderer:replay_select_hit_test(x, y, replay)
+    if not x or not y or not replay then return nil end
+    local geometry = replay_select_geometry(self.width, self.height)
+    if x >= geometry.start.left and x <= geometry.start.right
+            and y >= geometry.start.bottom and y <= geometry.start.top then
+        return { action = "start" }
+    end
+    local fields = {
+        stage = replay:stage_list(),
+        player_count = replay.PLAYER_COUNTS,
+        mode = replay.MODES,
+        character = replay.CHARACTERS,
+    }
+    for field, entries in pairs(fields) do
+        if not (replay.network_lobby and field == "player_count") then
+            local column = geometry.columns[field]
+            if x >= column.left + 8 and x <= column.right - 8 then
+                for index = 1, #entries do
+                    local row_y = geometry.row_y(index)
+                    if y >= row_y - 20 and y <= row_y + 20 then
+                        return { field = field, index = index }
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+--- The legacy replay picker, restyled to match the moonlit title and map UI.
+function MapRenderer:render_replay_select(replay, cursor_field, mouse_x, mouse_y)
     local lstg = self.lstg
     lstg.BeginScene()
     lstg.RenderClear(color(lstg, COLORS.background))
     lstg.SetViewport(0, self.width, 0, self.height)
     lstg.SetScissorRect(0, self.width, 0, self.height)
     lstg.SetOrtho(0, self.width, 0, self.height)
+    self:draw_standard_backdrop()
+    self:draw_panel(36, self.width - 36, 58, self.height - 34)
+    self:draw_text("旧作重演", self.width * 0.5, self.height - 57, 1.5, COLORS.accent, 1 + 4)
+    self:draw_text("按原作数据重演东方绀珠传", self.width * 0.5, self.height - 91, 0.68, COLORS.muted, 1 + 4)
 
-    draw_rect(lstg, self.white, { 255, 12, 15, 29 }, 30, self.width - 30, 30, self.height - 30)
-    self:draw_text("旧作重演", self.width * 0.5, self.height - 62, 1.5, COLORS.accent, 1 + 4)
-    self:draw_text("按原作数据重演东方绀珠传", self.width * 0.5, self.height - 96, 0.72, COLORS.muted, 1 + 4)
-
+    local geometry = replay_select_geometry(self.width, self.height)
+    local pointer = self:replay_select_hit_test(mouse_x, mouse_y, replay)
     local stages = replay:stage_list()
     local modes = replay.MODES
     local characters = replay.CHARACTERS
-
-    -- Stage column.
-    local stage_left = 70
-    local stage_top = self.height - 150
-    self:draw_text("关卡", stage_left, stage_top + 26, 0.85, COLORS.accent, 0)
-    for index, entry in ipairs(stages) do
-        local y = stage_top - (index - 1) * 40
-        local selected = index == (replay.stage_cursor or 1)
-        local focused = cursor_field == "stage"
-        if selected and focused then
-            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, stage_left - 8, stage_left + 430, y - 14, y + 20)
+    local counts = { stage = stages, player_count = replay.PLAYER_COUNTS, mode = modes, character = characters }
+    local names = { stage = "关卡", player_count = "人数", mode = "规则", character = "自机" }
+    local cursors = {
+        stage = replay.stage_cursor or 1,
+        player_count = replay.player_count_cursor or 1,
+        mode = replay.mode_cursor or 1,
+        character = replay.character_cursor or 1,
+    }
+    local section_number = 0
+    for _, field in ipairs({ "stage", "player_count", "mode", "character" }) do
+        if not (replay.network_lobby and field == "player_count") then
+            section_number = section_number + 1
+            local column = geometry.columns[field]
+            self:draw_panel(column.left, column.right, column.bottom, column.top)
+            self:draw_text(string.format("%02d  %s", section_number, names[field]),
+                column.left + 18, column.top - 27, 0.82, COLORS.accent, 0)
+            for index, entry in ipairs(counts[field]) do
+                local row_y = geometry.row_y(index)
+                local selected = index == cursors[field]
+                local focused = cursor_field == field
+                local hovered = pointer and pointer.field == field and pointer.index == index
+                local row_left, row_right = column.left + 8, column.right - 8
+                if selected or hovered then
+                    draw_rect(lstg, self.white, hovered and { 152, 92, 54, 56 }
+                        or { 144, 84, 32, 46 }, row_left, row_right, row_y - 20, row_y + 20)
+                end
+                if selected then
+                    draw_rect(lstg, self.white, COLORS.accent, row_left + 3, row_left + 5,
+                        row_y - 15, row_y + 15)
+                end
+                self:draw_text(entry.name, column.left + 20, row_y, selected and 0.84 or 0.76,
+                    selected and COLORS.text or COLORS.muted, 0)
+                if selected then
+                    draw_diamond(lstg, self.white, focused and COLORS.active_line or COLORS.accent,
+                        column.right - 24, row_y, focused and 4 or 3)
+                end
+                if focused and selected then
+                    self:draw_focus_frame(row_left, row_right, row_y - 20, row_y + 20, index * 0.5)
+                end
+            end
         end
-        local marker = selected and (focused and ">" or "·") or " "
-        self:draw_text(marker, stage_left, y, 0.8, COLORS.accent, 0)
-        self:draw_text(entry.name, stage_left + 26, y, selected and 0.86 or 0.8,
-            selected and COLORS.text or COLORS.muted, 0)
     end
 
     if replay.network_lobby then
-        self:draw_text("局域网 · 双人",540,stage_top-160,.88,COLORS.accent,0)
-        self:draw_text((cursor_field=="mode" and "> " or "")..replay:selected_mode().name,
-            540,stage_top-315,.85,COLORS.accent,0)
-        self:draw_text("共享团队生命与 Bomb；各自拾取掉落",540,stage_top-198,.7,COLORS.muted,0)
-        for id,line in ipairs(replay.network_status or {}) do
-            self:draw_text(line,540,stage_top-238-(id-1)*36,.74,COLORS.text,0)
+        local column = geometry.columns.player_count
+        self:draw_panel(column.left, column.right, column.bottom, column.top)
+        self:draw_text("局域网", column.left + 18, column.top - 27, 0.82, COLORS.accent, 0)
+        self:draw_text("双人协力", column.left + 20, geometry.row_y(1), 0.78, COLORS.text, 0)
+        self:draw_text("共享残机与 Bomb", column.left + 20, geometry.row_y(2), 0.62, COLORS.muted, 0)
+        for index, line in ipairs(replay.network_status or {}) do
+            self:draw_text(line, column.left + 16, geometry.row_y(3) - (index - 1) * 30,
+                0.58, COLORS.muted, 0)
         end
-    else
-    -- Player count column.
-    local players_left = 540
-    local players_top = stage_top - 150
-    self:draw_text("人数", players_left, players_top + 26, 0.85, COLORS.accent, 0)
-    for index, entry in ipairs(replay.PLAYER_COUNTS) do
-        local y = players_top - (index - 1) * 40
-        local selected = index == (replay.player_count_cursor or 1)
-        local focused = cursor_field == "player_count"
-        if selected and focused then
-            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, players_left - 8, players_left + 300, y - 14, y + 20)
-        end
-        local marker = selected and (focused and ">" or "·") or " "
-        self:draw_text(marker, players_left, y, 0.8, COLORS.accent, 0)
-        self:draw_text(entry.name, players_left + 26, y, selected and 0.86 or 0.8,
-            selected and COLORS.text or COLORS.muted, 0)
     end
+    local start = geometry.start
+    local start_hovered = pointer and pointer.action == "start"
+    draw_rect(lstg, self.white, start_hovered and { 235, 107, 40, 48 } or { 220, 37, 40, 61 },
+        start.left, start.right, start.bottom, start.top)
+    self:draw_focus_frame(start.left, start.right, start.bottom, start.top, 2.4)
+    self:draw_text(replay.network_lobby and "准备 / 开始" or "开始重演",
+        self.width * 0.5, (start.bottom + start.top) * 0.5, 0.86, COLORS.text, 1 + 4)
 
-    -- Mode column.
-    local mode_left = 540
-    local mode_top = players_top - 110
-    self:draw_text("规则", mode_left, mode_top + 26, 0.85, COLORS.accent, 0)
-    for index, entry in ipairs(modes) do
-        local y = mode_top - (index - 1) * 40
-        local selected = index == (replay.mode_cursor or 1)
-        local focused = cursor_field == "mode"
-        if selected and focused then
-            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, mode_left - 8, mode_left + 300, y - 14, y + 20)
-        end
-        local marker = selected and (focused and ">" or "·") or " "
-        self:draw_text(marker, mode_left, y, 0.8, COLORS.accent, 0)
-        self:draw_text(entry.name, mode_left + 26, y, selected and 0.86 or 0.8,
-            selected and COLORS.text or COLORS.muted, 0)
-        if selected then
-            self:draw_text(entry.description, mode_left + 26, y - 20, 0.62, COLORS.muted, 0)
-        end
-    end
-
-    end
-    -- Character column.
-    local character_left = 900
-    self:draw_text("自机", character_left, stage_top + 26, 0.85, COLORS.accent, 0)
-    for index, entry in ipairs(characters) do
-        local y = stage_top - (index - 1) * 40
-        local selected = index == (replay.character_cursor or 1)
-        local focused = cursor_field == "character"
-        if selected and focused then
-            draw_rect(lstg, self.white, { 200, 235, 105, 38, 60 }, character_left - 8, character_left + 340, y - 14, y + 20)
-        end
-        local marker = selected and (focused and ">" or "·") or " "
-        self:draw_text(marker, character_left, y, 0.8, COLORS.accent, 0)
-        self:draw_text(entry.name, character_left + 26, y, selected and 0.86 or 0.8,
-            selected and COLORS.text or COLORS.muted, 0)
-    end
-
-    self:draw_text(replay.network_lobby and "← → 切换栏目　↑ ↓ 选择　Enter 准备 / 取消准备　Esc 退出联机"
-        or "← → 切换栏目　↑ ↓ 选择　Enter 开始　Tab 现代配装　Esc 返回主菜单",
-        self.width * 0.5, 56, 0.72, COLORS.muted, 1 + 4)
+    self:draw_text("鼠标点击选择　← → 切换栏目　↑ ↓ 选择　Enter 开始", self.width * 0.5, 48, 0.65, COLORS.muted, 1 + 4)
     if replay.message then
-        self:draw_text(replay.message, self.width * 0.5, 92, 0.78, COLORS.accent, 1 + 4)
+        self:draw_text(replay.message, self.width * 0.5, 143, 0.66, COLORS.accent, 1 + 4)
     elseif not replay.network_lobby and replay:selected_player_count().key==2 then
-        self:draw_text("P2：WASD 移动　F 射击　G 低速　H Bomb",self.width*.5,92,.62,COLORS.muted,1+4)
+        self:draw_text("P2：WASD 移动　F 射击　G 低速　H Bomb",self.width*.5,143,.58,COLORS.muted,1+4)
     elseif replay:selected_mode().key=="modern" then
-        self:draw_text("装备与锻体在本轮保留；更换自机、人数或返回主菜单将重置",self.width*.5,92,.62,COLORS.muted,1+4)
+        self:draw_text("装备与锻体在本轮保留；更换自机、人数或返回主菜单将重置",self.width*.5,143,.58,COLORS.muted,1+4)
     end
     lstg.EndScene()
 end
@@ -1379,6 +1797,7 @@ function MapRenderer:render_equipment_catalog(entries, cursor, mouse_x, mouse_y)
         local selected = index == (cursor or 1)
         draw_rect(lstg, self.white, selected and { 235, 105, 38, 52 } or { 210, 24, 29, 46 },
             84, 700, bottom, bottom + 36)
+        if selected then self:draw_focus_frame(84, 700, bottom, bottom + 36, index * 0.31) end
         self:draw_text(selected and ">" or "", 100, bottom + 18, 0.7, COLORS.accent, 1 + 4)
         local rarity_label, rarity_color = EquipmentInfo.rarity(definition)
         self:draw_text(EquipmentInfo.display_name(definition), 132, bottom + 18, 0.74, rarity_color, 0)
@@ -1387,9 +1806,9 @@ function MapRenderer:render_equipment_catalog(entries, cursor, mouse_x, mouse_y)
         self:draw_text(rarity_label, 660, bottom + 18, 0.62, COLORS.muted, 2)
     end
     self:draw_scrollbar(690, 700, 110, self.height - 165, #entries, visible, cursor or 1, mouse_x, mouse_y, false)
-    self:draw_text(string.format("%d / %d", cursor or 1, #entries), self.width * 0.5, 52, 0.72, COLORS.muted, 1 + 4)
+    self:draw_text(string.format("%d / %d", cursor or 1, #entries), 390, 52, 0.72, COLORS.muted, 1 + 4)
 
-    self:draw_panel(742, self.width - 62, 80, self.height - 70)
+    self:draw_focus_frame(742, self.width - 62, 80, self.height - 70, 0.9)
     self:draw_text("装备信息", 766, self.height - 116, 0.95, COLORS.accent, 0)
     local entry = entries[cursor or 1]
     local detail_lines = entry and EquipmentInfo.describe(entry.definition) or {}
@@ -1413,7 +1832,7 @@ function MapRenderer:render_equipment_catalog(entries, cursor, mouse_x, mouse_y)
     end
     self:draw_info_lines(detail_lines, 766, detail_top,
         { size = 0.64, line_height = 24, width = self.width - 860, height = detail_height })
-    self:draw_text("方向键浏览   Esc 返回主界面", self.width * 0.5, 52, 0.72, COLORS.muted, 1 + 4)
+    self:draw_text("方向键浏览   Esc 返回主界面", 980, 52, 0.72, COLORS.muted, 1 + 4)
     lstg.EndScene()
 end
 
@@ -1506,7 +1925,7 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
         return
     end
     if session.run_state == Constants.run_states.REPLAY_SELECT then
-        self:render_replay_select(self.replay, self.replay_field)
+        self:render_replay_select(self.replay, self.replay_field, mouse_x, mouse_y)
         return
     end
     if session.run_state == Constants.run_states.REPLAY_STAGE then
@@ -1638,6 +2057,7 @@ function MapRenderer:render_shop(session, cursor, mouse_x, mouse_y, mouse_down, 
     local button_bottom, button_top = self.height - 140, self.height - 96
     draw_rect(lstg, self.white, button_hovered and { 255, 235, 105, 105 } or { 210, 24, 29, 62 },
         button_left, button_right, button_bottom, button_top)
+    if button_hovered then self:draw_focus_frame(button_left, button_right, button_bottom, button_top, 1.1) end
     draw_line(lstg, self.white, button_hovered and COLORS.text or COLORS.panel_border, button_left, button_bottom, button_right, button_bottom, button_hovered and 2 or 1)
     draw_line(lstg, self.white, button_hovered and COLORS.text or COLORS.panel_border, button_left, button_top, button_right, button_top, button_hovered and 2 or 1)
     self:draw_text("装备整备 Tab", (button_left + button_right) * 0.5, (button_bottom + button_top) * 0.5, 0.72, COLORS.text, 1 + 4)
@@ -1658,6 +2078,7 @@ function MapRenderer:render_shop(session, cursor, mouse_x, mouse_y, mouse_down, 
         local fill = purchased and { 180, 45, 55, 95 } or (selected and { 235, 88, 31, 43 } or COLORS.map_panel)
         draw_rect(lstg, self.white, fill, x1, x2, geometry.card_bottom, geometry.card_top)
         if selected then draw_rect(lstg, self.white, COLORS.accent, x1, x2, geometry.card_top - 3, geometry.card_top) end
+        if selected then self:draw_focus_frame(x1, x2, geometry.card_bottom, geometry.card_top, index * 0.75) end
         if not purchased then
             local offered_definition = offer and offer.kind == "EQUIPMENT"
                 and session.equipment_registry:get(offer.definition_id) or nil
@@ -1677,10 +2098,16 @@ function MapRenderer:render_shop(session, cursor, mouse_x, mouse_y, mouse_down, 
         geometry.list_left, geometry.list_right, geometry.ready_bottom, geometry.ready_top)
     if ready_selected then draw_rect(lstg, self.white, COLORS.accent, geometry.list_left, geometry.list_right,
         geometry.ready_top - 3, geometry.ready_top) end
+    if ready_selected then
+        self:draw_focus_frame(geometry.list_left, geometry.list_right,
+            geometry.ready_bottom, geometry.ready_top, 2.0)
+    end
     self:draw_text("准备 / 离开商店", self.width * 0.5, (geometry.ready_bottom + geometry.ready_top) * 0.5,
         0.8, COLORS.text, 1 + 4)
 
     self:draw_panel(geometry.detail_left, geometry.detail_right, geometry.detail_bottom, geometry.detail_top)
+    self:draw_focus_frame(geometry.detail_left, geometry.detail_right,
+        geometry.detail_bottom, geometry.detail_top, 1.4)
     self:draw_text("物品信息", geometry.detail_left + 20, geometry.detail_top - 28, 0.9, COLORS.accent, 0)
     -- Resolve the inspected slot: a direct mouse hover wins, otherwise fall
     -- back to the keyboard cursor. The panel stays empty when nothing is
@@ -1841,15 +2268,22 @@ function MapRenderer:render_reward(session, cursor, mouse_x, mouse_y, mouse_down
         draw_rect(lstg, self.white, claimed and { 230, 43, 91, 67 } or (selected and { 235, 88, 31, 43 } or COLORS.map_panel),
             x1, x2, geometry.card_bottom, geometry.card_top)
         if selected then draw_rect(lstg, self.white, COLORS.accent, x1, x2, geometry.card_top - 3, geometry.card_top) end
+        if selected then self:draw_focus_frame(x1, x2, geometry.card_bottom, geometry.card_top, index * 0.75) end
         local choice = choices[index]
         local kind_label = choice and (choice.kind == "RESOURCE" and "资源"
             or (choice.kind == "EQUIPMENT" and "装备" or tostring(choice.kind))) or "--"
         local name_label = reward_label(session, choice)
+        local name_color = COLORS.text
+        if choice and choice.kind == "EQUIPMENT" then
+            local definition = session.equipment_registry and session.equipment_registry:get(choice.definition_id)
+            local _, rarity_color = EquipmentInfo.rarity(definition)
+            name_color = rarity_color
+        end
         -- Vertical layout inside the card: index (top-left), kind, name and
         -- the selection marker near the bottom.
         self:draw_text(string.format("%d", index), x1 + 16, geometry.card_top - 22, 0.65, COLORS.muted, 0)
         self:draw_text(kind_label, (x1 + x2) * 0.5, geometry.card_top - 43, 0.68, COLORS.active_line, 1 + 4)
-        self:draw_text(fit_text(name_label, max_name_chars), (x1 + x2) * 0.5, geometry.card_top - 70, 0.78, COLORS.text, 1 + 4)
+        self:draw_text(fit_text(name_label, max_name_chars), (x1 + x2) * 0.5, geometry.card_top - 70, 0.78, name_color, 1 + 4)
         if claimed then
             draw_rect(lstg, self.white, { 255, 95, 180, 90 }, x1 + 20, x2 - 20, geometry.card_bottom + 7, geometry.card_bottom + 26)
             self:draw_text("已选择", (x1 + x2) * 0.5, geometry.card_bottom + 16, 0.60, COLORS.text, 1 + 4)
@@ -1858,6 +2292,7 @@ function MapRenderer:render_reward(session, cursor, mouse_x, mouse_y, mouse_down
         end
     end
     self:draw_panel(geometry.detail_left, geometry.detail_right, geometry.detail_bottom, geometry.detail_top)
+    self:draw_focus_frame(geometry.detail_left, geometry.detail_right, geometry.detail_bottom, geometry.detail_top, 1.6)
     self:draw_text("物品信息", geometry.detail_left + 20, geometry.detail_top - 28, 0.9, COLORS.accent, 0)
     local guaranteed_index = session.reward_guaranteed_definition_id and (#choices + 1) or nil
     local hovered = self:reward_hit_test(mouse_x, mouse_y, #choices, guaranteed_index)

@@ -103,7 +103,8 @@ return function(assert_equal, assert_true)
     client_bootstrap.session:start_new(20260830)
     local preparation_node
     for _, candidate in ipairs(host_bootstrap.session.map.nodes or {}) do
-        if host_bootstrap.session.map:is_adjacent(candidate.id) then
+        if candidate.type == Constants.node_types.ENEMY
+                and host_bootstrap.session.map:is_adjacent(candidate.id) then
             preparation_node = candidate.id
             break
         end
@@ -130,24 +131,11 @@ return function(assert_equal, assert_true)
     client_link:update()
     host_link:update()
     client_link:update()
-    -- The lightweight fake transport can finish the synthetic encounter
-    -- immediately.  Consume the new enemy-room reward barrier so this
-    -- preparation protocol assertion still reaches the map state.
-    if host_bootstrap.session.run_state == Constants.run_states.REWARD then
-        host_bootstrap.session:claim_reward(1, 1)
-        host_bootstrap.session:claim_reward(1, 2)
-        host_bootstrap.session:claim_reward(2, 1)
-        host_bootstrap.session:claim_reward(2, 2)
-    end
-    if client_bootstrap.session.run_state == Constants.run_states.REWARD then
-        client_bootstrap.session:claim_reward(1, 1)
-        client_bootstrap.session:claim_reward(1, 2)
-        client_bootstrap.session:claim_reward(2, 1)
-        client_bootstrap.session:claim_reward(2, 2)
-    end
-    assert_true(host_bootstrap.session.run_state == "MAP",
+    -- The fixture suppresses the native launch callback, so both peers should
+    -- stop in the encounter state after leaving preparation.
+    assert_true(host_bootstrap.session.run_state == Constants.run_states.ENCOUNTER,
         "host leaves preparation after both Ready states")
-    assert_true(client_bootstrap.session.run_state == "MAP",
+    assert_true(client_bootstrap.session.run_state == Constants.run_states.ENCOUNTER,
         "client leaves preparation with host")
 
     local audit = NativeSyncAudit.new({ interval = 1 })

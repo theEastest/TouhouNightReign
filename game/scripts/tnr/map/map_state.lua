@@ -21,9 +21,24 @@ function MapState:get_current_node()
     return self.nodes[self.current_node_id]
 end
 
+function MapState:get_forward_links(node_id)
+    local source = self.nodes[node_id or self.current_node_id]
+    local result = {}
+    if not source then return result end
+    for _, linked_id in ipairs(source.links or {}) do
+        local target = self.nodes[linked_id]
+        if target and tonumber(target.x) and tonumber(source.x) and target.x > source.x then
+            result[#result + 1] = linked_id
+        end
+    end
+    table.sort(result)
+    return result
+end
+
 function MapState:is_adjacent(node_id)
     local current = self:get_current_node()
-    return current ~= nil and current:is_linked(node_id)
+    local target = self.nodes[tonumber(node_id) or node_id]
+    return current ~= nil and target ~= nil and target.x > current.x and current:is_linked(target.id)
 end
 
 function MapState:select_node(node_id)
@@ -35,7 +50,7 @@ function MapState:select_node(node_id)
         return nil, "already at node"
     end
     if not self:is_adjacent(node_id) then
-        return nil, "node is not adjacent"
+        return nil, "只能前往下一层的相邻节点，不能回头"
     end
     self.current_node_id = node_id
     node.visited = true

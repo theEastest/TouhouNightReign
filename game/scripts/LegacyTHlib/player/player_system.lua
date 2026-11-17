@@ -386,6 +386,15 @@ end
 function system:render()
     local p = self.player
     p._wisys:render()--by OLC，自机行走图系统
+    -- The collision point is otherwise hidden inside the ship sprite. Keep
+    -- the marker small and only show it during slow/focus movement.
+    if p.slow == 1 and not p.hide and (p.death or 0) == 0 then
+        SetImageState("tnr-white", "", Color(150, 255, 96, 132))
+        RenderRect("tnr-white", p.x - 4, p.x + 4, p.y - 4, p.y + 4)
+        SetImageState("tnr-white", "", Color(255, 255, 226, 236))
+        RenderRect("tnr-white", p.x - 1.5, p.x + 1.5, p.y - 1.5, p.y + 1.5)
+        SetImageState("tnr-white", "", Color(255, 255, 255, 255))
+    end
 end
 
 ---Shoot事件

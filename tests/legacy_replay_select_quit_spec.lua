@@ -31,7 +31,10 @@ return function(assert_equal, assert_true, assert_false)
             return true
         end
         replay.stop = function() end
-        replay.move_cursor = function() end
+        replay.move_cursor = function(self, name, delta, count)
+            local key = name .. "_cursor"
+            self[key] = ((self[key] - 1 + delta) % count) + 1
+        end
         replay.stage_list = function() return { { key = "st01" } } end
         replay.PLAYER_COUNTS = { { key = 1 } }
         replay.MODES = { { key = "modern" } }
@@ -82,6 +85,48 @@ return function(assert_equal, assert_true, assert_false)
     }, { __index = Bootstrap })
     move_instance:_update_replay_select({ move_y = 1 })
     assert_equal(move_instance.replay.started, 0, "moving does not start a stage")
+
+    local mouse_replay = fake_replay()
+    mouse_replay.CHARACTERS = { { key = "reimu" }, { key = "marisa" } }
+    local mouse_instance = setmetatable({
+        session = { run_state = Constants.run_states.REPLAY_SELECT },
+        replay = mouse_replay,
+        replay_field = "stage",
+        scroll_states = {},
+        ui_mouse_moved = true,
+        input = { get_mouse_position = function() return 1000, 450 end },
+        renderer = { replay_select_hit_test = function() return { field = "character", index = 2 } end },
+        start_replay_stage = Bootstrap.start_replay_stage,
+        _update_replay_select = Bootstrap._update_replay_select,
+    }, { __index = Bootstrap })
+    mouse_instance:_update_replay_select({ mouse_primary_pressed = true })
+    assert_equal(mouse_instance.replay_field, "character", "mouse hover focuses its replay column")
+    assert_equal(mouse_instance.replay.character_cursor, 2, "mouse click selects the hovered character")
+
+    local start_instance = setmetatable({
+        session = { run_state = Constants.run_states.REPLAY_SELECT },
+        replay = fake_replay(),
+        replay_field = "stage",
+        scroll_states = {},
+        input = { get_mouse_position = function() return 640, 100 end },
+        renderer = { replay_select_hit_test = function() return { action = "start" } end },
+        start_replay_stage = Bootstrap.start_replay_stage,
+        _update_replay_select = Bootstrap._update_replay_select,
+    }, { __index = Bootstrap })
+    start_instance:_update_replay_select({ mouse_primary_pressed = true })
+    assert_equal(start_instance.replay.started, 1, "mouse click starts the replay stage")
+
+    local failure_instance = setmetatable({
+        session = { player_count = 1, local_player_id = 1,
+            get_player = function() return { life = 1 } end },
+        stage_adapter = { accept_reality = function() end },
+        _failure_option_count = Bootstrap._failure_option_count,
+        _failure_choice = Bootstrap._failure_choice,
+    }, { __index = Bootstrap })
+    assert_equal(failure_instance:_failure_option_count(), 3,
+        "a solo player with lives remaining gets a third failure option")
+    assert_equal(failure_instance:_failure_choice(2), "ACCEPT_REALITY",
+        "the solo failure option accepts reality")
 
     -- The main menu still reports its own quit, so the fix did not disable it.
     local menu_instance = setmetatable({

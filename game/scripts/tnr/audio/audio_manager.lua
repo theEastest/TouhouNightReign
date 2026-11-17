@@ -10,6 +10,9 @@ local SOUNDS = {
     hit = { id = "tnr:pldead00", path = "assets/audio/se/se_pldead00.wav", volume = 0.55 },
     enemy_hit = { id = "tnr:damage00", path = "assets/audio/se/se_damage00.wav", volume = 0.25 },
     card = { id = "tnr:cardget", path = "assets/audio/se/se_cardget.wav", volume = 0.7 },
+    ui_move = { id = "tnr:ui_move", path = "assets/audio/se/se_select00.wav", volume = 0.36 },
+    ui_confirm = { id = "tnr:ui_confirm", path = "assets/audio/se/se_ok00.wav", volume = 0.52 },
+    ui_cancel = { id = "tnr:ui_cancel", path = "assets/audio/se/se_cancel00.wav", volume = 0.45 },
 }
 local MUSIC = {
     -- These are the same recordings and loop points registered by the

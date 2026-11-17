@@ -55,6 +55,8 @@ local DialogOverrideSpec = require("dialog_override_spec")
 local CharacterSelectSpec = require("character_select_spec")
 local CharacterStatsSpec = require("character_stats_spec")
 local AudioManagerSpec = require("audio_manager_spec")
+local UIAudioSpec = require("ui_audio_spec")
+local AudioAssetsSpec = require("audio_assets_spec")
 
 -- The legacy replay suite is large, so its specs are loaded together to keep
 -- the number of locals in this file inside Lua's limit.
@@ -68,6 +70,7 @@ local LEGACY_REPLAY_SPECS = {
     "legacy_replay_interfaces_spec", "legacy_replay_player_spec",
     "legacy_replay_hud_spec", "legacy_replay_bullet_pattern_spec",
     "legacy_replay_controller_spec", "legacy_replay_select_quit_spec",
+    "legacy_replay_dynamic_hp_spec",
     "bullet_effects_spec",
     "legacy_replay_dialogue_spec",
     "legacy_replay_combat_spec",
@@ -101,6 +104,7 @@ require("inventory_overflow_ui_spec")(assert_equal, assert_true)
 require("support_toggle_spec")(assert_equal, assert_true)
 require("tutorial_spec")(assert_equal, assert_true)
 require("ui_theme_spec")(assert_equal, assert_true)
+require("selection_history_spec")(assert_equal, assert_true, assert_false)
 require("status_art_theme_spec")(assert_equal, assert_true)
 require("weapon_contract_spec")(assert_equal, assert_true)
 require("p_gauge_spec")(assert_equal, assert_true)
@@ -133,6 +137,8 @@ DialogOverrideSpec(assert_equal, assert_true)
 CharacterSelectSpec(assert_equal, assert_true)
 CharacterStatsSpec(assert_equal, assert_true)
 AudioManagerSpec(assert_equal, assert_true)
+UIAudioSpec(assert_equal)
+AudioAssetsSpec(assert_equal, assert_true)
 
 local scroll = ScrollState.new(20, 8, 1)
 assert_equal(scroll:update(1), 2, "scroll moves immediately on first key frame")
@@ -149,6 +155,14 @@ scroll:set_cursor(20)
 assert_equal(scroll:first_visible(), 13, "scroll window follows last selection")
 assert_equal(ScrollState.new(20, 8, 1):set_from_track(1), 20, "scrollbar bottom maps to last item")
 assert_equal(ScrollState.new(20, 8, 1):set_from_track(0), 1, "scrollbar top maps to first item")
+local replay_scroll = ScrollState.new(6, 6, 1, 60, 30, true)
+assert_equal(replay_scroll:update(1), 2, "replay navigation moves once on key press")
+for _ = 2, 59 do
+    assert_equal(replay_scroll:update(1), 2, "replay navigation waits for a one-second hold")
+end
+assert_equal(replay_scroll:update(1), 3, "replay navigation starts repeating after one second")
+for _ = 1, 29 do replay_scroll:update(1) end
+assert_equal(replay_scroll:update(1), 4, "replay navigation repeats every half second")
 
 local function serialize_map(map)
     local parts = {}

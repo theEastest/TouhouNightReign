@@ -151,6 +151,7 @@ function Adapter.new(options)
         rng = rng,
         random = random,
         stage_key = options.stage_key,
+        enemy_hp_multiplier = math.max(0.5, math.min(2, tonumber(options.enemy_hp_multiplier) or 1)),
     }, Adapter)
     for _, entry in ipairs(self.anm.bullet or {}) do
         for _, rect in ipairs(entry.sprites or {}) do
@@ -227,11 +228,13 @@ end
 
 --- Spawn a legacy enemy and attach an ECL thread to it.
 function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
+    local base_hp = tonumber(hp) or 50
+    local scaled_hp = base_hp * (self.enemy_hp_multiplier or 1)
     local lua_class = self.enemy_class
     local object
     if lua_class ~= nil and type(self.lstg.New) == "function" then
         -- The engine enemy class takes (style, hp, clear_bullet, auto_delete).
-        local ok, created = pcall(self.lstg.New, lua_class, 1, hp or 50, false, true)
+        local ok, created = pcall(self.lstg.New, lua_class, 1, scaled_hp, false, true)
         object = ok and created or nil
     end
     if not object then
@@ -244,7 +247,7 @@ function Adapter:spawn_enemy(routine, x, y, hp, args, caller_thread)
         -- The ECL creation call carries the enemy's hit points; keep them on the
         -- object so player damage and the drop check have something to work
         -- with when the host does not provide a real enemy class.
-        object.hp = tonumber(hp) or object.hp or 50
+        object.hp = scaled_hp or object.hp or 50
         object.max_hp = object.hp
         object.legacy_drop = args and args.main_drop or 0
         object.legacy_ecl = routine
@@ -691,11 +694,11 @@ function Adapter:build_instructions()
     -- Sound. The reference names an effect by its index into a fixed list, so
     -- the index is translated to the corresponding file and handed to whoever
     -- owns the audio device.
-    local function play_reference_sound(index)
+    local function play_reference_sound(index, volume)
         if not self_ref.on_sound then return end
         local path = Sounds.path_for(index)
         if not path then return end
-        pcall(self_ref.on_sound, path)
+        pcall(self_ref.on_sound, path, volume)
     end
     instructions.playSound = function(thread, runtime, args)
         play_reference_sound(resolve_arg(thread, args and args[1], nil))
@@ -1019,6 +1022,7 @@ function Adapter:build_instructions()
         if not enemy then return end
         local value = resolve_arg(thread,args[1],0)
         -- 42b8e4 sets both the current and maximum HP for the new phase.
+        value = value * (self_ref.enemy_hp_multiplier or 1)
         enemy.hp, enemy.max_hp, enemy.legacy_scaled_hp = value, value, value*7
         if self_ref.boss_ui and self_ref.boss_object==enemy then
             self_ref.boss_ui:set_health(value,value)
@@ -1683,7 +1687,13 @@ function Adapter:fire_bullet_group(thread, group_index)
             group.sprite, group.anim, false, group.color_index, group.ex, group.transforms)
     end
     if group.fire_sound and group.fire_sound>=0 then
-        self.instructions.playSound(thread,self.runtime,{group.fire_sound})
+        -- The imported fire-sound IDs often resolve to unrelated UI/timeout
+        -- sounds in the flattened table. TH15's enemy projectile voice is
+        -- enep00; keep it quiet because it is emitted once per volley.
+        if self.on_sound then
+            local path = Sounds.path_for(1)
+            if path then pcall(self.on_sound, path, 0.16) end
+        end
     end
 end
 

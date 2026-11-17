@@ -31,6 +31,13 @@ return function(assert_equal, assert_true)
     assert_equal(group_thread.bullets[2].transforms[1].flags,2,"dynamic group retains its birth transform")
     assert_true(group_thread.bullets[0].transforms==nil,"dynamic group does not alter other transforms")
 
+    local scaled_hp = Adapter.new({ lstg = {}, chunks = {}, enemy_hp_multiplier = 2 })
+    local scaled_enemy = scaled_hp:spawn_enemy("unused", 0, 0, 25)
+    assert_equal(scaled_enemy.hp, 50, "dynamic HP multiplier applies to enemy creation")
+    scaled_hp.instructions.lifeSet({ object = scaled_enemy }, nil, { "100" })
+    assert_equal(scaled_enemy.hp, 200, "dynamic HP multiplier applies to scripted boss phases")
+    assert_equal(scaled_enemy.legacy_scaled_hp, 1400, "spell damage accumulator follows scaled boss health")
+
     -- 41c1f2 uses >= +999990 to aim a transformed laser at the player at
     -- creation, and <= -999990 to retain the incoming bullet's angle.
     local aim_adapter=Adapter.new({lstg={},chunks={}})
@@ -335,7 +342,7 @@ return function(assert_equal, assert_true)
     assert_equal(#fired,2,"zero-count ECL volley emits nothing")
     assert_equal(seeded.runtime.host.globals.RANDRAD,-math.pi/2,"RANDRAD is a signed angle")
     local sounds={}
-    seeded.on_sound=function(path) sounds[#sounds+1]=path end
+    seeded.on_sound=function(path,volume) sounds[#sounds+1]={path=path,volume=volume} end
     seeded.instructions.etSprite(shooter,nil,{0,18,6})
     seeded.instructions.etOffsetAbs(shooter,nil,{0,120,80})
     seeded.instructions.etNew(shooter,nil,{0})
@@ -350,6 +357,8 @@ return function(assert_equal, assert_true)
     seeded:fire_bullet_group(shooter,0)
     seeded:fire_bullet_group(shooter,0)
     assert_equal(#sounds,2,"each volley plays its configured sound once")
+    assert_equal(sounds[1].path,"assets/audio/se/se_enep00.wav","enemy volleys use the enemy projectile sound")
+    assert_equal(sounds[1].volume,0.16,"frequent enemy volley sounds stay quiet")
     seeded.instructions.etSound(shooter,nil,{0,-1,-1})
     seeded:fire_bullet_group(shooter,0)
     assert_equal(#sounds,2,"negative sound ID disables volley audio")
