@@ -50,8 +50,8 @@ return function(assert_equal, assert_true)
     local spiral = Patterns.expand({ count1 = 1, count2 = 3, speed1 = 6, speed2 = 0,
         angle1 = 0, angle2 = 0, mode = Patterns.MODE.CIRCLE })
     close(spiral[1].speed, 6, "the first ring uses the outer speed")
-    close(spiral[2].speed, 4, "the middle ring is halfway")
-    close(spiral[3].speed, 2, "the last ring approaches the inner speed")
+    close(spiral[2].speed, 3, "the middle ring is halfway")
+    close(spiral[3].speed, 0, "the last ring reaches the inner speed")
 
     -- The ring offset advances each ring by the angle step.
     local stacked = Patterns.expand({ count1 = 1, count2 = 2, speed1 = 3, speed2 = 3,
@@ -64,10 +64,23 @@ return function(assert_equal, assert_true)
         angle1 = 0, angle2 = 0, mode = Patterns.MODE.CIRCLE_AIMED, aim_angle = 1.0 })
     close(aimed[1].angle, 1.0, "the aimed ring faces the player")
 
-    -- An empty volley is impossible: a zero count is clamped to one.
+    -- Native 41c64c..41c6af skips either loop when its count is zero.
     local single = Patterns.expand({ count1 = 0, count2 = 0, speed1 = 3, speed2 = 3,
         angle1 = 0, angle2 = 0, mode = Patterns.MODE.CIRCLE })
-    assert_equal(#single, 1, "a zero count still fires one bullet")
+    assert_equal(#single, 0, "a zero count emits no bullets")
+
+    local spokes=Patterns.expand({count1=4,count2=3,speed1=3,speed2=1,angle1=.2,angle2=.1,mode=9,aim_angle=.5})
+    close(spokes[1].angle,.7,"central spoke uses aim")
+    close(spokes[5].angle,.6,"odd spoke reverses offset")
+    close(spokes[9].angle,.8,"even spoke mirrors its partner")
+    close(spokes[5].speed,1,"paired spokes share their target speed")
+    local seen_range={}
+    Patterns.expand({count1=1,count2=1,speed1=3,speed2=2,angle1=.5,angle2=.25,mode=8,
+        random=function(a,b) seen_range[#seen_range+1]={a,b};return a end})
+    close(seen_range[1][1],.25,"random angle lower endpoint")
+    close(seen_range[1][2],.75,"random angle upper endpoint")
+    close(seen_range[2][1],3,"random speed starts at speed1")
+    close(seen_range[2][2],5,"random speed adds speed2 range")
 
     -- The th15 modes above the reference range still form a ring.
     for _, mode in ipairs({ 9, 10, 11 }) do

@@ -8,7 +8,10 @@ function RelicDefinition.new(spec)
     assert(type(spec.relic_id) == "string" and spec.relic_id ~= "", "relic_id is required")
     local data = {
         relic_id = spec.relic_id,
-        display_name = spec.name or spec.display_name or spec.relic_id,
+        display_name = spec.display_name_zh or spec.display_name or spec.name or spec.relic_id,
+        display_name_zh = spec.display_name_zh or spec.display_name or spec.name or spec.relic_id,
+        display_name_en = spec.display_name_en or spec.name or spec.display_name or spec.relic_id,
+        description = spec.description,
         tags = Immutable.copy(spec.tags or {}),
         metadata = Immutable.copy(spec.metadata or {}),
         upgrade_from = spec.upgrade_from,

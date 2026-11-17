@@ -2,11 +2,10 @@ local Constants = require("tnr.core.constants")
 local GameSession = require("tnr.core.game_session")
 local ShopService = require("tnr.shop.shop_service")
 local EquipmentInstance = require("tnr.equipment.equipment_instance")
+local Command = require("tnr.core.command")
 
 return function(assert_equal, assert_true)
-    -- A shop purchase that cannot fit in the inventory must fail cleanly and
-    -- must not leave a pending acquisition behind (a pending item has no
-    -- accept/reject UI in the shop and used to block SHOP_READY forever).
+    -- Full-inventory shop purchases wait for a replacement decision.
     local session = GameSession.new({ run_seed = 4242, player_count = 1 }):start_new()
     session.run_state = Constants.run_states.SHOP
     session.shop_service = ShopService.new(session)
@@ -21,13 +20,28 @@ return function(assert_equal, assert_true)
         if offer.kind == "EQUIPMENT" then equipment_slot = index break end
     end
     assert_true(equipment_slot ~= nil, "shop must offer at least one equipment item")
-    local purchased, purchase_err = session.shop_service:purchase(1, equipment_slot)
-    assert_true(purchased == nil and purchase_err == "INVENTORY_FULL",
-        "a full inventory must reject the purchase with INVENTORY_FULL")
-    assert_true(session.acquisition_service:get_pending(1) == nil,
-        "a failed shop purchase must not leave a pending acquisition")
+    player.money = 100
+    session.shop_service.offers[equipment_slot].price = 10
+    local purchased = session.shop_service:purchase(1, equipment_slot)
+    assert_true(purchased and purchased.pending, "a full purchase requests a replacement decision")
+    assert_equal(player.money, 100, "pending purchase is not charged")
     local ready, ready_err = session.shop_service:set_ready(1, true)
-    assert_true(ready ~= nil, "the shop must still be leavable after a failed purchase: " .. tostring(ready_err))
+    assert_equal(ready, nil, "shop cannot close with an unresolved item")
+    assert_equal(ready_err, "PENDING_ACQUISITION", "shop reports pending acquisition")
+    assert_true(session:dispatch({type = Command.REJECT_PENDING_ITEM, player_id = 1}) ~= nil, "player can reject the shop item")
+    assert_equal(player.money, 100, "rejecting the item does not charge")
+    assert_equal(inventory:count(), 12, "rejecting preserves the warehouse")
+    local second = session.shop_service:purchase(1, equipment_slot)
+    assert_true(second and second.pending, "the rejected offer remains available")
+    assert_true(session:dispatch({type = Command.ACCEPT_PENDING_ITEM, player_id = 1, discard_index = 12}) ~= nil,
+        "player can replace a selected item")
+    assert_equal(player.money, 90, "accepting charges exactly once")
+    assert_equal(inventory.items[12].instance_id, second.instance.instance_id, "the selected warehouse item is replaced")
+    local repeat_purchase, repeat_err = session.shop_service:purchase(1, equipment_slot)
+    assert_equal(repeat_purchase, nil, "accepted offer cannot be purchased twice")
+    assert_equal(repeat_err, "ALREADY_PURCHASED", "accepted purchase is recorded")
+    ready, ready_err = session.shop_service:set_ready(1, true)
+    assert_true(ready ~= nil, "the shop remains leavable after resolution: " .. tostring(ready_err))
     assert_equal(session.run_state, Constants.run_states.MAP, "leaving the shop returns to the map")
 
     -- Rewards can be toggled: claiming then unclaiming must exactly undo the

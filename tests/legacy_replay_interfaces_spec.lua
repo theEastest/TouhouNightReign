@@ -40,7 +40,7 @@ return function(assert_equal, assert_true)
     local classic = Interfaces.classic_mode()
     assert_equal(classic.id, "classic", "the classic mode is identified")
     assert_equal(classic:rewards_per_stage(), 0, "classic offers no reward rounds")
-    assert_equal(classic:score_extend_threshold(), 10000000, "classic extends at ten million")
+    assert_equal(classic:score_extend_threshold(), 1000000, "classic chapter bonus awards a fragment at one million")
 
     -- Sessions pair a roster with a mode.
     local solo_modern = Interfaces.ReplaySession.new({ roster = solo, mode = modern })

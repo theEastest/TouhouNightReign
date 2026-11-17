@@ -192,7 +192,10 @@ function FakeTransport:poll()
     if not message then
         return nil
     end
-    if message.kind == "input" and message.payload and message.payload.player_id then
+    if message.kind=="replay" then
+        self.replay_messages=self.replay_messages or {}
+        self.replay_messages[#self.replay_messages+1]=message.payload
+    elseif message.kind == "input" and message.payload and message.payload.player_id then
         local player_id = message.payload.player_id
         local previous = self.remote_inputs[player_id]
         self.remote_inputs[player_id] = merge_remote_input(previous, message.payload)
@@ -204,6 +207,13 @@ function FakeTransport:poll()
         self.last_peer_snapshot = message.payload
     end
     return message
+end
+
+function FakeTransport:send_replay(payload)
+    return self.bus:deliver(self,self.peer_id,{kind="replay",payload=payload})
+end
+function FakeTransport:consume_replay()
+    local messages=self.replay_messages or {};self.replay_messages={};return messages
 end
 
 function FakeTransport:consume_snapshot()

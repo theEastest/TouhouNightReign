@@ -103,6 +103,11 @@ function PlayerState.from_table(data, character_definition)
     local inventory
     if data.loadout and data.loadout.inventory then
         inventory = Inventory.from_table(data.loadout.inventory)
+        -- Earlier versions stored the six-slot default in player snapshots.
+        -- Expand only that legacy default when this character now has twelve.
+        if inventory.capacity == 6 and character_definition.inventory_slots == 12 then
+            inventory.capacity = 12
+        end
     end
     local loadout
     if data.loadout then

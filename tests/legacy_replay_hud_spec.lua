@@ -39,18 +39,16 @@ return function(assert_equal, assert_true)
     -- Fade plus slide plus hold.
     assert_equal(ui.card_timer, 15 + 15 + 120, "the cut-in lasts the scripted time")
     assert_equal(ui.card_elapsed, 0, "the cut-in starts at frame zero")
-    -- The name plate bar length is fifteen half pixels per character plus 16.
-    assert_true(math.abs(ui.card_bar_length - (#"test" * 15 / 2 + 16)) < 1e-6,
-        "the name plate bar follows the reference formula")
+    assert_equal(ui.card, "test", "the card title remains available while its spell is active")
 
     -- The player animation cycles through poses.
     local animation = PlayerAnimation.new(anm.pl00[1], "pl00")
     animation:update({ move_x = 0 })
     assert_equal(animation.script, PlayerAnimation.POSE.IDLE, "standing still idles")
     animation:update({ move_x = 0, shoot = true })
-    assert_equal(animation.script, PlayerAnimation.POSE.FIRE, "shooting fires")
+    assert_equal(animation.script, PlayerAnimation.POSE.IDLE, "shooting preserves the body idle animation")
     animation:update({ move_x = 1 })
-    assert_equal(animation.script, PlayerAnimation.POSE.SIDE_A, "moving sideways steps")
+    assert_equal(animation.script, PlayerAnimation.POSE.SIDE_B, "moving right uses the right bank animation")
     -- Every pose keeps its sprite inside the sheet.
     for _, pose in ipairs({ 0, 1, 2, 3, 5 }) do
         local anim = PlayerAnimation.new(anm.pl00[1], "pl00")

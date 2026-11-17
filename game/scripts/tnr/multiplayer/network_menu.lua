@@ -61,6 +61,7 @@ function NetworkMenu.new()
     return setmetatable({
         mode = nil, cursor = 1, ip = preset.ip, port = preset.port, seed = "",
         status = nil, status_is_error = false, replace_on_input = {},
+        play_mode = "map",
     }, NetworkMenu)
 end
 
@@ -69,6 +70,7 @@ function NetworkMenu:is_open() return self.mode == "host" or self.mode == "clien
 function NetworkMenu:open(mode)
     assert(mode == "host" or mode == "client", "invalid network menu mode")
     self.mode, self.cursor, self.status, self.status_is_error = mode, 1, nil, false
+    self.previous_x=0
     self.replace_on_input = { [1] = true, [2] = true, [3] = true }
     if self.port == "" then self.port = DEFAULT_PORT end
     if self.ip == "" then self.ip = "localhost" end
@@ -85,6 +87,7 @@ function NetworkMenu:get_fields()
         return {
             { id = "port", label = "PORT", value = self.port, placeholder = DEFAULT_PORT },
             { id = "seed", label = "SEED", value = self.seed, placeholder = "blank = random" },
+            { id = "play_mode", label = "玩法（← →切换）", value = self.play_mode=="replay" and "旧作重演 · 经典双人" or "地图冒险" },
         }
     end
     return {
@@ -133,7 +136,7 @@ end
 
 function NetworkMenu:backspace()
     local field = self:get_fields()[self.cursor]
-    if not field then return end
+    if not field or field.id=="play_mode" then return end
     if self.replace_on_input[self.cursor] then
         if field.id == "ip" then self.ip = ""
         elseif field.id == "port" then self.port = ""
@@ -168,7 +171,7 @@ function NetworkMenu:validate()
         end
         seed = math.floor(seed)
     end
-    return { mode = self.mode, host = host, port = port, seed = seed }
+    return { mode = self.mode, host = host, port = port, seed = seed, play_mode=self.play_mode }
 end
 
 function NetworkMenu:confirm()

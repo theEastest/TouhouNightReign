@@ -11,8 +11,9 @@ function Camera.new(script)
     local self = setmetatable({script = script or {}, pc = 1, time = 0,
         position = {0, 0, -600}, direction = {0, 0, 1}, up = {0, 1, 0},
         fov = math.pi / 5, fog = {0, 0, 0, 0, 400, 1400},
-        tweens = {}, offsets = {}, unhandled = {}}, Camera)
+        tweens = {}, offsets = {}, unhandled = {},sprites={},interrupts={}}, Camera)
     for i, ins in ipairs(self.script) do self.offsets[ins.offset] = i end
+    for i, ins in ipairs(self.script) do if ins.id==16 then self.interrupts[ins.args[1]]=i end end
     self:execute_due()
     return self
 end
@@ -33,8 +34,8 @@ function Camera:execute_due()
         elseif id == 2 or id == 4 or id == 6 then
             local key = id == 2 and "position" or id == 4 and "direction" or "up"
             self[key], self.tweens[key] = copy(a), nil
-        elseif id == 3 or id == 5 then
-            self:ramp(id == 3 and "position" or "direction", a[1], a[2], {a[3], a[4], a[5]})
+        elseif id == 3 or id == 5 or id==18 then
+            self:ramp(id == 3 and "position" or id==5 and "direction" or "up", a[1], a[2], {a[3], a[4], a[5]})
         elseif id == 7 then self.fov = a[1]
         elseif id == 8 then
             self.fog = color(a[1]); self.fog[5], self.fog[6] = a[2], a[3]
@@ -42,6 +43,10 @@ function Camera:execute_due()
         elseif id == 9 then
             local target = color(a[3]); target[5], target[6] = a[4], a[5]
             self:ramp("fog", a[1], a[2], target)
+        elseif id==13 then self.clear_color=color(a[1])
+        elseif id==14 then self.sprites[a[1]]={script=a[2],layer=a[3] or 0,generation=(self.sprites[a[1]] and self.sprites[a[1]].generation or 0)+1}
+        elseif id==16 then -- Interrupt label; fall through during normal playback.
+        elseif id==0 then self.stopped=true;return
         else
             -- Includes background interrupts: expose rather than silently claiming support.
             self.unhandled[id] = (self.unhandled[id] or 0) + 1
@@ -59,6 +64,10 @@ function Camera:update()
         if tween.elapsed == tween.duration then self.tweens[key] = nil end
     end
     self.time = self.time + 1
-    self:execute_due()
+    if not self.stopped then self:execute_due() end
+end
+function Camera:interrupt(id)
+    local pc=self.interrupts[id];if not pc then return false end
+    self.pc=pc;self.time=self.script[pc].time;self.stopped=false;self:execute_due();return true
 end
 return Camera

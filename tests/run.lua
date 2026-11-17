@@ -44,6 +44,7 @@ local RunLifecycleSpec = require("run_lifecycle_spec")
 local CombatRuntimeIntegrationSpec = require("combat_runtime_integration_spec")
 local GuideEquipmentSpec = require("guide_equipment_spec")
 local EquipmentInfoSpec = require("equipment_info_spec")
+local WeaponPreviewSpec = require("weapon_preview_spec")
 local DifficultyFloorSpec = require("difficulty_floor_spec")
 local ShopRewardSpec = require("shop_reward_spec")
 local DropRewardSpec = require("drop_reward_spec")
@@ -69,6 +70,11 @@ local LEGACY_REPLAY_SPECS = {
     "legacy_replay_controller_spec", "legacy_replay_select_quit_spec",
     "bullet_effects_spec",
     "legacy_replay_dialogue_spec",
+    "legacy_replay_combat_spec",
+    "replay_pilot_spec",
+    "legacy_replay_rewards_spec",
+    "replay_network_spec",
+    "replay_modern_network_spec",
 }
 
 local function assert_equal(left, right, message)
@@ -89,9 +95,17 @@ StateAuthoritySpec(assert_equal, assert_true)
 NativeSyncProtocolSpec(assert_equal, assert_true)
 WeightRuntimeSpec(assert_equal, assert_true)
 WeaponRuntimeSpec(assert_equal, assert_true)
+require("preparation_right_click_spec")(assert_equal, assert_true)
+require("preparation_transaction_spec")(assert_equal, assert_true)
+require("inventory_overflow_ui_spec")(assert_equal, assert_true)
+require("support_toggle_spec")(assert_equal, assert_true)
+require("tutorial_spec")(assert_equal, assert_true)
+require("ui_theme_spec")(assert_equal, assert_true)
+require("status_art_theme_spec")(assert_equal, assert_true)
 require("weapon_contract_spec")(assert_equal, assert_true)
 require("p_gauge_spec")(assert_equal, assert_true)
 require("affix_runtime_spec")(assert_equal, assert_true)
+require("affix_display_spec")(assert_equal, assert_true)
 require("status_hud_spec")(assert_equal, assert_true)
 require("native_ufo_cleanup_spec")(assert_equal, assert_true)
 require("native_bullet_reference_spec")(assert_equal, assert_true)
@@ -108,6 +122,7 @@ RunLifecycleSpec(assert_equal, assert_true)
 CombatRuntimeIntegrationSpec(assert_equal, assert_true)
 GuideEquipmentSpec(assert_equal, assert_true)
 EquipmentInfoSpec(assert_equal, assert_true)
+WeaponPreviewSpec(assert_equal, assert_true)
 DifficultyFloorSpec(assert_equal, assert_true)
 ShopRewardSpec(assert_equal, assert_true)
 DropRewardSpec(assert_equal, assert_true)
@@ -146,7 +161,7 @@ end
 
 local keyboard_state = {}
 local fake_keyboard = { GetKeyState = function(code) return keyboard_state[code] == true end }
-for index, key in ipairs({ "Left", "Right", "Up", "Down", "Z", "LeftShift", "X", "Enter", "Escape", "Space", "Tab", "Back" }) do
+for index, key in ipairs({ "Left", "Right", "Up", "Down", "Z", "LeftShift", "X", "Enter", "Escape", "Space", "Tab", "Back", "LeftControl" }) do
     fake_keyboard[key] = index
 end
 local fake_mouse = { Primary = 1, GetKeyState = function() return false end }
@@ -154,10 +169,13 @@ local default_input_provider = LuaSTGInputProvider.new({ Input = { Keyboard = fa
 keyboard_state[fake_keyboard.Left] = true
 keyboard_state[fake_keyboard.Z] = true
 keyboard_state[fake_keyboard.LeftShift] = true
+keyboard_state[fake_keyboard.LeftControl] = true
 local matching_default_inputs = default_input_provider:poll_all({ 1, 2 })
 assert_equal(matching_default_inputs[1].move_x, matching_default_inputs[2].move_x, "P1 and P2 default movement bindings must match")
 assert_equal(matching_default_inputs[1].shoot, matching_default_inputs[2].shoot, "P1 and P2 default shoot bindings must match")
 assert_equal(matching_default_inputs[1].focus, matching_default_inputs[2].focus, "P1 and P2 default focus bindings must match")
+assert_equal(matching_default_inputs[2].skip_dialogue, true, "the keyboard provides held Ctrl to replay dialogue")
+keyboard_state[fake_keyboard.LeftControl] = false
 
 local mouse_down = true
 local p2_mouse_provider = LuaSTGInputProvider.new({

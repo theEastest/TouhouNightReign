@@ -15,7 +15,7 @@ return function(assert_equal, assert_true)
     assert_true(Constants.run_states.REPLAY_STAGE ~= nil, "the stage state exists")
 
     -- Every reference stage has a key that matches the compiled namespace.
-    assert_equal(#Replay.STAGES, 7, "seven stages are offered")
+    assert_equal(#Replay.STAGES, 6, "six main stages are offered, excluding EX")
     for index, stage in ipairs(Replay.STAGES) do
         assert_true(stage.key == string.format("st%02d", index),
             "stage " .. index .. " uses the compiled namespace key")
@@ -34,6 +34,23 @@ return function(assert_equal, assert_true)
             character.key .. " maps to its player sheet")
     end
 
+    local Bootstrap = require("tnr.bootstrap")
+    local Keyboard = require("tnr.input.luastg_input")
+    local app = Bootstrap.create({})
+    app.replay.lstg={}
+    local held = { right = true, a = true, f = true }
+    app.input = Keyboard.new({Input={Keyboard={Right="right", A="a", F="f",
+        GetKeyState=function(key) return held[key] end}}})
+    app.replay.input_provider=app.input
+    app.replay.mode_cursor=2
+    app.replay.player_count_cursor=2
+    assert_true(app:start_replay_stage(),"local co-op enters a replay stage")
+    local inputs=app:_poll_inputs()
+    assert_equal(inputs[1].move_x,1,"local P1 uses the right arrow")
+    assert_equal(inputs[2].move_x,-1,"local P2 uses A independently")
+    assert_true(inputs[2].shoot and not inputs[1].shoot,"F shoots only for local P2")
+    assert_equal(app.input:poll(2).move_x,1,"LAN P2 keeps the primary controls")
+
     -- Two rulesets are offered.
     assert_equal(#Replay.MODES, 2, "two rulesets are offered")
     local keys = {}
@@ -44,7 +61,7 @@ return function(assert_equal, assert_true)
     -- Cursors wrap around in both directions.
     local replay = Replay.new({})
     replay:move_cursor("stage", -1, #Replay.STAGES)
-    assert_equal(replay.stage_cursor, 7, "moving up from the first stage wraps to the last")
+    assert_equal(replay.stage_cursor, 6, "moving up from the first stage wraps to the last")
     replay:move_cursor("stage", 1, #Replay.STAGES)
     assert_equal(replay.stage_cursor, 1, "moving down from the last stage wraps to the first")
     assert_equal(replay:selected_stage().key, "st01", "the selection reads back")

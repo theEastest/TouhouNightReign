@@ -26,6 +26,7 @@ import sys
 # several difficulties. The compiler keeps a per-difficulty variant so the
 # runtime can pick the right branch instead of hard-coding one.
 DIFF_KEYS = {"E": "easy", "N": "normal", "H": "hard", "L": "lunatic", "O": "overdrive"}
+RANDOM_OPERAND = re.compile(r"(?:\$RAND|%RAND(?:F2?|RAD)?)\b")
 
 
 def parse_value(token):
@@ -144,7 +145,7 @@ def compile_body(body):
                     branches.append(values[slot] if slot < len(values) else "0")
                 ordered.append(branches)
             if ordered:
-                diff_values = ordered
+                diff_values.extend(ordered)
         pending_diff_values.clear()
 
     def resolve_placeholders(operands):
@@ -156,15 +157,19 @@ def compile_body(body):
         filled from the closest lighter branch.
         """
         resolved = []
+        # Expressions printed inline are evaluated above the explicit stack
+        # values. Their slots still count in the decompiler's negative offsets.
+        inline_count = sum(bool(re.search(r"[+*/]|\s-\s", arg)) and not arg.startswith("[") for arg in operands)
         for operand in operands:
             match = re.match(r"^\[\s*(-\d+)(\.\d+)?f?\s*\]$", operand)
             if match and diff_values:
                 distance = int(match.group(1))
-                index = len(diff_values) + distance
+                index = len(diff_values) + distance + inline_count
                 if 0 <= index < len(diff_values):
-                    resolved.append({"__branches__": list(diff_values[index])})
+                    resolved.append({"__branches__": list(diff_values[index]), "__stack_order__": index})
                     continue
             resolved.append(operand)
+        diff_values.clear()
         return resolved
 
     for raw in lines:
@@ -185,6 +190,7 @@ def compile_body(body):
             key = line[1:].strip()
             if key == "*":
                 flush_diff()
+                pending_diff_key = None
                 instructions.append(("diff_end",))
             else:
                 pending_diff_key = key
@@ -194,12 +200,18 @@ def compile_body(body):
             continue
         # Bare timed values inside a difficulty block, e.g. "90;" or "1.5f;".
         bare = re.match(r"^([-\d][\w\.]*)f?;$", line)
+        # Decompilation emits expressions on the stack as well as literals.
+        # Losing `$D;` makes wait([-1]) zero and floods the fourth boss phase.
+        if re.match(r"^(?:[$%\(\d+\-]|_f\().*;$", line) and "=" not in line and not re.match(r"^\+\d+:",line):
+            bare = True
         if bare:
             if pending_diff_key:
                 # Record the value for each difficulty named in the marker.
                 for single in pending_diff_key:
                     if single in ("E", "N", "H", "L", "O"):
                         pending_diff_values.setdefault(single, []).append(line[:-1])
+            else:
+                diff_values.append([line[:-1]] * 5)
             instructions.append(("value", line[:-1]))
             continue
         # if / unless conditional jumps.
@@ -225,17 +237,49 @@ def compile_body(body):
         # Plain instruction call: name(args);
         call_instr = re.match(r"^([A-Za-z_][A-Za-z0-9_]*)\((.*)\);$", line)
         if call_instr:
+            # th15's shared expanding bullet-cancel effect uses explicit
+            # stack arithmetic across a one-frame time label.
+            if call_instr.group(1) == "addf" and not call_instr.group(2).strip() and len(diff_values) >= 2:
+                right, left = diff_values.pop(), diff_values.pop()
+                diff_values.append([f"({a}) + ({b})" for a, b in zip(left, right)])
+                continue
+            if call_instr.group(1) == "setf" and diff_values and len(set(diff_values[-1])) == 1:
+                expression = diff_values.pop()[0]
+                instructions.append(("assign", call_instr.group(2).strip(), "=", expression))
+                continue
             operands = resolve_placeholders(split_args(call_instr.group(2)))
-            instructions.append(("ins", call_instr.group(1), operands))
+            # thecl folds stack computations into the call's printed argument
+            # list. The bytecode evaluates those arguments right to left,
+            # then reads standalone registers while executing the instruction.
+            # Explicit difficulty-dependent stack values appear before the
+            # call's inline computations in the decl. Preserve their original
+            # push order, then evaluate folded inline expressions right-to-left.
+            branch_random = [
+                (operand["__stack_order__"], index)
+                for index, operand in enumerate(operands, 1)
+                if isinstance(operand, dict) and any(
+                    RANDOM_OPERAND.search(value) for value in operand["__branches__"]
+                )
+            ]
+            inline_random = [
+                index for index in range(len(operands), 0, -1)
+                if isinstance(operands[index - 1], str)
+                and RANDOM_OPERAND.search(operands[index - 1])
+                and not RANDOM_OPERAND.fullmatch(operands[index - 1])
+            ]
+            stack_random = [index for _, index in sorted(branch_random)] + inline_random
+            instruction = ("ins", call_instr.group(1), operands)
+            instructions.append((*instruction, stack_random) if stack_random else instruction)
             continue
         # Routine return.
         if line == "return;":
             instructions.append(("ret",))
             continue
-        # Deferred async: "@Name(args) async N;" waits N frames first.
+        # The trailing number identifies the async VM for killAsync; it is
+        # not a delay (TH15 instruction 16, callAsyncId).
         deferred = re.match(r"^@([A-Za-z0-9_]+)\((.*)\)\s*async\s+(\d+);$", line)
         if deferred:
-            instructions.append(("call_after", deferred.group(1), int(deferred.group(3)), split_args(deferred.group(2))))
+            instructions.append(("call_id", deferred.group(1), int(deferred.group(3)), resolve_placeholders(split_args(deferred.group(2)))))
             continue
         # Positional branch labels such as "+1: //comment".
         plus_label = re.match(r"^\+(\d+):", line)
@@ -299,6 +343,9 @@ def main():
                 elif isinstance(value, list):
                     rendered = []
                     for item in value:
+                        if isinstance(item, int):
+                            rendered.append(str(item))
+                            continue
                         if isinstance(item, dict) and "__branches__" in item:
                             inner = ", ".join('"%s"' % v for v in item["__branches__"])
                             rendered.append("{" + inner + "}")

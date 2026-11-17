@@ -21,13 +21,12 @@ Replay.__index = Replay
 -- The reference stages, in order, with the display name shown on the select
 -- screen. The key is the compiled namespace prefix.
 Replay.STAGES = {
-    { key = "st01", name = "第一关　妖怪的森林" },
-    { key = "st02", name = "第二关　红色狂气的洋馆" },
-    { key = "st03", name = "第三关　永远与须臾之都" },
-    { key = "st04", name = "第四关　火星的沙尘暴" },
-    { key = "st05", name = "第五关　逆袭的月之都" },
-    { key = "st06", name = "第六关　纯狐的静谧" },
-    { key = "st07", name = "第七关　月面的决战" },
+    { key = "st01", name = "第一面" },
+    { key = "st02", name = "第二面" },
+    { key = "st03", name = "第三面" },
+    { key = "st04", name = "第四面" },
+    { key = "st05", name = "第五面" },
+    { key = "st06", name = "第六面" },
 }
 
 -- The reference characters, mapped to their sht key and sheet.
@@ -45,13 +44,11 @@ Replay.PLAYER_COUNTS = {
     { key = 2, name = "双人游戏" },
 }
 
--- The reward choices the modern ruleset offers between stages. These are the
--- reference style bonuses rather than the roguelike's equipment, so the replay
--- stays close to the original pacing.
+-- Training cards accompany equipment from the normal single-player pool.
 Replay.REWARDS = {
-    { key = "power", name = "火力提升", description = "火力 +100", apply = function(player) player.power = math.min(400, (player.power or 0) + 100) end },
-    { key = "life", name = "残机增加", description = "残机 +1", apply = function(player) end, team = function(session, id) session.lives_left[id] = (session.lives_left[id] or 0) + 1 end },
-    { key = "bomb", name = "炸弹增加", description = "炸弹 +1", apply = function(player) end, team = function(session, id) session.bombs_left[id] = (session.bombs_left[id] or 0) + 1 end },
+    { key = "power", name = "火力锻体", description = "所有装备攻击力 +10%（加算）" },
+    { key = "life", name = "残机增加", description = "残机 +1", team = function(session, id) session:add_life(id,1) end },
+    { key = "bomb", name = "炸弹增加", description = "炸弹 +1", team = function(session, id) session:add_bomb(id,1) end },
     { key = "graze", name = "擦弹强化", description = "擦弹范围 +2", apply = function(player) player.grazebox = (player.grazebox or 6) + 2 end },
     { key = "score", name = "得点加成", description = "得分 +100 万", apply = function() end, score = 1000000 },
     { key = "speed", name = "机动力提升", description = "移速 +0.5", apply = function(player) player.definition = player.definition or {}; player.definition.move_unfocused = (player.definition.move_unfocused or 4.5) + 0.5 end },
@@ -59,8 +56,8 @@ Replay.REWARDS = {
 
 -- Selectable rulesets.
 Replay.MODES = {
-    { key = "modern", name = "现代模式", description = "每关后两次三选一奖励" },
-    { key = "classic", name = "传统模式", description = "原作 P 点与分数残机规则" },
+    { key = "modern", name = "现代模式", description = "每关两次三选一：锻体 / 装备" },
+    { key = "classic", name = "经典模式", description = "P 点火力；章节得分奖励残机碎片" },
 }
 
 ---@param options table { lstg, chunks, anm, std, sht, session, audio }
@@ -128,6 +125,48 @@ function Replay:selected_player_count()
     return Replay.PLAYER_COUNTS[self.player_count_cursor] or Replay.PLAYER_COUNTS[1]
 end
 
+-- A replay owns its equipment run: rewards must neither disappear when a
+-- stage runtime is freed nor modify an unrelated single-player map save.
+function Replay:get_equipment_session()
+    local signature=(self.network_lobby and "network" or self:selected_character().key)..":"..self:selected_player_count().key
+    if self.equipment_signature and self.equipment_signature~=signature then self:reset_progress() end
+    if not self.equipment_session then
+        local GameSession=require("tnr.core.game_session")
+        local character=self:selected_character().key
+        local local_id=self.session and self.session.local_player_id or 1
+        self.equipment_session=GameSession.new({
+            run_seed=self.equipment_seed,
+            player_count=self:selected_player_count().key,
+            local_player_id=self.network_lobby and local_id or 1,
+            character_id=self.network_lobby and "reimu" or character,
+            character_by_player=self.network_lobby and {[local_id]=character} or nil,
+        })
+        self.equipment_session:start_new()
+        self.training_bonuses={}
+        self.equipment_signature=signature
+    end
+    return self.equipment_session
+end
+
+function Replay:reset_progress()
+    self.progress_key=nil;self.saved_team=nil
+    self.equipment_session=nil
+    self.training_bonuses=nil
+    self.saved_resources=nil
+    self.saved_score=nil
+    self.saved_money=nil
+    self.equipment_signature=nil
+end
+
+function Replay:apply_training(player_id,player)
+    local bonus=(self.training_bonuses or {})[player_id] or {}
+    player.training_damage_bonus=bonus.power or 0
+    player.grazebox=player.grazebox+(bonus.graze or 0)
+    local speed=bonus.speed or 0
+    player.definition.move_unfocused=(player.definition.move_unfocused or 4.5)+speed
+    player.definition.move_unfocused_diagonal=(player.definition.move_unfocused_diagonal or 4.5/math.sqrt(2))+speed/math.sqrt(2)
+end
+
 --- Move a selection cursor with wraparound.
 function Replay:move_cursor(name, delta, count)
     if delta == 0 then return end
@@ -145,6 +184,13 @@ function Replay:start_stage()
     local stage = self:selected_stage()
     local mode = self:selected_mode()
     local character = self:selected_character()
+    local progress_key=mode.key..":"..self:selected_player_count().key..":"..
+        (self.network_config and table.concat(self.network_config.characters,",") or character.key)
+    if self.progress_key~=progress_key then
+        self.saved_resources=nil;self.saved_score=nil;self.saved_money=nil;self.saved_team=nil
+        self.progress_key=progress_key
+    end
+    self.last_result=nil
 
     -- Load the stage's textures and sprites. This is the slow step, so it runs
     -- once when the stage starts rather than every frame.
@@ -173,8 +219,8 @@ function Replay:start_stage()
         end
     end
     local session = Interfaces.ReplaySession.new({ roster = roster, mode = ruleset })
-
     self.runtime = StageRuntime.new({
+        seed = self.network_config and self.network_config.seed or math.random(0,0xffff),
         lstg = self.lstg,
         stage = stage.key,
         anm = self.anm,
@@ -182,9 +228,14 @@ function Replay:start_stage()
         chunks = self.chunks,
         sht = self.sht,
         session = session,
-        character = character.key,
+        equipment_session = mode.key=="modern" and self:get_equipment_session() or nil,
+        character = self.network_config and self.network_config.characters[1] or character.key,
         texture_sizes = StageRuntime.texture_sizes,
         audio = self.audio,
+        networked = self.network_config~=nil,
+        local_player_id = self.network_config and self.network_config.local_player_id or 1,
+        characters = self.network_config and self.network_config.characters,
+        loadouts = self.network_config and self.network_config.loadouts,
     })
     -- Seed the HUD from the session so the readout is consistent from frame one.
     self.runtime.stats = {
@@ -196,6 +247,29 @@ function Replay:start_stage()
         max_point = 0,
         graze = 0,
     }
+    do
+        for id,player in pairs(self.runtime.players) do
+            if mode.key=="modern" then self:apply_training(id,player) end
+            local saved=self.saved_resources and self.saved_resources[id]
+            if saved then
+                session.lives_left[id],session.bombs_left[id]=saved.life,saved.bomb
+                session.power[id]=saved.power or session.power[id]
+                player.power=session:get_power(id)*100
+                player.score=saved.score or 0;player.point_rate=saved.point_rate or 10000
+                player.graze=saved.graze or 0
+                player.life_piece=saved.life_piece or 0;player.bomb_piece=saved.bomb_piece or 0
+                if not session:is_coop() then self.runtime.point_rate=player.point_rate end
+            end
+        end
+        if session.party and self.saved_team then
+            session.party.team_life=self.saved_team.life
+            session.team_bombs=self.saved_team.bombs
+            session.party.life_fragments=self.saved_team.life_fragments
+            session.bomb_fragments=self.saved_team.bomb_fragments
+        end
+        self.runtime.stats.score=self.saved_score or 0
+        session.money=self.saved_money or 0
+    end
     self.runtime:start()
     -- The stage's own track. The reference plays one recording per stage, so a
     -- replay should not run over the menu music.
@@ -225,6 +299,10 @@ function Replay:next_reward_round()
     if claimed >= rounds then return nil end
     self.reward_round = claimed + 1
     self.reward_cursor = 1
+    self.reward_message=nil
+    local roster=self.runtime.session.roster
+    local ids=roster and roster:list() or {1}
+    self.reward_player_id=ids[((self.reward_round-1)%#ids)+1]
     -- Pick three distinct rewards, seeded by the stage and round so the same
     -- run offers the same choices.
     local pool = {}
@@ -235,23 +313,77 @@ function Replay:next_reward_round()
         local index = ((seed * 31 + pick * 17) % #pool) + 1
         choices[#choices + 1] = table.remove(pool, index)
     end
+    if self.active_mode=="modern" then
+        local equipment=self:get_equipment_session()
+        local generated=equipment.reward_service:generate_choices({
+            encounter_id=tostring(self.active_stage)..":"..self.reward_round..":"..tostring(self.runtime.frames),
+            encounter_type="ENEMY",
+        },equipment.run_seed)
+        -- Keep one training card; rotate through all existing reward categories.
+        local info=require("tnr.ui.equipment_info")
+        for slot=2,3 do
+            local choice=generated[((self.reward_round+slot-3)%#generated)+1]
+            if choice.kind=="EQUIPMENT" then
+                local definition=equipment.equipment_registry:get(choice.definition_id)
+                choice.name=info.display_name(definition,choice.definition_id)
+                choice.description=info.category(definition).." · "..info.rarity(definition).." · 领取后进入仓库"
+            else
+                choice.name=choice.resource=="life" and "残机增加" or "Bomb 增加"
+                choice.description="+"..tostring(choice.amount or 1)
+            end
+            choices[slot]=choice
+        end
+    end
     self.reward_choices = choices
     return choices
 end
 
---- Apply the highlighted reward.
-function Replay:claim_reward()
-    local choices = self.reward_choices
-    if not choices then return false end
-    local reward = choices[self.reward_cursor or 1]
-    if not reward then return false end
-    local session = self.runtime and self.runtime.session
+function Replay:can_claim_reward()
+    local reward=(self.reward_choices or {})[self.reward_cursor or 1]
+    if not reward or not self.runtime or self.active_mode=="classic" then return false end
+    if reward.kind=="EQUIPMENT" then
+        local player=self:get_equipment_session():get_player(self.reward_player_id or 1)
+        if not player or player.loadout.inventory:is_full() then
+            self.reward_message="仓库已满，请按 Tab 配装或清理后再领取"
+            return false
+        end
+    end
+    return true
+end
+
+--- Apply shared rewards on both peers and grant equipment on its owner's peer.
+function Replay:claim_reward(local_player_id)
+    local reward=(self.reward_choices or {})[self.reward_cursor or 1]
+    local session=self.runtime and self.runtime.session
+    if not reward or not session or self.active_mode=="classic" then return false end
+    if reward.kind=="EQUIPMENT" then
+        local owner=self.reward_player_id or 1
+        if not local_player_id or local_player_id==owner then
+            if not self:can_claim_reward() then return false end
+            local service=self:get_equipment_session().equipment_reward_service
+            local result=service:grant(reward.definition_id,owner,reward.random_affixes)
+            if not result or not result.acquired then
+                self.reward_message="装备领取失败，请检查仓库"
+                return false
+            end
+        end
+        self.reward_choices=nil
+        return true
+    end
     if session then
-        for _, player_id in ipairs(session.roster:list()) do
+        for _, player_id in ipairs({self.reward_player_id or 1}) do
+            if reward.kind=="RESOURCE" then
+                if reward.resource=="life" then session:add_life(player_id,reward.amount or 1)
+                else session:add_bomb(player_id,reward.amount or 1) end
+            end
             if reward.team then reward.team(session, player_id) end
             local player = self.runtime.players[player_id]
             if player and reward.apply then reward.apply(player) end
-            if reward.key == "power" then session:add_power(player_id, 1) end
+            self.training_bonuses=self.training_bonuses or {}
+            self.training_bonuses[player_id]=self.training_bonuses[player_id] or {}
+            local bonus=self.training_bonuses[player_id]
+            local amount=({power=.1,graze=2,speed=.5})[reward.key]
+            if amount then bonus[reward.key]=(bonus[reward.key] or 0)+amount end
         end
         if reward.score then
             local stats = self.runtime.stats or {}
@@ -271,8 +403,23 @@ end
 --- Advance one frame. Returns the run state: "playing", "cleared" or "failed".
 function Replay:update(inputs)
     if not self.runtime then return "playing" end
-    self.frame_inputs = inputs
-    self.runtime:update()
+    self.frame_inputs = {}
+    for id,value in pairs(inputs or {}) do
+        local input={};for k,v in pairs(value) do input[k]=v end
+        if value.bomb_down~=nil then input.bomb=value.bomb_down end
+        self.frame_inputs[id]=input
+    end
+    local pilot=not self.network_config and os.getenv("TNR_REPLAY_PILOT")=="1"
+    local batch=pilot and math.max(1,math.min(120,tonumber(os.getenv("TNR_REPLAY_BATCH")) or 1)) or 1
+    for _=1,batch do
+        if pilot then
+            for _,id in ipairs(self.runtime.session.roster:list()) do
+                self.frame_inputs[id]=require("tnr.debug.replay_pilot").sample(self.runtime,id)
+            end
+        end
+        self.runtime:update()
+        if self.runtime:timeline_finished() or self.runtime.session:life_count(1)<0 then break end
+    end
     self:_sync_stats()
     -- The stage is clear once the timeline has run every section, which happens
     -- after the boss script returns.
@@ -282,10 +429,11 @@ function Replay:update(inputs)
     -- All players out of lives.
     -- The replay session tracks lives itself: it starts from the ruleset and is
     -- reduced on every hit. A run with no lives left is a failure.
+    if self.runtime.session.team_defeated then return "failed" end
     local lives = self.runtime.session.lives_left or {}
     local alive = #self.runtime.session.roster:list() == 0
     for _, player_id in ipairs(self.runtime.session.roster:list()) do
-        if (lives[player_id] or 0) > 0 then alive = true break end
+        if (lives[player_id] or 0) >= 0 then alive = true break end
     end
     if not alive then return "failed" end
     return "playing"
@@ -306,27 +454,54 @@ function Replay:finish_stage(outcome)
         rewards = outcome == "cleared"
             and self.runtime.session:finish_stage(self.active_stage) or {},
     }
+    local path=os.getenv("TNR_REPLAY_AUDIT_OUTPUT")
+    if os.getenv("TNR_REPLAY_PILOT")=="1" and path then
+        local f=assert(io.open(path,"w"))
+        f:write(string.format("%s\t%s\t%d\t%d\t%d\n",outcome,self.active_mode,self.runtime.frames,
+            self.runtime.session:life_count(1),self.runtime.session.bombs_left[1]))
+        for _,entry in ipairs(self.runtime.adapter:missing_report()) do f:write("unhandled\t"..entry[1].."\n") end
+        f:close()
+    end
 end
 
 --- Push the runtime's state into the HUD rows.
 function Replay:_sync_stats()
     local runtime = self.runtime
     local session = runtime.session
-    local player_id = session.roster:list()[1]
+    local player_id = runtime.local_player_id or session.roster:list()[1]
     local player = runtime.players[player_id]
     local stats = runtime.stats or {}
     runtime.stats = stats
     stats.power = player and (player.power or 0) / 100 or 0
     stats.graze = player and math.floor(player.graze or 0) or 0
+    stats.chapter_graze = player and (player.chapter_graze or 0) or 0
     stats.lives = session:life_count(player_id)
-    stats.spellcards = (session.bombs_left or {})[player_id] or 0
-    stats.max_point = runtime.point_rate or 10000
+    stats.spellcards = session:bomb_count(player_id)
+    stats.life_pieces = session.party and session.party.life_fragments or player and player.life_piece or 0
+    stats.bomb_pieces = session.party and (session.bomb_fragments or 0) or player and player.bomb_piece or 0
+    stats.max_point = session:is_coop() and (player.point_rate or 10000) or runtime.point_rate or 10000
     -- Score counts the graze and the point items the player collected.
-    stats.score = math.floor((stats.score or 0) + (player and 0 or 0))
+    stats.score = math.floor(session:is_coop() and (player.score or 0) or stats.score or 0)
 end
 
 --- Leave the replay and free the runtime.
 function Replay:stop()
+    if self.runtime and self.runtime.modern then self.runtime.modern:save_progress() end
+    if self.runtime and self.last_result
+            and self.last_result.outcome=="cleared" then
+        self.saved_resources={}
+        for _,id in ipairs(self.runtime.session.roster:list()) do
+            local p=self.runtime.players[id]
+            self.saved_resources[id]={life=self.runtime.session:life_count(id),bomb=self.runtime.session:bomb_count(id),
+                power=self.runtime.session:get_power(id),score=p.score,point_rate=p.point_rate,
+                graze=p.graze,life_piece=p.life_piece,bomb_piece=p.bomb_piece}
+        end
+        local s=self.runtime.session
+        if s.party then self.saved_team={life=s.party.team_life,bombs=s.team_bombs,
+            life_fragments=s.party.life_fragments,bomb_fragments=s.bomb_fragments} end
+        self.saved_score=self.runtime.stats.score
+        self.saved_money=self.runtime.session.money or 0
+    end
     self.runtime = nil
     self.active_stage = nil
 end

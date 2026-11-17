@@ -168,6 +168,21 @@ function LoadoutService:discard_inventory(player_id, inventory_index)
     return player.loadout.inventory:remove(inventory_index)
 end
 
+function LoadoutService:discard_equipped(player_id, slot_type, slot_index, expected_instance_id)
+    local player = self.session:get_player(player_id)
+    if not player then return nil, "UNKNOWN_PLAYER" end
+    local instance = player.loadout:get_slot(slot_type, slot_index)
+    if not instance then return nil, "EMPTY_SLOT" end
+    if expected_instance_id and instance.instance_id ~= expected_instance_id then return nil, "STALE_ITEM" end
+    -- unequip performs the state/lock/capacity checks before it changes the
+    -- slot. Removing the appended item immediately afterwards is atomic from
+    -- the command receiver's perspective.
+    local inventory = player.loadout.inventory
+    local added, err = self:unequip(player_id, slot_type, slot_index)
+    if not added then return nil, err end
+    return inventory:remove(#inventory.items)
+end
+
 function LoadoutService:validate(player_id)
     local player = self.session:get_player(player_id)
     if not player or not player.loadout then return nil, "UNKNOWN_PLAYER" end
@@ -196,8 +211,7 @@ function LoadoutService:validate(player_id)
     return true
 end
 
-function LoadoutService:toggle_weapon(player_id, slot_type, slot_index)
-    if slot_type ~= "high_weapons" and slot_type ~= "low_weapons" then return nil, "NOT_WEAPON" end
+local function toggle_equipment(self, player_id, slot_type, slot_index)
     local player = self.session:get_player(player_id)
     local instance = player and player.loadout and player.loadout:get_slot(slot_type, slot_index)
     if not instance or instance == false then return nil, "EMPTY_SLOT" end
@@ -207,6 +221,15 @@ function LoadoutService:toggle_weapon(player_id, slot_type, slot_index)
     instance.runtime_data.enabled = instance.runtime_data.enabled == false
     player.loadout.version = (player.loadout.version or 1) + 1
     return true, instance.runtime_data.enabled
+end
+
+function LoadoutService:toggle_weapon(player_id, slot_type, slot_index)
+    if slot_type ~= "high_weapons" and slot_type ~= "low_weapons" then return nil, "NOT_WEAPON" end
+    return toggle_equipment(self, player_id, slot_type, slot_index)
+end
+
+function LoadoutService:toggle_support(player_id, slot_index)
+    return toggle_equipment(self, player_id, "supports", slot_index)
 end
 
 return LoadoutService

@@ -47,6 +47,7 @@ game.audio:attach_native()
 function GameInit()
     lstg.LoadTexture("tnr-white-texture", "assets/texture/white.png", false)
     lstg.LoadImage("tnr-white", "tnr-white-texture", 0, 0, 16, 16)
+    if game.renderer then game.renderer:init() end
     -- Title screen art: a full-screen background, the logo and the nine menu
     -- icons. The whole set is loaded into the global pool so the title can be
     -- rebuilt after any per-stage resource reset.

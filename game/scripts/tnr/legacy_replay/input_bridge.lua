@@ -34,6 +34,8 @@ function InputBridge.keyboard(provider, player_id)
                     shoot = value.shoot == true,
                     focus = value.focus == true,
                     bomb = value.bomb == true or value.bomb_down == true,
+                    confirm = value.confirm == true,
+                    skip_dialogue = value.skip_dialogue == true,
                 }
             else
                 source.cached = source.cached or {}
@@ -70,6 +72,8 @@ function InputBridge.recorder(player_id)
             shoot = input.shoot == true,
             focus = input.focus == true,
             bomb = input.bomb == true,
+            confirm = input.confirm == true,
+            skip_dialogue = input.skip_dialogue == true,
         }
     end
     function source:playback()

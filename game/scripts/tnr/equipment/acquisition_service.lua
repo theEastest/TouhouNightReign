@@ -26,7 +26,7 @@ function AcquisitionService:acquire(player_id, instance)
     local inventory = player.loadout.inventory
     local added, err = inventory:add(instance)
     if added then return added end
-    self.session.preparation.pending_acquisition[player_id] = instance
+    self.session.preparation:queue_acquisition(player_id, instance)
     return nil, err
 end
 
@@ -36,7 +36,10 @@ end
 
 function AcquisitionService:accept_pending(player_id, discard_index)
     if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION
-            and self.session.run_state ~= Constants.run_states.SHOP then
+            and self.session.run_state ~= Constants.run_states.SHOP
+            and self.session.run_state ~= Constants.run_states.REWARD
+            and self.session.run_state ~= Constants.run_states.FLOOR_CLEAR
+            and self.session.run_state ~= Constants.run_states.RELIC_SELECT then
         return nil, "NOT_MAP"
     end
     if self.session.preparation and self.session.preparation:is_locked(player_id) then
@@ -53,20 +56,23 @@ function AcquisitionService:accept_pending(player_id, discard_index)
         table.insert(inventory.items, discard_index, discarded)
         return nil, add_err
     end
-    self.session.preparation.pending_acquisition[player_id] = nil
+    self.session.preparation:advance_acquisition(player_id)
     return added, discarded
 end
 
 function AcquisitionService:reject_pending(player_id)
     if self.session.run_state ~= Constants.run_states.MAP and self.session.run_state ~= Constants.run_states.MAP_PREPARATION
-            and self.session.run_state ~= Constants.run_states.SHOP then
+            and self.session.run_state ~= Constants.run_states.SHOP
+            and self.session.run_state ~= Constants.run_states.REWARD
+            and self.session.run_state ~= Constants.run_states.FLOOR_CLEAR
+            and self.session.run_state ~= Constants.run_states.RELIC_SELECT then
         return nil, "NOT_MAP"
     end
     if self.session.preparation and self.session.preparation:is_locked(player_id) then
         return nil, "LOADOUT_LOCKED"
     end
     if not self:get_pending(player_id) then return nil, "NO_PENDING_ACQUISITION" end
-    self.session.preparation.pending_acquisition[player_id] = nil
+    self.session.preparation:advance_acquisition(player_id)
     return true
 end
 

@@ -32,7 +32,7 @@ return function(assert_equal, assert_true)
     assert_equal(ReimuDefinition.support_slots, 1, "Reimu support slots")
     assert_equal(ReimuDefinition.self_modifier_slots, 2, "Reimu self modifier slots")
     assert_equal(ReimuDefinition.support_modifier_slots, 2, "Reimu support modifier slots")
-    assert_equal(ReimuDefinition.inventory_slots, 6, "Reimu inventory slots")
+    assert_equal(ReimuDefinition.inventory_slots, 12, "Reimu inventory slots")
 
     local registry = EquipmentRegistry.new()
     local high = registry:register(WeaponDefinition.new({
@@ -82,15 +82,15 @@ return function(assert_equal, assert_true)
     assert_equal(loadout:get_total_weight(), 9, "only weapons and supports count toward weight")
     assert_equal(loadout:debug_summary().high_slots.total, 3, "debug summary exposes dynamic slots")
 
-    for index = 1, 6 do
+    for index = 1, 12 do
         local item = EquipmentInstance.new(plain, 1)
         assert_true(inventory:add(item) ~= nil, "inventory accepts item " .. index)
     end
     local overflow = inventory:add(EquipmentInstance.new(plain, 1))
-    assert_equal(overflow, nil, "seventh inventory item must not be accepted")
+    assert_equal(overflow, nil, "thirteenth inventory item must not be accepted")
     local _, overflow_reason = inventory:add(EquipmentInstance.new(plain, 1))
     assert_equal(overflow_reason, "INVENTORY_FULL", "inventory returns explicit overflow status")
-    assert_equal(inventory:count(), 6, "inventory cannot silently exceed capacity")
+    assert_equal(inventory:count(), 12, "inventory cannot silently exceed capacity")
     assert_equal(loadout:get_total_weight(), 9, "inventory items do not add weight")
 
     assert_true(ModifierDefinition.is_conflicting(self_modifier, ModifierDefinition.new({
@@ -107,7 +107,10 @@ return function(assert_equal, assert_true)
     local player = PlayerState.new(1, { loadout = loadout, inventory = inventory, map_ready = true })
     assert_equal(player.current_capacity, ReimuDefinition.base_capacity, "player capacity starts at base")
     local state_data = player:to_table()
+    state_data.loadout.inventory.capacity = 6
+    while #state_data.loadout.inventory.items > 6 do table.remove(state_data.loadout.inventory.items) end
     local restored = PlayerState.from_table(state_data, ReimuDefinition)
+    assert_equal(restored.loadout.inventory.capacity, 12, "legacy six-slot player snapshot expands to twelve")
     assert_equal(restored.player_id, player.player_id, "player id serializes")
     assert_equal(restored.loadout.high_weapons[1].instance_id, high_instance_a.instance_id, "loadout instance serializes")
     assert_equal(restored.loadout.high_weapons[1].definition_id, high_instance_a.definition_id, "loadout definition serializes")

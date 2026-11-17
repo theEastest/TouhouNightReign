@@ -19,7 +19,9 @@ return function(eq,yes)
  local seen={}
  for id,d in pairs(Equipment.registry:all()) do
   local i=Instance.new(d,1)
-  eq(#i.random_affixes,Catalog.eligible(d) and 1 or 0,"one affix for eligible weapon "..id)
+  if Catalog.eligible(d) then
+   yes(#i.random_affixes==1 or (d.rarity=="LEGENDARY" and #i.random_affixes==2),"eligible weapon affix count "..id)
+  else eq(#i.random_affixes,0,"ineligible weapon has no random affixes "..id) end
   if Catalog.eligible(d) then
    for seed=1,250 do
     local rolled=Catalog.roll(d,seed)[1];seen[rolled.id]=true

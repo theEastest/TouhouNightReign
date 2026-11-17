@@ -1,15 +1,26 @@
-local Art={loaded=false}
-function Art.load()
- if Art.loaded then return end
+local Art={loaded=false, atlases={}}
+-- The default remains the original atlas for legacy replay. Ordinary game
+-- callers opt in explicitly to the moonlit art, keeping both resources alive.
+function Art.load(style)
+ local key=style=="ordinary" and "ordinary" or "legacy"
+ if Art.atlases[key] then return Art.atlases[key] end
  local old=lstg.GetResourceStatus();lstg.SetResourceStatus("global")
- lstg.LoadTexture("tnr-affix-atlas","assets/ui/status/affixes.png",false)
- local w,h=lstg.GetTextureSize("tnr-affix-atlas");Art.cellw,Art.cellh=w/4,h/4
- for i=1,16 do lstg.LoadImage("tnr-status-"..i,"tnr-affix-atlas",((i-1)%4)*w/4,math.floor((i-1)/4)*h/4,w/4,h/4) end
- lstg.SetResourceStatus(old);Art.loaded=true
+ local texture=key=="ordinary" and "tnr-affix-moonlit-atlas" or "tnr-affix-atlas"
+ local prefix=key=="ordinary" and "tnr-status-moonlit-" or "tnr-status-"
+ local path=key=="ordinary" and "assets/ui/status/affixes-moonlit.png" or "assets/ui/status/affixes.png"
+ lstg.LoadTexture(texture,path,false)
+ local w,h=lstg.GetTextureSize(texture)
+ local atlas={cellw=w/4,cellh=h/4,prefix=prefix}
+ for i=1,16 do lstg.LoadImage(prefix..i,texture,((i-1)%4)*w/4,math.floor((i-1)/4)*h/4,w/4,h/4) end
+ lstg.SetResourceStatus(old);Art.atlases[key]=atlas
+ if key=="legacy" then Art.loaded=true;Art.cellw,Art.cellh=atlas.cellw,atlas.cellh end
+ return atlas
 end
-function Art.icon(id,x,y,size)
- Art.load();lstg.SetImageState("tnr-status-"..id,"",lstg.Color(255,255,255,255))
- lstg.Render("tnr-status-"..id,x,y,0,size/Art.cellw,size/Art.cellh)
+function Art.icon(id,x,y,size,style)
+ local atlas=Art.load(style)
+ local image=atlas.prefix..id
+ lstg.SetImageState(image,"",lstg.Color(255,255,255,255))
+ lstg.Render(image,x,y,0,size/atlas.cellw,size/atlas.cellh)
 end
 -- No reserved cells or row limit. Removing an entry closes its gap immediately.
 function Art.layout(entries,left,top,width)
@@ -19,10 +30,10 @@ function Art.layout(entries,left,top,width)
  end
  return cells
 end
-function Art.grid(entries,left,top,width,affixes,text)
+function Art.grid(entries,left,top,width,affixes,text,style)
  for _,cell in ipairs(Art.layout(entries,left,top,width)) do
   local e,x,y=cell.entry,cell.x,cell.y
-  Art.icon(e.icon,x,y,cell.size)
+  Art.icon(e.icon,x,y,cell.size,style)
   if e.id=="frost" and affixes then Art.frost(affixes,x-13,x+13,y-16)
   elseif e.ratio then
    lstg.SetImageState("tnr-white","",lstg.Color(230,35,40,55));lstg.RenderRect("tnr-white",x-13,x+13,y-17,y-14)
@@ -33,12 +44,12 @@ function Art.grid(entries,left,top,width,affixes,text)
  end
  lstg.SetImageState("tnr-white","",lstg.Color(255,255,255,255))
 end
-function Art.resources(icon,count,left,right,y,size)
+function Art.resources(icon,count,left,right,y,size,style)
  count=math.max(0,math.floor(tonumber(count) or 0))
  -- All resources remain in one row, shrinking spacing when needed.
  local pitch=math.min(size+3,(right-left)/math.max(1,count))
  local icon_size=math.min(size,pitch)
- for i=1,count do Art.icon(icon,left+(i-.5)*pitch,y,icon_size) end
+ for i=1,count do Art.icon(icon,left+(i-.5)*pitch,y,icon_size,style) end
 end
 function Art.ring(a,p)
  local progress=0

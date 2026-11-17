@@ -20,6 +20,7 @@ local LANTransport = require("tnr.multiplayer.lan_transport")
 local NetworkMenu = require("tnr.multiplayer.network_menu")local NativeSyncAudit = require("tnr.multiplayer.native_sync_audit")
 local ScrollState = require("tnr.ui.scroll_state")
 local CharacterCatalog = require("tnr.character.character_catalog")
+local Immutable = require("tnr.core.immutable")
 
 local Bootstrap = {}
 Bootstrap.__index = Bootstrap
@@ -93,6 +94,11 @@ function Bootstrap.create(options)
         -- the game uses, so the bindings match automatically.
         input_provider = input,
     })
+    input.bomb_available = function(player_id)
+        if replay.runtime then return replay.runtime.session:bomb_count(player_id)>0 end
+        local player=session:get_player(player_id)
+        return player and (player.bomb or 0)>0
+    end
     local stage_adapter = StageAdapter.new(session, options.stage, options.lstg, audio)
     local battle_sync = BattleSync.new(transport, {
         role = options.network_role,
@@ -151,6 +157,8 @@ function Bootstrap.create(options)
         audio = audio,
         initialized = false,
         menu_cursor = 1,
+        tutorial_page = 1,
+        tutorial_previous_direction = 0,
         training_cursor = 1,
         music_cursor = 1,
         catalog_cursor = 1,
@@ -639,14 +647,18 @@ end
 
 function Bootstrap:_poll_inputs()
     local player_ids = self.session.party and self.session.party.player_ids or { 1 }
+    local local_replay = self.session.run_state == Constants.run_states.REPLAY_STAGE
+        and self.replay.runtime and not self.replay.runtime.networked
     if #player_ids == 0 then
         player_ids = { 1 }
     end
-    if self.battle_sync and self.battle_sync:is_networked() then
+    if local_replay then
+        player_ids = self.replay.runtime.session.roster:list()
+    elseif self.battle_sync and self.battle_sync:is_networked() then
         player_ids = { self.session.local_player_id }
     end
     if self.input.poll_all then
-        return self.input:poll_all(player_ids)
+        return self.input:poll_all(player_ids, local_replay and #player_ids > 1)
     end
     local result = {}
     for _, player_id in ipairs(player_ids) do
@@ -730,6 +742,8 @@ function Bootstrap:start_network_game(config)
         local_player_id = local_player_id,
         snapshot_interval = 30,
     })
+    self.replay_network=require("tnr.multiplayer.replay_network").new(self,
+        config.mode=="host" and (config.play_mode or "map") or nil)
     local run_seed
     if config.mode == "host" then
         run_seed = tonumber(config.seed) or random_run_seed()
@@ -749,15 +763,22 @@ function Bootstrap:start_network_game(config)
     else
         self.stage_adapter.network_status = string.format("已连接 %s:%d", config.host, config.port)
     end
-    self:open_character_select(function()
-        self:start_game(run_seed)
-    end)
+    if config.mode=="host" and config.play_mode=="replay" then
+        self.replay_network:select()
+    else
+        self:open_character_select(function() self:start_game(run_seed) end)
+    end
     return true
 end
 
 function Bootstrap:_on_network_disconnect(reason)
     if self._handling_network_disconnect then return end
     self._handling_network_disconnect = true
+    if self.transport and self.transport.disconnect then self.transport:disconnect(reason) end
+    self.replay_network=nil
+    self.replay:stop()
+    self.replay.network_config=nil
+    self.replay.network_lobby=nil
     local message = "网络连接已断开"
     if reason and tostring(reason) ~= "" then
         message = message .. ": " .. tostring(reason)
@@ -779,7 +800,15 @@ function Bootstrap:_on_network_disconnect(reason)
     self.pending_encounter_start_at = nil
     self.pending_encounter_start_host_at = nil
     self.suppress_peer_leave = false
-    if self.network_menu then self.network_menu:set_error(message) end
+    if self.network_menu then
+        -- The connection form is normally closed during play. Reopen it so
+        -- an unconfirmed operation or lost connection is actually visible.
+        if not self.network_menu:is_open() then
+            local mode = self.transport and (self.transport.mode or self.transport.role) or "client"
+            self:open_network_menu(mode == "host" and "host" or "client")
+        end
+        self.network_menu:set_error(message)
+    end
     self._handling_network_disconnect = false
 end
 
@@ -839,6 +868,27 @@ function Bootstrap:_preparation_rows()
         rows[#rows + 1] = { kind = "inventory", index = index, instance = instance }
     end
     return rows
+end
+
+function Bootstrap:_send_preparation_command(command)
+    if self.battle_sync and self.battle_sync:is_networked() then
+        if not self.transport or self.transport.connected == false then return nil, "连接已断开" end
+        local send = self.transport.send_preparation or self.transport.send
+        local sent, err = send(self.transport, command)
+        if not sent then return nil, err or "发送失败" end
+        return true, nil, true
+    end
+    return self.session:dispatch(command)
+end
+
+local function expected_preparation_item(instance)
+    return {
+        definition_id = instance.definition_id,
+        owner_player_id = instance.owner_player_id,
+        weight = instance.weight,
+        runtime_data = Immutable.copy(instance.runtime_data),
+        random_affixes = Immutable.copy(instance.random_affixes),
+    }
 end
 
 function Bootstrap:_activate_preparation(toggle_weapon)
@@ -911,14 +961,22 @@ function Bootstrap:_activate_preparation(toggle_weapon)
         if not result and err then self.preparation_message = err else self.preparation_message = result and "Ready 已锁定配装" or "已取消 Ready" end
         return result
     elseif row.kind == "equipped" then
-        if toggle_weapon and (row.group == "high_weapons" or row.group == "low_weapons") then
-            local Service = require("tnr.equipment.loadout_service")
-            local ok, enabled = Service.new(self.session, self.session.equipment_registry):toggle_weapon(player_id, row.group, row.index)
-            self.preparation_message = ok and (enabled and "武器已启用" or "武器已停用") or enabled
+        -- Empty equipment slots are represented by false; clicking or
+        -- confirming one is a no-op, not an item operation.
+        if not row.instance then return nil end
+        if toggle_weapon and (row.group == "high_weapons" or row.group == "low_weapons" or row.group == "supports") then
+            local support = row.group == "supports"
+            local ok, enabled, queued = self:_send_preparation_command({
+                type = support and Command.TOGGLE_SUPPORT or Command.TOGGLE_WEAPON,
+                player_id = player_id, slot_type = row.group, slot_index = row.index,
+                expected_item = expected_preparation_item(row.instance),
+            })
+            local name = support and "子机" or "武器"
+            self.preparation_message = ok and (queued and (name .. "操作已发送") or (name .. (enabled and "已启用" or "已停用"))) or enabled
             return ok
         end
-        local result, err = self.session:dispatch({ type = Command.UNEQUIP_ITEM, player_id = player_id, slot_type = row.group, slot_index = row.index })
-        self.preparation_message = result and "装备已卸下到仓库" or (err or "卸下失败")
+        local result, err, queued = self:_send_preparation_command({ type = Command.UNEQUIP_ITEM, player_id = player_id, slot_type = row.group, slot_index = row.index, expected_item = expected_preparation_item(row.instance) })
+        self.preparation_message = result and (queued and "卸下请求已发送" or "装备已卸下到仓库") or (err or "卸下失败")
         return result
     elseif row.kind == "inventory" then
         local definition = self.session.equipment_registry:get(row.instance.definition_id)
@@ -934,13 +992,70 @@ function Bootstrap:_activate_preparation(toggle_weapon)
         for index, value in ipairs(player.loadout[group]) do
             if not value or value == false then target = index; break end
         end
-        local result, err = self.session:dispatch({ type = Command.EQUIP_ITEM, player_id = player_id, inventory_index = row.index, slot_type = group, slot_index = target })
-        self.preparation_message = result and "装备已从仓库移入槽位" or (err or "装备失败")
+        local result, err, queued = self:_send_preparation_command({ type = Command.EQUIP_ITEM, player_id = player_id, inventory_index = row.index, slot_type = group, slot_index = target, expected_item = expected_preparation_item(row.instance) })
+        self.preparation_message = result and (queued and "装备请求已发送" or "装备已从仓库移入槽位") or (err or "装备失败")
         return result
     end
 end
 
+function Bootstrap:_update_pending_acquisition(player_input)
+    if self:_preparation_waiting() then return end
+    local player_id = self.session.local_player_id or 1
+    local pending = self.session.acquisition_service:get_pending(player_id)
+    if not pending then return end
+    local rows = self:_preparation_rows()
+    local inventory_rows = {}
+    for index, row in ipairs(rows) do
+        if row.kind == "inventory" then inventory_rows[#inventory_rows + 1] = index end
+    end
+    if self.pending_acquisition_id ~= pending.instance_id then
+        self.pending_acquisition_id = pending.instance_id
+        self.preparation_cursor = inventory_rows[1] or 1
+    end
+    local current = 1
+    for index, row_index in ipairs(inventory_rows) do
+        if row_index == self.preparation_cursor then current = index break end
+    end
+    local direction = player_input.move_y or 0
+    if direction == 0 then direction = -(player_input.move_x or 0) end
+    if #inventory_rows > 0 then
+        current = self:_scroll_step("pending_acquisition", current, #inventory_rows, #inventory_rows, direction)
+        self.preparation_cursor = inventory_rows[current]
+    end
+    if self.input.get_mouse_position and self.renderer and self.renderer.preparation_hit_test then
+        local x, y = self.input:get_mouse_position()
+        local hit = self.renderer:preparation_hit_test(x, y, #rows, self.preparation_cursor, self:_local_loadout())
+        if hit and rows[hit] and rows[hit].kind == "inventory"
+                and (self.ui_mouse_moved or player_input.mouse_primary_pressed) then
+            self.preparation_cursor = hit
+        end
+    end
+    if player_input.cancel then
+        local ok, err, queued = self:_send_preparation_command({ type = Command.REJECT_PENDING_ITEM, player_id = player_id })
+        self.preparation_message = ok and (queued and "等待对端确认" or "已放弃物品") or (err or "操作失败")
+    elseif player_input.confirm then
+        local selected = rows[self.preparation_cursor]
+        if selected and selected.kind == "inventory" then
+            local ok, err, queued = self:_send_preparation_command({ type = Command.ACCEPT_PENDING_ITEM, player_id = player_id, discard_index = selected.index })
+            self.preparation_message = ok and (queued and "等待对端确认" or "已替换物品") or (err or "操作失败")
+        end
+    end
+end
+
+function Bootstrap:_preparation_waiting()
+    if self.transport and self.transport.consume_preparation_result then
+        local result = self.transport:consume_preparation_result()
+        if result then self.preparation_message = result.ok and "配装操作已同步" or (result.error or "配装操作失败") end
+        if self.transport.preparation_pending then
+            self.preparation_message = "等待对端确认配装操作"
+            return true
+        end
+    end
+    return false
+end
+
 function Bootstrap:_update_preparation(player_input, overlay)
+    if self:_preparation_waiting() then return end
     local row_count = #self:_preparation_rows()
     if self.preparation_cursor < 1 or self.preparation_cursor > row_count then self.preparation_cursor = 1 end
     local preparation_visible = self.renderer and math.max(1, math.floor((self.renderer.height - 245) / 38)) or 12
@@ -954,11 +1069,18 @@ function Bootstrap:_update_preparation(player_input, overlay)
         local visible = math.max(1, math.floor((self.renderer.height - 245) / 38))
         local scrollbar_hit = self.renderer:scrollbar_index(mouse_x, mouse_y, 92, self.renderer.width * 0.65, 88, self.renderer.height - 188, row_count, visible)
         local hit = scrollbar_hit or self.renderer:preparation_hit_test(mouse_x, mouse_y, row_count, self.preparation_cursor, self:_local_loadout())
-        if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
+        if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down or player_input.mouse_secondary_pressed) then
             if not scrollbar_hit or player_input.mouse_primary_down or player_input.mouse_primary_pressed then
                 self.preparation_cursor = hit
             end
-            if player_input.mouse_primary_pressed and not scrollbar_hit then self:_activate_preparation(true) end
+            if not scrollbar_hit and player_input.mouse_secondary_pressed then
+                local row = self:_preparation_rows()[hit]
+                if row and row.kind == "equipped" and row.instance and row.instance ~= false then
+                    self:_activate_preparation(false)
+                end
+            elseif player_input.mouse_primary_pressed and not scrollbar_hit then
+                self:_activate_preparation(true)
+            end
         end
     end
     if player_input.confirm then
@@ -987,32 +1109,17 @@ function Bootstrap:_update_preparation(player_input, overlay)
                 return
             end
             if row.kind == "equipped" then
-                local unequipped, unequip_err = self.session:dispatch({
-                    type = Command.UNEQUIP_ITEM,
+                local result, err, queued = self:_send_preparation_command({
+                    type = Command.DISCARD_EQUIPPED_ITEM,
                     player_id = player_id,
                     slot_type = row.group,
                     slot_index = row.index,
+                    expected_item = expected_preparation_item(row.instance),
                 })
-                if not unequipped then
-                    self.preparation_message = unequip_err or "卸下失败"
-                    self.preparation_discard_pending = nil
-                    return
-                end
-                local player = self.session:get_player(player_id)
-                local items = player and player.loadout and player.loadout.inventory.items or {}
-                local target_index
-                for index, item in ipairs(items) do
-                    if item and item.instance_id == row.instance.instance_id then target_index = index break end
-                end
-                if target_index then
-                    local result, err = self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = player_id, inventory_index = target_index })
-                    self.preparation_message = result and "装备已丢弃" or (err or "丢弃失败")
-                else
-                    self.preparation_message = "装备已卸下"
-                end
+                self.preparation_message = result and (queued and "丢弃请求已发送" or "装备已丢弃") or (err or "丢弃失败")
             else
-                local result, err = self.session:dispatch({ type = Command.DISCARD_ITEM, player_id = player_id, inventory_index = row.index })
-                self.preparation_message = result and "仓库物品已丢弃" or (err or "丢弃失败")
+                local result, err, queued = self:_send_preparation_command({ type = Command.DISCARD_ITEM, player_id = player_id, inventory_index = row.index, expected_item = expected_preparation_item(row.instance) })
+                self.preparation_message = result and (queued and "丢弃请求已发送" or "仓库物品已丢弃") or (err or "丢弃失败")
             end
             self.preparation_discard_pending = nil
         end
@@ -1068,6 +1175,10 @@ function Bootstrap:_activate_main_menu(index)
         return true
     elseif index == 10 then
         self:open_replay_select()
+    elseif index == 11 then
+        self.tutorial_page = 1
+        self.tutorial_previous_direction = 0
+        self.session.run_state = Constants.run_states.TUTORIAL
     end
     return false
 end
@@ -1089,6 +1200,7 @@ function Bootstrap:open_replay_select()
 end
 
 function Bootstrap:close_replay_select()
+    self.replay:reset_progress()
     self.session.run_state = Constants.run_states.MENU
     self.menu_cursor = 1
     self.scroll_states["menu"] = nil
@@ -1114,6 +1226,15 @@ end
 --- Drive the replay select screen input.
 function Bootstrap:_update_replay_select(player_input)
     local replay = self.replay
+    if self.preparation_overlay then
+        self:_update_replay_loadout(player_input)
+        return false
+    end
+    if player_input.tab and replay:selected_mode().key=="modern" then
+        replay:get_equipment_session()
+        self:open_preparation_overlay()
+        return false
+    end
     local fields = { "stage", "player_count", "mode", "character" }
     if (player_input.move_x or 0) ~= 0 then
         local index = 1
@@ -1144,8 +1265,22 @@ function Bootstrap:_update_replay_select(player_input)
     return false
 end
 
+function Bootstrap:_update_replay_loadout(player_input)
+    local parent=self.session
+    self.session=self.replay:get_equipment_session()
+    self.session.local_player_id=self.replay.reward_player_id or 1
+    local ok,err=pcall(self._update_preparation,self,player_input,true)
+    self.session=parent
+    if not ok then error(err) end
+end
+
 function Bootstrap:_update_network_menu(player_input)
     local menu = self.network_menu
+    local field=menu:get_fields()[menu.cursor]
+    if field and field.id=="play_mode" and (player_input.move_x or 0)~=0 and (menu.previous_x or 0)==0 then
+        menu.play_mode=menu.play_mode=="map" and "replay" or "map"
+    end
+    menu.previous_x=player_input.move_x or 0
     local text = player_input.text or ""
     if self.input.consume_text then text = text .. self.input:consume_text() end
     if text ~= "" then menu:append_text(text) end
@@ -1376,6 +1511,7 @@ function Bootstrap:update()
         end
     end
     player_input = player_input or self.input:poll(self.session.local_player_id)
+    if self.replay_network and self.replay_network:update(player_input) then return false end
     self:_update_ui_mouse()
     self.ui_mouse_down = player_input.mouse_primary_down == true
     self:_retry_initial_network_connection()
@@ -1492,18 +1628,47 @@ function Bootstrap:update()
             self.replay_field = "stage"
         end
     elseif self.session.run_state == Constants.run_states.REPLAY_REWARD then
+        if self.preparation_overlay then
+            self:_update_replay_loadout(player_input)
+            return false
+        elseif player_input.tab then
+            self:open_preparation_overlay()
+            return false
+        end
         local choices = self.replay.reward_choices or {}
         local count = math.max(1, #choices)
         if (player_input.move_y or 0) ~= 0 then
             self.replay.reward_cursor = ((self.replay.reward_cursor or 1) - 1 - player_input.move_y) % count + 1
         end
         if player_input.confirm then
-            self.replay:claim_reward()
+            local claimed=self.replay:claim_reward()
             -- Another round, or back to the stage list.
-            if not self.replay:next_reward_round() then
+            if claimed and not self.replay:next_reward_round() then
                 self.replay:stop()
                 self.session.run_state = Constants.run_states.REPLAY_SELECT
                 self.replay_field = "stage"
+            end
+        end
+    elseif self.session.run_state == Constants.run_states.TUTORIAL then
+        local pages = require("tnr.ui.tutorial_pages")
+        local direction = player_input.move_x or 0
+        local pressed = direction ~= 0 and direction ~= self.tutorial_previous_direction
+        self.tutorial_previous_direction = direction
+        local action
+        if self.input.get_mouse_position and self.renderer and self.renderer.tutorial_hit_test
+                and player_input.mouse_primary_pressed then
+            local x, y = self.input:get_mouse_position()
+            action = self.renderer:tutorial_hit_test(x, y)
+        end
+        if player_input.cancel or action == "exit" then
+            self.session.run_state = Constants.run_states.MENU
+        elseif action == "prev" or (pressed and direction < 0) then
+            self.tutorial_page = math.max(1, self.tutorial_page - 1)
+        elseif action == "next" or player_input.confirm or (pressed and direction > 0) then
+            if self.tutorial_page >= #pages then
+                self.session.run_state = Constants.run_states.MENU
+            else
+                self.tutorial_page = self.tutorial_page + 1
             end
         end
     elseif self.session.run_state == Constants.run_states.MUSIC_PLAYER then
@@ -1583,6 +1748,19 @@ function Bootstrap:update()
                 return true
             end
         end
+    elseif self.transport and self.transport.preparation_pending then
+        -- A committed pending-item or shop operation can switch screens
+        -- before the final acknowledgement arrives. Do not let another UI
+        -- action change its state while that acknowledgement is in flight.
+        self.preparation_message = "等待对端确认配装操作"
+    elseif (self.session.run_state == Constants.run_states.MAP
+            or self.session.run_state == Constants.run_states.MAP_PREPARATION
+            or self.session.run_state == Constants.run_states.REWARD
+            or self.session.run_state == Constants.run_states.SHOP
+            or self.session.run_state == Constants.run_states.FLOOR_CLEAR
+            or self.session.run_state == Constants.run_states.RELIC_SELECT)
+            and self.session.acquisition_service:get_pending(self.session.local_player_id or 1) then
+        self:_update_pending_acquisition(player_input)
     elseif self.session.run_state == Constants.run_states.MAP then
         local equipment_locked = self.session.preparation and self.session.preparation.selected_node_id ~= nil
         local equipment_button_hit = false
@@ -1623,6 +1801,7 @@ function Bootstrap:update()
     elseif self.preparation_overlay or self.session.run_state == Constants.run_states.MAP_PREPARATION then
         self:_update_preparation(player_input, self.preparation_overlay)
     elseif self.session.run_state == Constants.run_states.SHOP then
+        if self:_preparation_waiting() then return end
         local shop_count = (self.session.shop_service and #self.session.shop_service:get_offers() or 0) + 1
         if self.shop_cursor < 1 or self.shop_cursor > shop_count then self.shop_cursor = 1 end
         local shop_direction = player_input.move_x
@@ -1651,33 +1830,41 @@ function Bootstrap:update()
                 self.shop_cursor = hit
                 if player_input.mouse_primary_pressed then
                     if hit <= shop_count - 1 then
-                        self.transport:send({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = hit })
+                        local ok, err, queued = self:_send_preparation_command({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = hit })
+                        self.preparation_message = ok and (queued and "购买请求已发送" or "购买成功") or (err or "购买失败")
                     else
-                        self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+                        local ok, err = self:_send_preparation_command({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+                        self.preparation_message = (ok ~= nil and not err) and "Ready 请求已发送" or (err or "Ready 失败")
                     end
                 end
             end
         end
         if player_input.confirm then
             if self.shop_cursor <= shop_count - 1 then
-                self.transport:send({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = self.shop_cursor })
+                local ok, err, queued = self:_send_preparation_command({ type = Command.SHOP_PURCHASE, player_id = self.session.local_player_id, slot = self.shop_cursor })
+                self.preparation_message = ok and (queued and "购买请求已发送" or "购买成功") or (err or "购买失败")
             else
-                self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+                local ok, err = self:_send_preparation_command({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+                self.preparation_message = (ok ~= nil and not err) and "Ready 请求已发送" or (err or "Ready 失败")
             end
         elseif player_input.cancel then
-            self.transport:send({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+            local ok, err = self:_send_preparation_command({ type = Command.SHOP_READY, player_id = self.session.local_player_id })
+            self.preparation_message = (ok ~= nil and not err) and "Ready 请求已发送" or (err or "Ready 失败")
         end
     elseif self.session.run_state == Constants.run_states.FLOOR_CLEAR then
+        if self:_preparation_waiting() then return end
         -- The floor transition is a short confirmation screen. Confirming
         -- advances the shared run; in a LAN game the host owns the run seed so
         -- the command is broadcast so both peers rebuild the same next floor.
         if player_input.confirm then
             if self.battle_sync and self.battle_sync:is_networked() then
                 if self.transport:is_host() then
-                    self.transport:send({ type = Command.ADVANCE_FLOOR, player_id = 1 })
+                    local ok, err = self:_send_preparation_command({ type = Command.ADVANCE_FLOOR, player_id = 1 })
+                    self.preparation_message = ok and "等待对端确认" or (err or "无法进入下一层")
                 end
             else
-                self.session:advance_floor()
+                local ok, err = self.session:advance_floor()
+                if not ok then self.preparation_message = err or "无法进入下一层" end
             end
         end
     elseif self.session.run_state == Constants.run_states.RELIC_SELECT then
@@ -1687,7 +1874,7 @@ function Bootstrap:update()
         self.relic_cursor = self:_scroll_step("relic", self.relic_cursor, count, 5, player_input.move_y)
         if self.input.get_mouse_position and self.renderer and self.renderer.relic_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
-            local hit = self.renderer:relic_hit_test(self.session, mouse_x, mouse_y)
+            local hit = self.renderer:relic_hit_test(self.session, mouse_x, mouse_y, self.relic_cursor)
             if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                 self.relic_cursor = hit
                 if player_input.mouse_primary_pressed and choices[hit] then
@@ -1703,8 +1890,9 @@ function Bootstrap:update()
             })
         end
     elseif self.session.run_state == Constants.run_states.REWARD then
+        if self:_preparation_waiting() then return end
         local choices = self.session.reward_choices or {}
-        local count = math.max(1, #choices)
+        local count = math.max(1, #choices + (self.session.reward_guaranteed_definition_id and 1 or 0))
         if self.reward_cursor < 1 or self.reward_cursor > count then self.reward_cursor = 1 end
         local direction = player_input.move_x ~= 0 and player_input.move_x or player_input.move_y
         self.reward_cursor = self:_scroll_step("reward", self.reward_cursor, count, count, direction)
@@ -1718,12 +1906,15 @@ function Bootstrap:update()
             return false
         end
         local function toggle_claim(index)
+            if not choices[index] then return end
             local command_type = is_claimed(index) and Command.UNCLAIM_REWARD or Command.CLAIM_REWARD
-            self.transport:send({ type = command_type, player_id = self.session.local_player_id, choice_index = index })
+            local ok, err, queued = self:_send_preparation_command({ type = command_type, player_id = self.session.local_player_id, choice_index = index })
+            self.preparation_message = ok and (queued and "奖励选择请求已发送" or "奖励选择已更新") or (err or "奖励选择失败")
         end
         if self.input.get_mouse_position and self.renderer and self.renderer.reward_hit_test then
             local mouse_x, mouse_y = self.input:get_mouse_position()
-            local hit = self.renderer:reward_hit_test(mouse_x, mouse_y, count)
+            local guaranteed_index = self.session.reward_guaranteed_definition_id and (#choices + 1) or nil
+            local hit = self.renderer:reward_hit_test(mouse_x, mouse_y, #choices, guaranteed_index)
             if hit and (self.ui_mouse_moved or player_input.mouse_primary_pressed or player_input.mouse_primary_down) then
                 self.reward_cursor = hit
                 if player_input.mouse_primary_pressed then
@@ -1859,8 +2050,9 @@ function Bootstrap:render()
     elseif (self.session.run_state == Constants.run_states.ENCOUNTER or self.session.run_state == Constants.run_states.CARD_TRAINING) and self.stage_adapter:is_fallback_active() then
         self.stage_adapter:render()
     elseif self.renderer then
+        self.renderer.replay_field=self.replay_field
         local cursor = (self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED or self.session.run_state == Constants.run_states.RUN_FAILED) and self.failure_cursor or self.training_cursor
-        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog, self.catalog_cursor, self.catalog_entries, self.preparation_overlay, self.character_cursor, self.character_catalog)
+        self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog, self.catalog_cursor, self.catalog_entries, self.preparation_overlay, self.character_cursor, self.character_catalog, self.tutorial_page)
     end
 end
 

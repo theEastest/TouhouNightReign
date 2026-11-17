@@ -1914,8 +1914,8 @@ function StageAdapter:render()
         and lstg.Color(255, 80, 80, 255) or lstg.Color(255, 240, 240, 240)
     if lstg.Render and rawget(_G,"lstg") then
         local art=require("tnr.character.runtime.status_art")
-        art.resources(10,single_player and (local_state and local_state.life or 0) or team_lives,40,260,650,28)
-        art.resources(6,local_bombs,40,260,620,28)
+        art.resources(10,single_player and (local_state and local_state.life or 0) or team_lives,40,260,650,28,"ordinary")
+        art.resources(6,local_bombs,40,260,620,28,"ordinary")
     end
     -- Bomb charging is a local player action. Keep the bar in the lower-right
     -- corner so it remains readable without overlapping the team HUD.

@@ -28,7 +28,9 @@ def parse_spec(path):
     entries = []
     current = None
     script = None
-    for raw in io.open(path, encoding="utf-8", errors="replace"):
+    with io.open(path, encoding="utf-8", errors="replace") as source:
+        source_lines = source.readlines()
+    for raw in source_lines:
         line = raw.rstrip("\n")
         if line.startswith("ENTRY #"):
             current = {"texture": None, "sprites": [], "scripts": {}}
@@ -68,6 +70,7 @@ def parse_spec(path):
             # The opcode is the third field; the first two are the frame time
             # and the parameter mask.
             time_value = int(tokens[0])
+            param_mask = int(tokens[1])
             opcode = int(tokens[2])
             args = []
             for token in tokens[3:]:
@@ -85,14 +88,15 @@ def parse_spec(path):
                         args.append(float(token))
                     except ValueError:
                         args.append(token)
-            current["scripts"][script].append({"time": time_value, "id": opcode, "args": args})
+            current["scripts"][script].append({"time": time_value, "id": opcode, "mask": param_mask, "args": args})
     return entries
 
 
 def lua_number(value):
     if isinstance(value, float):
-        # Keep enough precision for sprite scaling while staying readable.
-        return repr(round(value, 6))
+        # Preserve small per-frame rates (e.g. st06wl +/-0.000033333334).
+        # Rounding to six decimal places changes accumulated UV/angle motion.
+        return repr(value)
     return str(value)
 
 
@@ -136,8 +140,9 @@ def main():
                     args = ", ".join(lua_number(a) for a in instruction["args"])
                     if args:
                         args = ", " + args
-                    lines.append("              { time = %d, id = %d%s },"
-                                 % (instruction["time"], instruction["id"], args))
+                    mask = ", mask = %d" % instruction["mask"] if instruction["mask"] else ""
+                    lines.append("              { time = %d, id = %d%s%s },"
+                                 % (instruction["time"], instruction["id"], mask, args))
                 lines.append("            },")
                 total_scripts += 1
             lines.append("          } },")

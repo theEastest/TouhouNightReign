@@ -2,16 +2,16 @@ local Simulation = require("tnr.character.runtime.projectile_runtime")
 local Native = {}
 local projectile_class, pulse_class
 local local_player_id = 1
-local function image(name, path, x, y, w, h)
+local function image(api, name, path, x, y, w, h)
     local id = "tnr-equip:" .. name
-    if not lstg.CheckRes(2, id) then
-        lstg.LoadTexture(id, path)
-        if not w then w, h = lstg.GetTextureSize(id); x, y = 0, 0 end
-        lstg.LoadImage(id, id, x, y, w, h)
+    if not api.CheckRes(2, id) then
+        api.LoadTexture(id, path)
+        if not w then w, h = api.GetTextureSize(id); x, y = 0, 0 end
+        api.LoadImage(id, id, x, y, w, h)
     end
     return id
 end
-local function sprite(kind)
+local function sprite(api, kind)
     local reimu_sprite_aliases = {
         reimu_normal = "reimu_bullet_red",
         reimu_focused = "reimu_bullet_red",
@@ -19,24 +19,48 @@ local function sprite(kind)
         reimu_support_orange = "reimu_bullet_orange",
     }
     kind = reimu_sprite_aliases[kind] or kind
-    if kind == "marisa_bullet" then return image(kind, "Thlib/player/marisa/marisa.png", 0, 144, 32, 16), 0.65, 0 end
-    if kind == "marisa_missile" then return image(kind, "Thlib/player/marisa/marisa.png", 192, 224, 32, 16), 0.7, 0 end
-    if kind == "sanae_wind2" then return image(kind, "Thlib/player/sanae/sanae_wind2.png"), 0.35, -90 end
-    if kind == "sanae_wind" then return image(kind, "Thlib/player/sanae/sanae_wind.png"), 0.18, -90 end
+    if kind == "marisa_bullet" then return image(api, kind, "Thlib/player/marisa/marisa.png", 0, 144, 32, 16), 0.65, 0 end
+    if kind == "marisa_missile" then return image(api, kind, "Thlib/player/marisa/marisa.png", 192, 224, 32, 16), 0.7, 0 end
+    if kind == "sanae_wind2" then return image(api, kind, "Thlib/player/sanae/sanae_wind2.png"), 0.35, -90 end
+    if kind == "sanae_wind" then return image(api, kind, "Thlib/player/sanae/sanae_wind.png"), 0.18, -90 end
     if kind == "MarisaLaser" or kind == "marisa_spark" then
-        return image("laser", "Thlib/player/marisa/MarisaLaser.png"), 1, 0
+        return image(api, "laser", "Thlib/player/marisa/MarisaLaser.png"), 1, 0
     end
     if kind == "reimu_bullet_red" then
-        return image("reimu-bullet-red", "Thlib/player/reimu/reimu.png", 192, 160, 64, 16), 1, 0
+        return image(api, "reimu-bullet-red", "Thlib/player/reimu/reimu.png", 192, 160, 64, 16), 1, 0
     end
     if kind == "reimu_bullet_blue" then
-        return image("reimu-bullet-blue", "Thlib/player/reimu/reimu.png", 0, 160, 16, 16), 1, 0
+        return image(api, "reimu-bullet-blue", "Thlib/player/reimu/reimu.png", 0, 160, 16, 16), 1, 0
     end
     if kind == "reimu_bullet_orange" then
-        return image("reimu-bullet-orange", "Thlib/player/reimu/reimu.png", 64, 176, 64, 16), 1, 0
+        return image(api, "reimu-bullet-orange", "Thlib/player/reimu/reimu.png", 64, 176, 64, 16), 1, 0
     end
     print("Missing Asset: equipment projectile " .. tostring(kind) .. "; using debug sprite")
     return "tnr-white", 0.5, 0
+end
+
+local function projectile_art(api, sim)
+    if sim.field then return {image = image(api, "wind-field", "Thlib/player/sanae/sanae_wind.png")} end
+    local name, scale, rotation = sprite(api, sim.projectile_type)
+    return {image = name, scale = scale, rotation = rotation}
+end
+
+function Native.render_projectile(api, sim, x, y, scale, alpha)
+    local art = sim.art or projectile_art(api, sim)
+    sim.art = art
+    api.SetImageState(art.image, "", api.Color(alpha, 255, 255, 255))
+    if sim.beam then
+        local dx, dy = math.cos(sim.angle), math.sin(sim.angle)
+        local w, l = sim.beam_width * sim.scale / sim.hitbox_scale * scale, sim.beam_length * scale
+        api.Render4V(art.image, x-dy*w,y+dx*w,0.5, x+dx*l-dy*w,y+dy*l+dx*w,0.5,
+            x+dx*l+dy*w,y+dy*l-dx*w,0.5, x+dy*w,y-dx*w,0.5)
+    elseif sim.field then
+        local size = sim.field_radius / 64 * scale
+        api.Render(art.image, x, y, sim.age * 8, size, size)
+    else
+        local size = art.scale * sim.scale * scale
+        api.Render(art.image, x, y, math.deg(sim.angle) + art.rotation, size, size)
+    end
 end
 
 function Native.spawn(shot, weapon, targets, affixes)
@@ -52,9 +76,9 @@ function Native.spawn(shot, weapon, targets, affixes)
             self.tnr_source_instance_id = descriptor.source_instance_id
             self.tnr_projectile_type = descriptor.projectile_type
             self.provider = provider
-            self.img, self.sprite_scale, self.sprite_rotation = sprite(descriptor.projectile_type)
+            self.sim.art = projectile_art(lstg, self.sim)
+            self.img = self.sim.art.image
             if self.sim.field then
-                self.img = image("wind-field", "Thlib/player/sanae/sanae_wind.png")
                 if source then
                     source.fields = source.fields or {}
                     local live = {}
@@ -81,22 +105,8 @@ function Native.spawn(shot, weapon, targets, affixes)
             if self.sim.dead then Del(self) end
         end
         function projectile_class:render()
-            local sim = self.sim
             local alpha = self._tnr_owner_id ~= local_player_id and 180 or 255
-            lstg.SetImageState(self.img, "", Color(alpha, 255, 255, 255))
-            if sim.beam then
-                local dx, dy = math.cos(sim.angle), math.sin(sim.angle)
-                local w, l = sim.beam_width * sim.scale / sim.hitbox_scale, sim.beam_length
-                local x, y = self.x, self.y
-                lstg.Render4V(self.img, x-dy*w,y+dx*w,0.5, x+dx*l-dy*w,y+dy*l+dx*w,0.5,
-                    x+dx*l+dy*w,y+dy*l-dx*w,0.5, x+dy*w,y-dx*w,0.5)
-            elseif sim.field then
-                local scale = sim.field_radius / 64
-                lstg.Render(self.img, self.x, self.y, sim.age * 8, scale, scale)
-            else
-                local scale = self.sprite_scale * sim.scale
-                lstg.Render(self.img, self.x, self.y, math.deg(sim.angle) + self.sprite_rotation, scale, scale)
-            end
+            Native.render_projectile(lstg, self.sim, self.x, self.y, 1, alpha)
         end
         -- Class() copies the base callbacks into its numeric callback slots.
         -- This class is defined lazily, so register it again after overriding
@@ -142,26 +152,27 @@ end
 -- Which character sprite a support equipment belongs to. Initial supports
 -- (reimu/marisa/sanae) and the guide supports are all mapped here so the
 -- renderer never falls back to a resource that was never loaded.
-local function support_sprite_for(support_id)
+local function support_sprite_for(api, support_id)
     support_id = tostring(support_id or "")
     if support_id:find("marisa", 1, true) then
-        return image("marisa-support", "Thlib/player/marisa/marisa.png", 128, 144, 16, 16)
+        return image(api, "marisa-support", "Thlib/player/marisa/marisa.png", 128, 144, 16, 16)
     elseif support_id:find("sanae", 1, true) then
-        return image("sanae-support", "Thlib/player/sanae/sanae.png", 64, 144, 16, 16)
+        return image(api, "sanae-support", "Thlib/player/sanae/sanae.png", 64, 144, 16, 16)
     end
     -- Reimu and any unknown support use the Reimu option sprite.
-    return image("reimu-support", "Thlib/player/reimu/reimu.png", 64, 144, 16, 16)
+    return image(api, "reimu-support", "Thlib/player/reimu/reimu.png", 64, 144, 16, 16)
 end
 
-function Native.render_supports(entities, alpha)
+function Native.render_supports(entities, alpha, api, origin_x, origin_y, scale)
+    api, origin_x, origin_y, scale = api or lstg, origin_x or 0, origin_y or 0, scale or 1
     for _, entity in ipairs(entities or {}) do
         -- Resolve the sprite from the equipment definition. Loading through
         -- image() keeps the resource alive even if the legacy character script
         -- that also loads it has not run yet (the previous hardcoded
         -- "reimu_support" lookup raised "image not found" at room start).
-        local name = support_sprite_for(entity.support_id)
-        lstg.SetImageState(name, "", Color(alpha or 255,255,255,255))
-        lstg.Render(name, entity.x, entity.y)
+        local name = support_sprite_for(api, entity.support_id)
+        api.SetImageState(name, "", api.Color(alpha or 255,255,255,255))
+        api.Render(name, origin_x + entity.x * scale, origin_y + entity.y * scale, 0, scale, scale)
     end
 end
 

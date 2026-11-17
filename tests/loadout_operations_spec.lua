@@ -82,8 +82,8 @@ return function(assert_equal, assert_true)
 
     local full_session = new_session(7002)
     local full_player = full_session:get_player(1)
-    for _ = 1, 6 do full_session.acquisition_service:acquire(1, instance(registry:get("test_high_weapon"))) end
-    assert_equal(full_player.loadout.inventory:count(), 6, "inventory reaches configured capacity")
+    for _ = 1, full_player.loadout.inventory.capacity do full_session.acquisition_service:acquire(1, instance(registry:get("test_high_weapon"))) end
+    assert_equal(full_player.loadout.inventory:count(), 12, "inventory reaches configured capacity")
     local pending = instance(registry:get("test_support"))
     local acquired, pending_reason = full_session.acquisition_service:acquire(1, pending)
     assert_equal(acquired, nil, "full inventory does not accept silently")
@@ -99,7 +99,7 @@ return function(assert_equal, assert_true)
     local accepted, discarded = full_session.acquisition_service:accept_pending(1, 1)
     assert_equal(accepted.instance_id, pending.instance_id, "overflow accepts new item after discard")
     assert_true(discarded ~= nil, "overflow reports discarded item")
-    assert_equal(full_player.loadout.inventory:count(), 6, "overflow replacement preserves capacity")
+    assert_equal(full_player.loadout.inventory:count(), 12, "overflow replacement preserves capacity")
     assert_true(full_session:set_player_ready(1, true), "Ready succeeds after overflow resolution")
     assert_true(not full_session.loadout_service:unequip(1, "high_weapons", 1), "locked loadout cannot be edited")
     local locked_acquire, locked_acquire_reason = full_session.acquisition_service:acquire(1, instance(high))
@@ -109,14 +109,15 @@ return function(assert_equal, assert_true)
     assert_true(full_session.loadout_service:discard_inventory(1, 1) ~= nil, "cancel Ready unlocks inventory editing")
 
     local reject_session = new_session(7007)
-    for _ = 1, 6 do reject_session.acquisition_service:acquire(1, instance(high)) end
+    for _ = 1, reject_session:get_player(1).loadout.inventory.capacity do reject_session.acquisition_service:acquire(1, instance(high)) end
     reject_session.acquisition_service:acquire(1, instance(support))
     assert_true(reject_session.acquisition_service:reject_pending(1), "pending item can be rejected")
     assert_equal(reject_session.acquisition_service:get_pending(1), nil, "rejected item is destroyed")
 
     local full_unequip = new_session(7008)
-    for _ = 1, 5 do full_unequip.acquisition_service:acquire(1, instance(high)) end
-    full_unequip.acquisition_service:acquire(1, instance(high))
+    for _ = 1, full_unequip:get_player(1).loadout.inventory.capacity do
+        full_unequip.acquisition_service:acquire(1, instance(high))
+    end
     local unequip_result, unequip_reason = full_unequip.loadout_service:unequip(1, "high_weapons", 1)
     assert_equal(unequip_result, nil, "full inventory blocks unequip")
     assert_equal(unequip_reason, "INVENTORY_FULL", "unequip reports full inventory")

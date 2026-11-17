@@ -100,19 +100,50 @@ local function resolve(thread, token)
         local difficulty = (thread.runtime and thread.runtime.difficulty)
             or (thread.host and thread.host.difficulty) or 1
         local index = math.max(1, math.min(#token, difficulty + 1))
-        return resolve(thread, token[index])
+        local branch=token[index]
+        return type(branch)=="string" and EclRuntime.evaluate_expression(thread,branch) or resolve(thread,branch)
     end
     local literal = parse_literal(token)
     if literal ~= nil then return literal end
     if type(token) ~= "string" then return 0 end
     local kind, name = token:match("^([$%%])([A-Za-z_][A-Za-z0-9_]*)$")
     local object = thread.object
+    if name and not object and (name:match("^I[0-3]$") or name:match("^F[0-7]$")) then
+        local globals=thread.context_globals or {}
+        if globals[name]~=nil then return globals[name] end
+    end
+    if name and name:match("^B[IF][0-3]$") then
+        local getter=thread.runtime and thread.runtime.host and thread.runtime.host.get_boss
+        local boss=getter and getter()
+        return boss and boss.legacy_globals and boss.legacy_globals[name:sub(2)] or 0
+    end
     if name and object then
+        -- 42e910's integer variable -9954 dispatches to 42eaf9, which
+        -- returns this enemy's current HP at actor+0x5180.
+        if name=="LIFE" then return object.hp or 0 end
         local globals = object.legacy_globals or {}
         if globals[name] ~= nil then return globals[name] end
-        if name=="ABS_X" or name=="FINAL_X" or name=="ABS_X2" or name=="FINAL_X2" then return object.x or 0 end
-        if name=="ABS_Y" or name=="FINAL_Y" or name=="ABS_Y2" or name=="FINAL_Y2" then return object.y or 0 end
+        if name=="FINAL_X" or name=="FINAL_X2" then return object.x or 0 end
+        if name=="FINAL_Y" or name=="FINAL_Y2" then return object.y or 0 end
+        if name=="ABS_X" or name=="ABS_X2" then return (object.x or 0)-(object.legacy_rel_x or 0) end
+        if name=="ABS_Y" or name=="ABS_Y2" then return (object.y or 0)-(object.legacy_rel_y or 0) end
+        if name=="REL_X" or name=="REL_X2" then return object.legacy_rel_x or 0 end
+        if name=="REL_Y" or name=="REL_Y2" then return object.legacy_rel_y or 0 end
+        if name=="ANGLE_PLAYER" or name=="ABS_ANGLE_PLAYER" or name=="REL_ANGLE_PLAYER" or name=="DIST_PLAYER" then
+            local get_player=thread.runtime and thread.runtime.host and thread.runtime.host.get_player
+            local player=get_player and get_player()
+            if player then
+                local x,y=object.x or 0,object.y or 0
+                if name=="ABS_ANGLE_PLAYER" then x=x-(object.legacy_rel_x or 0);y=y-(object.legacy_rel_y or 0) end
+                if name=="REL_ANGLE_PLAYER" then x=object.legacy_rel_x or 0;y=object.legacy_rel_y or 0 end
+                local dx,dy=player.x-x,player.y-y
+                if name=="DIST_PLAYER" then return math.sqrt(dx*dx+dy*dy) end
+                if math.atan2 then return math.atan2(dy,dx) end
+                return math.atan(dy,dx)
+            end
+        end
         if name=="ABS_ANGLE" then return object.legacy_angle or 0 end
+        if name=="FINAL_ANGLE" then return object.legacy_final_angle or object.legacy_angle or 0 end
         if name=="ABS_SPEED" then return object.legacy_speed or 0 end
         if name=="TIME" then return (thread.runtime.frame or 0)-(object.legacy_timer_start or 0) end
     end
@@ -197,7 +228,27 @@ local function apply_assignment(thread, target, operator, expression)
     if not kind then
         kind, name = target:match("^([$%%])([A-Za-z_][A-Za-z0-9_]*)%[")
     end
-    local value = EclRuntime.evaluate_expression(thread, expression)
+    local value = type(expression) == "number" and expression or EclRuntime.evaluate_expression(thread, expression)
+    if name and name:match("^B[IF][0-3]$") then
+        local getter=thread.runtime and thread.runtime.host and thread.runtime.host.get_boss
+        local boss=getter and getter()
+        if boss then
+            boss.legacy_globals=boss.legacy_globals or {}
+            local slot=name:sub(2)
+            local old=boss.legacy_globals[slot] or 0
+            if operator=="+=" then value=old+value elseif operator=="-=" then value=old-value end
+            boss.legacy_globals[slot]=value
+        end
+        return
+    end
+    if name and not thread.object and (name:match("^I[0-3]$") or name:match("^F[0-7]$")) then
+        local globals=thread.context_globals or {}
+        thread.context_globals=globals
+        local current=resolve(thread,target)
+        if operator=="+=" then value=current+value elseif operator=="-=" then value=current-value end
+        globals[name]=kind=="$" and math.floor(value) or value
+        return
+    end
     if name and thread.object and EclRuntime.GLOBAL_VALUES and EclRuntime.GLOBAL_VALUES[name] then
         local globals = thread.object.legacy_globals or {}
         thread.object.legacy_globals = globals
@@ -219,9 +270,13 @@ local function apply_assignment(thread, target, operator, expression)
     end
 end
 
+EclRuntime.apply_assignment = apply_assignment
+
 --- Evaluate a simple arithmetic expression (+, -, *) over literals/variables.
 function EclRuntime.evaluate_expression(thread, expression)
     expression = tostring(expression):gsub("^%s+", ""):gsub("%s+$", "")
+    -- The raw integer operand at 42ef0a reads the current stage chapter.
+    if expression == "[-9905]" then return resolve(thread, "$CHAPTER") end
     -- Handle helper wrappers such as _f(-192) and [-1.0f] operand brackets.
     expression = expression:gsub("_f%(", "(")
     expression = expression:gsub("^%[(.*)%]$", "%1")
@@ -235,16 +290,20 @@ function EclRuntime.evaluate_expression(thread, expression)
             elseif depth == 0 and (ch == ops[1] or ch == ops[2] or ch == ops[3]) and index > 1
                 and not (ch == "%" and expression:sub(index+1,index+1):match("[%a_]")) then
                 local head = expression:sub(1, index - 1)
-                local tail = expression:sub(index + 1)
-                local left = EclRuntime.evaluate_expression(thread, head)
-                local right = EclRuntime.evaluate_expression(thread, tail)
-                if ch == "+" then return left + right end
-                if ch == "-" then return left - right end
-                if ch == "*" then return left * right end
-                if ch == "%" then return right == 0 and 0 or left % right end
-                if ch == "/" then
-                    if right == 0 then return 0 end
-                    return left / right
+                local previous=head:match("(%S)%s*$")
+                local unary=(ch=="+" or ch=="-") and (not previous or previous:match("[+%-%*/%%%(]"))
+                if not unary then
+                    local tail = expression:sub(index + 1)
+                    local left = EclRuntime.evaluate_expression(thread, head)
+                    local right = EclRuntime.evaluate_expression(thread, tail)
+                    if ch == "+" then return left + right end
+                    if ch == "-" then return left - right end
+                    if ch == "*" then return left * right end
+                    if ch == "%" then return right == 0 and 0 or left % right end
+                    if ch == "/" then
+                        if right == 0 then return 0 end
+                        return left / right
+                    end
                 end
             end
         end
@@ -252,7 +311,13 @@ function EclRuntime.evaluate_expression(thread, expression)
     -- Strip one layer of parentheses.
     local inner = expression:match("^%((.*)%)$")
     if inner then return EclRuntime.evaluate_expression(thread, inner) end
+    local integer_cast = expression:match("^_S%((.*)%)$")
+    if integer_cast then
+        local value=EclRuntime.evaluate_expression(thread,integer_cast)
+        return (math.modf(value))
+    end
     if expression:sub(1,1)=="-" then return -EclRuntime.evaluate_expression(thread,expression:sub(2)) end
+    if expression:sub(1,1)=="+" then return EclRuntime.evaluate_expression(thread,expression:sub(2)) end
     return resolve(thread, expression)
 end
 
@@ -262,7 +327,16 @@ end
 local OPCODES = {}
 
 --- Dispatch a plain instruction call.
-local function op_ins(thread, runtime, name, args)
+local function op_ins(thread, runtime, name, args, stack_random)
+    if stack_random then
+        local evaluated = {}
+        for i,value in ipairs(args) do evaluated[i] = value end
+        for _,i in ipairs(stack_random) do
+            evaluated[i] = type(args[i]) == "table" and resolve(thread,args[i])
+                or EclRuntime.evaluate_expression(thread,args[i])
+        end
+        args = evaluated
+    end
     -- `wait` (and its float form `waitf`) block the thread. The compiler lowers
     -- the source `wait(n)` call to a plain instruction, so the scheduler must
     -- recognise it here; otherwise a routine that loops back on itself spins
@@ -340,18 +414,41 @@ local function step(thread, runtime)
             and not thread.diff_branch:find(difficulty_key,1,true) then
             -- Instructions can be difficulty-masked, not just stack values.
         elseif op == "ins" then
-            op_ins(thread, runtime, instruction[2], instruction[3])
+            op_ins(thread, runtime, instruction[2], instruction[3], instruction[4])
             if thread.wait > 0 then return true end
         elseif op == "wait" then
             thread.wait = math.max(0, math.floor(resolve(thread, (instruction[2] or {})[1] or 0)))
             if thread.wait > 0 then return true end
         elseif op == "params" then
-            for index, name in ipairs(instruction[2] or {}) do
-                local value = (thread.arguments or {})[index] or 0
-                thread.ints[name] = value
-                thread.floats[name] = value
+            local names=instruction[2] or {}
+            if #names>0 then
+                for index, name in ipairs(names) do
+                    local value = (thread.arguments or {})[index] or 0
+                    thread.ints[name] = value
+                    thread.floats[name] = value
+                end
+                thread.arguments_bound=true
             end
-        elseif op == "label" or op == "var" or op == "value" or op == "raw" then
+        elseif op == "var" then
+            -- th15's decompiled ECL puts routine arguments in the declared
+            -- A..H registers even when the function header is `Name()` and
+            -- the arguments are declared by `var A, B, ...;` in the body.
+            -- The compiler preserves that declaration here; bind it once so
+            -- helper calls such as EffChargePoint3 receive their slot and
+            -- sprite IDs instead of silently defaulting them to zero.
+            if not thread.arguments_bound then
+                local names={}
+                for name in tostring(instruction[2] or ""):gmatch("[%a_][%w_]*") do
+                    names[#names+1]=name
+                end
+                for index,name in ipairs(names) do
+                    local value=(thread.arguments or {})[index] or 0
+                    thread.ints[name]=value
+                    thread.floats[name]=value
+                end
+                thread.arguments_bound=true
+            end
+        elseif op == "label" or op == "value" or op == "raw" then
             -- No runtime effect.
         elseif op == "diff" then
             -- Enter a difficulty branch: remember the branch key so a `value`
@@ -371,19 +468,9 @@ local function step(thread, runtime)
             end
         elseif op == "assign" then
             apply_assignment(thread, instruction[2], instruction[3], instruction[4])
-        elseif op == "call_after" then
-            -- Deferred async call: wait N frames, then start the routine.
-            local delay = math.max(0, math.floor(tonumber(instruction[3]) or 0))
-            if delay > 0 then
-                thread.deferred = thread.deferred or {}
-                thread.deferred[#thread.deferred + 1] = {
-                    remaining = delay,
-                    routine = instruction[2],
-                    args = instruction[4],
-                }
-            else
-                runtime:call(thread, instruction[2], true)
-            end
+        elseif op == "call_id" then
+            local child=runtime:call(thread,instruction[2],true,instruction[4])
+            child.async_id=instruction[3]
         elseif op == "label_offset" then
             thread.wait = math.max(0, tonumber(instruction[2]) or 0)
             if thread.wait > 0 then return true end
@@ -447,6 +534,7 @@ local GLOBAL_VALUES = {
     ANGLE_PLAYER = -9989, TIME = -9988, RANDF2 = -9987, TIMEOUT = -9986,
     I0 = -9985, I1 = -9984, I2 = -9983, I3 = -9982,
     F0 = -9981, F1 = -9980, F2 = -9979, F3 = -9978,
+    F4 = -9935, F5 = -9934, F6 = -9933, F7 = -9932,
     FINAL_X2 = -9977, FINAL_Y2 = -9976, ABS_X2 = -9975, ABS_Y2 = -9974,
     REL_X2 = -9973, REL_Y2 = -9972,
     PLAYER_X2 = -9965, PLAYER_Y2 = -9964,
@@ -454,6 +542,7 @@ local GLOBAL_VALUES = {
     ABS_ANGLE = -9971, REL_ANGLE = -9970, ABS_SPEED = -9969, REL_SPEED = -9968,
     BOSS_X = -9963, BOSS_Y = -9962, ANM_ID = -9961, RANK = -9960, DIFF = -9959,
     TRUE = -9957, LIFE = -9954, EASY = -9953, NORMAL = -9952,
+    FINAL_ANGLE = -9958,
     HARD = -9951, LUNATIC = -9950, MISS_COUNT = -9949, BOMB_COUNT = -9948,
     CAPTURE = -9947, ENM_CNT_REAL = -9946, SHOTTYPE = -9945, DIST_PLAYER = -9944,
     POWER = -9930, LAST_ENM_ID = -9931,
@@ -471,6 +560,7 @@ function EclRuntime:spawn(routine_name, parent)
         pc = 0,
         wait = 0,
         state = STATE_RUNNING,
+        context_globals = parent and parent.context_globals or {},
         ints = {},
         floats = {},
         parent = parent,
@@ -504,7 +594,18 @@ function EclRuntime:call(caller, routine_name, async, operands)
     -- attack routines must not overwrite the movement routine's locals.
     thread.ints, thread.floats = {}, {}
     if async then
-        self.threads[#self.threads + 1] = thread
+        -- 48efb3..48eff0 inserts after the main context, ahead of older
+        -- async contexts. 48e6c0 snapshots next before running the current
+        -- context, so a newly linked context first runs on the next tick.
+        thread.last_step_frame = self.frame
+        local insert_at
+        if thread.object then
+            for index,existing in ipairs(self.threads) do
+                if existing.object==thread.object then insert_at=index+1;break end
+            end
+        end
+        if insert_at then table.insert(self.threads,insert_at,thread)
+        else self.threads[#self.threads + 1] = thread end
         return thread
     end
     -- A synchronous call suspends the caller until the callee finishes, even
@@ -532,33 +633,107 @@ function EclRuntime:call(caller, routine_name, async, operands)
     return thread
 end
 
---- Advance every live thread by one frame.
+local function advance_thread(runtime, thread)
+    if thread.state == STATE_FINISHED or thread.last_advance_frame == runtime.frame then return end
+    thread.last_advance_frame = runtime.frame
+    -- floatTime belongs to the invocation, and advances while it waits.
+    -- 48e185..48e257 stores both the destination reference and initial value.
+    for slot,tween in pairs(thread.float_tweens or {}) do
+        local elapsed=runtime.frame-tween.started
+        local t=require("tnr.legacy_replay.interpolation")(tween.mode,elapsed/tween.duration)
+        apply_assignment(thread,tween.target,"=",tween.first+(tween.last-tween.first)*t)
+        if elapsed>=tween.duration then thread.float_tweens[slot]=nil end
+    end
+    local pending = thread.pending_call
+    if pending and pending.state ~= STATE_FINISHED then
+        -- Native synchronous calls share a VM stack. When a waiting callee
+        -- returns, the caller can execute its next instruction on this tick.
+        advance_thread(runtime, pending)
+        if pending.state ~= STATE_FINISHED then return end
+    end
+    thread.pending_call = nil
+    step(thread, runtime)
+end
+
+--- Advance standalone scripts by one frame.
 function EclRuntime:update()
     self.frame = (self.frame or 0) + 1
     local index = 1
     while index <= #self.threads do
         local thread = self.threads[index]
-        local pending = thread.pending_call
-        local waiting = false
-        if pending then
-            if pending.state == STATE_FINISHED then
-                -- The callee returned, so the caller may run again.
-                thread.pending_call = nil
-            else
-                -- A caller parked behind a synchronous call does not advance
-                -- until the callee it is waiting on has finished.
-                waiting = true
-            end
-        end
-        if not waiting then
-            step(thread, self)
-        end
+        advance_thread(self, thread)
         if thread.state == STATE_FINISHED then
             table.remove(self.threads, index)
         else
             index = index + 1
         end
     end
+end
+
+--- 426ad0/48e690: tick one enemy and its contexts at a time, in spawn order.
+-- New enemies execute their initial context at creation; new async contexts
+-- belong to the next tick. Snapshot the contexts that existed at its start.
+function EclRuntime:update_enemies(enemies, before_enemy, after_enemy, skip_enemy)
+    self.frame = (self.frame or 0) + 1
+    local groups, owners = {}, {}
+    for _, thread in ipairs(self.threads) do
+        local key = thread.object or false
+        if not groups[key] then
+            groups[key] = {}
+            owners[#owners + 1] = key
+        end
+        local group = groups[key]
+        group[#group + 1] = thread
+    end
+    local function run(key)
+        local group = groups[key]
+        if not group then return end
+        groups[key] = nil
+        for _, thread in ipairs(group) do
+            -- Enemy deletion ends its remaining ECL contexts immediately.
+            -- Otherwise an async child can emit once after its parent deletes
+            -- the controller, shifting the shared random stream.
+            if key and key.legacy_deleted then break end
+            advance_thread(self, thread)
+        end
+    end
+    self.updating_enemies = true
+    -- 426b00 saves the next list node before calling an enemy. A tail
+    -- spawn updates immediately, but its "already updated" bit isn't
+    -- cleared until the manager first reaches it on the following tick.
+    local i = #enemies > 0 and 1 or nil
+    run(false)
+    while i do
+        local enemy = enemies[i]
+        local next_index = i < #enemies and i + 1 or nil
+        if enemy.legacy_initialized_frame then
+            if enemy.legacy_initialized_frame < self.frame and not enemy.legacy_deleted then
+                if skip_enemy then skip_enemy(enemy) end
+                for _, thread in ipairs(groups[enemy] or {}) do
+                    for _, tween in pairs(thread.float_tweens or {}) do tween.started = tween.started + 1 end
+                end
+            end
+            enemy.legacy_initialized_frame = nil
+            groups[enemy] = nil
+        else
+            enemy.legacy_delete_after_init = nil
+            if not enemy.legacy_deleted then before_enemy(enemy) end
+            if enemy.legacy_deleted then
+                groups[enemy] = nil
+            else
+                run(enemy)
+                after_enemy(enemy)
+            end
+        end
+        i = next_index
+    end
+    for _, key in ipairs(owners) do run(key) end
+    self.updating_enemies = nil
+    local kept = {}
+    for _, thread in ipairs(self.threads) do
+        if thread.state ~= STATE_FINISHED then kept[#kept + 1] = thread end
+    end
+    self.threads = kept
 end
 
 function EclRuntime:live_count()

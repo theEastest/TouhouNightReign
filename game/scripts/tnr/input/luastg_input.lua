@@ -10,6 +10,7 @@ local DEFAULT_BINDINGS = {
     -- can still provide a distinct P2 mapping through options.bindings.
     [2] = { left = "Left", right = "Right", up = "Up", down = "Down", shoot = "Z", focus = "LeftShift", bomb = "X", confirm = "Enter", cancel = "Escape" },
 }
+local LOCAL_COOP_BINDING = { left = "A", right = "D", up = "W", down = "S", shoot = "F", focus = "G", bomb = "H" }
 
 local function resolve_key(keyboard, value)
     if type(value) == "number" then
@@ -29,6 +30,7 @@ function LuaSTGInputProvider.new(lstg, options)
         tick = 0,
         previous = {},
         previous_mouse = false,
+        previous_secondary_mouse = false,
         bindings = options.bindings or DEFAULT_BINDINGS,
         text_input = nil,
         text_input_checked = false,
@@ -119,7 +121,7 @@ function LuaSTGInputProvider:key_down(code)
     -- LuaSTG versions expose key state as either a boolean or a numeric
     -- flag. Normalize both forms before the project input is serialized.
     local ok, state = pcall(self.keyboard.GetKeyState, code)
-    return ok and not not state
+    return ok and (state == true or (type(state) == "number" and state ~= 0))
 end
 
 function LuaSTGInputProvider:key_pressed(code, player_id)
@@ -134,14 +136,16 @@ function LuaSTGInputProvider:key_pressed(code, player_id)
     return down and not was_down
 end
 
-function LuaSTGInputProvider:_poll_one(player_id, tick)
-    local binding = self.bindings[player_id] or self.bindings[1] or DEFAULT_BINDINGS[1]
+function LuaSTGInputProvider:_poll_one(player_id, tick, binding_override)
+    local binding = binding_override or self.bindings[player_id] or self.bindings[1] or DEFAULT_BINDINGS[1]
     local keyboard = self.keyboard
     local mouse = self.mouse
     local left = self:key_down(resolve_key(keyboard, binding.left))
     local right = self:key_down(resolve_key(keyboard, binding.right))
     local up = self:key_down(resolve_key(keyboard, binding.up))
     local down = self:key_down(resolve_key(keyboard, binding.down))
+    local skip_dialogue = self:key_down(resolve_key(keyboard, binding.skip_dialogue or "LeftControl"))
+        or self:key_down(resolve_key(keyboard, "RightControl"))
     local paste_text = self:_poll_paste(player_id, keyboard)
     local primary = false
     if type(mouse.GetKeyState) == "function" and mouse.Primary ~= nil then
@@ -150,6 +154,13 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
     end
     local primary_pressed = primary and not self.previous_mouse
     self.previous_mouse = primary
+    local secondary = false
+    if type(mouse.GetKeyState) == "function" and mouse.Secondary ~= nil then
+        local ok, state = pcall(mouse.GetKeyState, mouse.Secondary)
+        secondary = ok and (state == true or (type(state) == "number" and state ~= 0))
+    end
+    local secondary_pressed = secondary and not self.previous_secondary_mouse
+    self.previous_secondary_mouse = secondary
     local bomb_down = self:key_down(resolve_key(keyboard, binding.bomb))
     local previous_bomb_down = self.bomb_previous[player_id] == true
     local bomb_charge = self.bomb_charge[player_id] or 0
@@ -177,12 +188,14 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
             bomb_charged = false,
             bomb_success = false,
             confirm = self:key_pressed(resolve_key(keyboard, binding.confirm), player_id) or self:key_pressed(resolve_key(keyboard, binding.space or "Space"), player_id),
+            skip_dialogue = skip_dialogue,
             cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
             tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
             backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
             paste = paste_text,
             mouse_primary_pressed = primary_pressed,
             mouse_primary_down = primary,
+            mouse_secondary_pressed = secondary_pressed,
         })
     elseif bomb_blocked then
         if bomb_down then
@@ -199,12 +212,14 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
                 bomb_charged = false,
                 bomb_success = false,
                 confirm = self:key_pressed(resolve_key(keyboard, binding.confirm), player_id) or self:key_pressed(resolve_key(keyboard, binding.space or "Space"), player_id),
+                skip_dialogue = skip_dialogue,
                 cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
                 tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
                 backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
                 paste = paste_text,
                 mouse_primary_pressed = primary_pressed,
                 mouse_primary_down = primary,
+                mouse_secondary_pressed = secondary_pressed,
             })
         end
         self.bomb_blocked[player_id] = false
@@ -243,6 +258,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
         bomb_charged = bomb_charged,
         bomb_success = bomb_event,
         confirm = self:key_pressed(resolve_key(keyboard, binding.confirm), player_id) or self:key_pressed(resolve_key(keyboard, binding.space or "Space"), player_id),
+        skip_dialogue = skip_dialogue,
         cancel = self:key_pressed(resolve_key(keyboard, binding.cancel), player_id),
         tab = self:key_pressed(resolve_key(keyboard, "Tab"), player_id),
         backspace = self:key_pressed(resolve_key(keyboard, "Back"), player_id),
@@ -251,6 +267,7 @@ function LuaSTGInputProvider:_poll_one(player_id, tick)
         -- input belongs to whichever player this provider is polling.
         mouse_primary_pressed = primary_pressed,
         mouse_primary_down = primary,
+        mouse_secondary_pressed = secondary_pressed,
     })
 end
 
@@ -259,11 +276,12 @@ function LuaSTGInputProvider:poll(player_id)
     return self:_poll_one(player_id, self.tick)
 end
 
-function LuaSTGInputProvider:poll_all(player_ids)
+function LuaSTGInputProvider:poll_all(player_ids, local_coop)
     self.tick = self.tick + 1
     local result = {}
     for _, player_id in ipairs(player_ids or { 1 }) do
-        result[player_id] = self:_poll_one(player_id, self.tick)
+        local binding = local_coop and player_id==2 and self.bindings==DEFAULT_BINDINGS and LOCAL_COOP_BINDING or nil
+        result[player_id] = self:_poll_one(player_id, self.tick, binding)
     end
     return result
 end

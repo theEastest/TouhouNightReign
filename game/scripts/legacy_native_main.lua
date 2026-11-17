@@ -1358,7 +1358,7 @@ local function native_render_coop_hud()
         or (native_player_state and tonumber(native_player_state.life))
         or (lstg and lstg.var and tonumber(lstg.var.lifeleft)) or native_team_lives
     local status_art=require("tnr.character.runtime.status_art")
-    status_art.resources(10,lives_value,right-176,right,y,22)
+    status_art.resources(10,lives_value,right-176,right,y,22,"ordinary")
     y = y - 26
     -- Bombs are player-owned resources.  Only show the local process's count;
     -- the peer has an independent count and never receives this value over
@@ -1368,7 +1368,7 @@ local function native_render_coop_hud()
         bombs = tonumber(lstg.var.bomb)
     end
     local bomb_alert = (native_bomb_hit_charge_window or 0) > 0
-    status_art.resources(6,bombs or 0,right-176,right,y,22)
+    status_art.resources(6,bombs or 0,right-176,right,y,22,"ordinary")
     y = y - 26
     -- Current stage score and money collected this stage. Both reset at the
     -- room boundary, so this always reflects the stage being played.

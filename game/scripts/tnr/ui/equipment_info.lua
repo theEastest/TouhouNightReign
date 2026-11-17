@@ -152,13 +152,21 @@ function EquipmentInfo.describe(definition, instance)
     meta[#meta + 1] = "品质 " .. rarity_label
     lines[#lines + 1] = { text = table.concat(meta, "   "), color = "muted" }
 
-    for _,affix in ipairs(instance and instance.random_affixes or {}) do
-        local label=require("tnr.equipment.affix_catalog").label(affix)
-        local name,detail=label:match("^(.-) · (.*)$")
-        lines[#lines+1]={text="词条："..(name or label),color="active_line"}
-        if detail then lines[#lines+1]={text=detail,color="muted"} end
+    local Affixes = require("tnr.equipment.affix_catalog")
+    for _, affix in ipairs(instance and instance.random_affixes or {}) do
+        lines[#lines + 1] = { text = Affixes.label(affix), color = Affixes.tier_color(affix), icon = affix.id }
     end
-    if definition.exclusive_affix then lines[#lines+1]={text="专属："..definition.exclusive_affix.name,color="active_line"} end
+    if definition.exclusive_affix then
+        local details = {
+            sealing_streak = "同一目标每命中10次增伤1%，最高100%",
+            mini_master_spark = "命中后10%概率使下一次光束伤害变为3倍",
+            wind_field = "命中后生成旋风，持续0.75秒",
+        }
+        local exclusive = definition.exclusive_affix
+        local detail = details[exclusive.id]
+        lines[#lines + 1] = { text = exclusive.name .. (detail and (" · " .. detail) or ""),
+            color = {255,255,214,78}, icon = exclusive.id }
+    end
     local weight = number_text(definition.weight)
     if weight and tonumber(definition.weight) and tonumber(definition.weight) > 0 then
         lines[#lines + 1] = { text = "重量 " .. weight, color = "muted" }

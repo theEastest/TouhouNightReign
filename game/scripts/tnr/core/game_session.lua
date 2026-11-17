@@ -24,9 +24,32 @@ local LoadoutCommit = require("tnr.multiplayer.loadout_commit")
 local ShopService = require("tnr.shop.shop_service")
 local RelicRuntime = require("tnr.relic.relic_runtime")
 local EquipmentRewardService = require("tnr.reward.equipment_reward_service")
+local Immutable = require("tnr.core.immutable")
 
 local GameSession = {}
 GameSession.__index = GameSession
+
+-- Instance IDs are process-local and can differ after the peers have played
+-- different previous runs. Compare the actual item data for UI commands.
+local function same_value(a, b)
+    if type(a) ~= type(b) then return false end
+    if type(a) ~= "table" then return a == b end
+    for key, value in pairs(a) do if not same_value(value, b[key]) then return false end end
+    for key in pairs(b) do if a[key] == nil then return false end end
+    return true
+end
+
+local function expected_item_matches(command, item)
+    if command.expected_instance_id and (not item or item.instance_id ~= command.expected_instance_id) then return false end
+    if not command.expected_item then return true end
+    if not item then return false end
+    local expected = command.expected_item
+    return expected.definition_id == item.definition_id
+        and expected.owner_player_id == item.owner_player_id
+        and expected.weight == item.weight
+        and same_value(expected.runtime_data, item.runtime_data)
+        and same_value(expected.random_affixes, item.random_affixes)
+end
 
 local function copy_event(event)
     local result = {}
@@ -91,6 +114,7 @@ function GameSession.new(options)
         reward_result = nil,
         reward_required = 1,
         reward_guaranteed_definition_id = nil,
+        reward_guaranteed_equipment = {},
         pending_reward_claims = {},
     }, GameSession)
     self.legacy_state_adapter = LegacyStateAdapter.new(self)
@@ -210,6 +234,7 @@ function GameSession:start_new(run_seed, floor)
     self.reward_result = nil
     self.reward_required = 1
     self.reward_guaranteed_definition_id = nil
+    self.reward_guaranteed_equipment = {}
     self.pending_reward_claims = {}
     self.battle_result = nil
     self.god_mode = {}
@@ -245,6 +270,11 @@ function GameSession:advance_floor()
     end
     if self.floor >= self.floor_count then
         return nil, "已经是最后一层"
+    end
+    for _, player_id in ipairs(self.party.player_ids or {}) do
+        if self.acquisition_service:get_pending(player_id) then
+            return nil, "请等待所有玩家处理待领取装备后重试"
+        end
     end
     self.floor = self.floor + 1
     -- Rebuild the floor map from the same run seed so the run stays
@@ -632,7 +662,7 @@ function GameSession:return_to_map()
         return nil, "没有可返回的地图"
     end
     self.run_state = Constants.run_states.MAP
-    self.preparation:reset(self.party.player_ids)
+    self.preparation:reset(self.party.player_ids, true)
     for _, player_id in ipairs(self.party.player_ids or {}) do
         local player = self:get_player(player_id)
         if player then player:set_map_ready(false) end
@@ -681,7 +711,7 @@ function GameSession:_grant_perfect_bonus(result, encounter)
                     if inventory then stored, store_err = inventory:add(instance) end
                     local acquired = stored ~= nil
                     if not acquired and player then
-                        self.preparation.pending_acquisition[player_id] = instance
+                        self.preparation:queue_acquisition(player_id, instance)
                     end
                     self:emit(Event.REWARD_GRANTED, {
                         result = result,
@@ -727,6 +757,14 @@ function GameSession:complete_battle(values)
     end
     self.battle_result = result
     if result.clear_state then
+        -- Ready locks protect the upcoming encounter, not its rewards. A
+        -- network peer may enter the room via synchronization without the
+        -- local commit path that otherwise resets preparation.
+        self.preparation:reset(self.party.player_ids, true)
+        for _, player_id in ipairs(self.party.player_ids or {}) do
+            local player = self:get_player(player_id)
+            if player then player:set_map_ready(false) end
+        end
         local encounter = self.current_encounter
         local is_boss = encounter and encounter.type == Constants.node_types.BOSS
         self:emit(Event.BATTLE_CLEARED, { result = result })
@@ -807,11 +845,16 @@ function GameSession:complete_battle(values)
             -- Both elite and ordinary rooms pick a single reward card.
             self.reward_required = 1
             self.reward_guaranteed_definition_id = guaranteed_id
+            self.reward_guaranteed_equipment = {}
             self.reward_claims = {}
             if guaranteed_id then
                 for _, reward_player_id in ipairs(self.party.player_ids or {}) do
-                    local guaranteed_result, guaranteed_err = self.equipment_reward_service:grant(guaranteed_id, reward_player_id)
+                    local definition = self.equipment_registry:get(guaranteed_id)
+                    local seed = table.concat({tostring(self.run_seed), tostring(encounter.id), tostring(reward_player_id), "guaranteed"}, ":")
+                    local affixes = require("tnr.equipment.affix_catalog").roll(definition, seed)
+                    local guaranteed_result, guaranteed_err = self.equipment_reward_service:grant(guaranteed_id, reward_player_id, affixes)
                     if guaranteed_result then
+                        self.reward_guaranteed_equipment[reward_player_id] = guaranteed_result.instance
                         self:emit(Event.REWARD_GRANTED, {
                             result = result,
                             reward = { kind = "GUARANTEED", definition_id = guaranteed_id,
@@ -888,14 +931,19 @@ function GameSession:unclaim_reward(player_id, choice_index)
     if claim.kind == "EQUIPMENT" and claim.acquired then
         local player = self:get_player(player_id)
         local inventory = player and player.loadout and player.loadout.inventory
-        if inventory then
-            for index, item in ipairs(inventory.items) do
-                if item and item.instance_id == (claim.equipment and claim.equipment.instance_id) then
-                    inventory:remove(index)
-                    break
-                end
-            end
+        local _, index
+        if inventory then _, index = inventory:find(claim.equipment and claim.equipment.instance_id) end
+        if not index then return nil, "REWARD_ITEM_UNAVAILABLE" end
+        if claim.replaced_equipment and inventory:find(claim.replaced_equipment.instance_id) then
+            return nil, "REWARD_REPLACEMENT_ALREADY_PRESENT"
         end
+        inventory:remove(index)
+        if claim.replaced_equipment then
+            local insert_at = math.min(claim.replaced_index or (#inventory.items + 1), #inventory.items + 1)
+            table.insert(inventory.items, insert_at, Immutable.copy(claim.replaced_equipment))
+        end
+    elseif claim.kind == "EQUIPMENT" and claim.pending and claim.equipment then
+        self.preparation:remove_acquisition(player_id, claim.equipment.instance_id)
     elseif claim.kind == "RESOURCE" then
         if claim.resource == "bomb" then
             self:add_bomb(player_id, -(claim.amount or 1), "reward_deselect")
@@ -955,7 +1003,7 @@ function GameSession:claim_reward(player_id, choice_index)
         resource = choice.resource,
         amount = choice.amount,
         equipment = equipment_result and equipment_result.instance:to_table() or nil,
-        acquired = equipment_result and equipment_result.acquired or true,
+        acquired = equipment_result == nil or equipment_result.acquired == true,
         pending = equipment_result and equipment_result.pending or false,
         error = equipment_result and equipment_result.error or nil,
     }
@@ -972,6 +1020,7 @@ function GameSession:claim_reward(player_id, choice_index)
         self.reward_claims = {}
         self.reward_required = 1
         self.reward_guaranteed_definition_id = nil
+        self.reward_guaranteed_equipment = {}
         self.pending_reward_claims = {}
         self:return_to_map()
         self:emit(Event.REWARD_GRANTED, { reward = reward, claim = claim })
@@ -1083,11 +1132,17 @@ function GameSession:dispatch(command)
     elseif command_type == Command.CLOSE_PREPARATION then
         return self:leave_preparation()
     elseif command_type == Command.EQUIP_ITEM then
+        local player = self:get_player(command.player_id or self.local_player_id)
+        local item = player and player.loadout.inventory.items[command.inventory_index]
+        if not expected_item_matches(command, item) then return nil, "STALE_ITEM" end
         local result, err = self.loadout_service:equip_from_inventory(command.player_id or self.local_player_id, command.inventory_index, command.slot_type, command.slot_index)
         if not result then return nil, err end
         self:emit(Event.LOADOUT_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
         return result
     elseif command_type == Command.UNEQUIP_ITEM then
+        local player = self:get_player(command.player_id or self.local_player_id)
+        local item = player and player.loadout:get_slot(command.slot_type, command.slot_index)
+        if not expected_item_matches(command, item) then return nil, "STALE_ITEM" end
         local result, err = self.loadout_service:unequip(command.player_id or self.local_player_id, command.slot_type, command.slot_index)
         if not result then return nil, err end
         self:emit(Event.LOADOUT_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
@@ -1098,10 +1153,34 @@ function GameSession:dispatch(command)
         self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
         return result
     elseif command_type == Command.DISCARD_ITEM then
+        local player = self:get_player(command.player_id or self.local_player_id)
+        local item = player and player.loadout.inventory.items[command.inventory_index]
+        if not expected_item_matches(command, item) then return nil, "STALE_ITEM" end
         local result, err = self.loadout_service:discard_inventory(command.player_id or self.local_player_id, command.inventory_index)
         if not result then return nil, err end
         self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
         return result
+    elseif command_type == Command.DISCARD_EQUIPPED_ITEM then
+        local player = self:get_player(command.player_id or self.local_player_id)
+        local item = player and player.loadout:get_slot(command.slot_type, command.slot_index)
+        if not expected_item_matches(command, item) then return nil, "STALE_ITEM" end
+        local result, err = self.loadout_service:discard_equipped(command.player_id or self.local_player_id, command.slot_type, command.slot_index, command.expected_instance_id)
+        if not result then return nil, err end
+        self:emit(Event.LOADOUT_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
+        self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
+        return result
+    elseif command_type == Command.TOGGLE_WEAPON or command_type == Command.TOGGLE_SUPPORT then
+        local player_id = command.player_id or self.local_player_id
+        local player = self:get_player(player_id)
+        local group = command_type == Command.TOGGLE_SUPPORT and "supports" or command.slot_type
+        local item = player and player.loadout:get_slot(group, command.slot_index)
+        if not expected_item_matches(command, item) then return nil, "STALE_ITEM" end
+        local result, err
+        if command_type == Command.TOGGLE_SUPPORT then result, err = self.loadout_service:toggle_support(player_id, command.slot_index)
+        else result, err = self.loadout_service:toggle_weapon(player_id, command.slot_type, command.slot_index) end
+        if not result then return nil, err end
+        self:emit(Event.LOADOUT_CHANGED, { player_id = player_id, operation = command_type })
+        return result, err
     elseif command_type == Command.ACQUIRE_ITEM then
         local instance = command.instance
         if type(instance) == "table" and not instance.definition_id then instance = EquipmentInstance.from_table(instance) end
@@ -1109,14 +1188,34 @@ function GameSession:dispatch(command)
         self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type, pending = result == nil })
         return result, err
     elseif command_type == Command.ACCEPT_PENDING_ITEM then
-        local result, err = self.acquisition_service:accept_pending(command.player_id or self.local_player_id, command.discard_index)
-        if not result then return nil, err end
-        self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
+        local pending_player_id = command.player_id or self.local_player_id
+        local purchase = self.shop_service and self.shop_service.pending_purchases[pending_player_id]
+        if purchase and self:get_player(pending_player_id).money < purchase.price then return nil, "INSUFFICIENT_MONEY" end
+        local result, discarded = self.acquisition_service:accept_pending(pending_player_id, command.discard_index)
+        if not result then return nil, discarded end
+        -- A full-inventory reward may be accepted while the other player is
+        -- still choosing. Keep enough state to undo that replacement if the
+        -- player changes their reward selection before the screen closes.
+        for _, claim in ipairs(self.reward_claims[pending_player_id] or {}) do
+            if claim.pending and claim.equipment and claim.equipment.instance_id == result.instance_id then
+                claim.pending = false
+                claim.acquired = true
+                claim.replaced_equipment = Immutable.copy(discarded)
+                claim.replaced_index = command.discard_index
+                break
+            end
+        end
+        if purchase and purchase.instance_id == result.instance_id then self.shop_service:resolve_pending(pending_player_id, true) end
+        self:emit(Event.INVENTORY_CHANGED, { player_id = pending_player_id, operation = command_type })
         return result
     elseif command_type == Command.REJECT_PENDING_ITEM then
-        local result, err = self.acquisition_service:reject_pending(command.player_id or self.local_player_id)
+        local pending_player_id = command.player_id or self.local_player_id
+        local pending = self.acquisition_service:get_pending(pending_player_id)
+        local purchase = self.shop_service and self.shop_service.pending_purchases[pending_player_id]
+        local result, err = self.acquisition_service:reject_pending(pending_player_id)
         if not result then return nil, err end
-        self:emit(Event.INVENTORY_CHANGED, { player_id = command.player_id or self.local_player_id, operation = command_type })
+        if purchase and pending and purchase.instance_id == pending.instance_id then self.shop_service:resolve_pending(pending_player_id, false) end
+        self:emit(Event.INVENTORY_CHANGED, { player_id = pending_player_id, operation = command_type })
         return result
     elseif command_type == Command.SHOP_PURCHASE then
         return self:shop_purchase(command.player_id or self.local_player_id, command.slot)

@@ -13,6 +13,11 @@ function EquipmentRewardService:grant(definition_id, player_id, affixes)
     player_id = tonumber(player_id) or self.session.local_player_id or 1
     local instance = EquipmentInstance.new(definition, player_id, {random_affixes=affixes})
     local acquired, err = self.session.acquisition_service:acquire(player_id, instance)
+    if err == "PENDING_ACQUISITION" then
+        self.session.preparation:queue_acquisition(player_id, instance)
+    elseif not acquired and err ~= "INVENTORY_FULL" then
+        return nil, err
+    end
     return {
         instance = instance,
         acquired = acquired ~= nil,

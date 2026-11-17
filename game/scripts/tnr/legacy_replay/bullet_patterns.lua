@@ -6,8 +6,8 @@
 -- the geometry of the ring or fan, and the counts decide how many rings and how
 -- many bullets per ring.
 --
--- This is the exact generator, transcribed from the reference bullet manager,
--- so a volley lands where the original put it rather than near it.
+-- Modes 0..10 follow TH15's native generator at 0x41a600. Mode 11 remains
+-- an approximation and is not used by the regular six-stage scripts.
 --
 -- The aim mode is the second argument of the etAim ECL instruction.
 
@@ -25,9 +25,7 @@ Patterns.MODE = {
     RANDOM_ANGLE = 6,
     RANDOM_SPEED = 7,
     RANDOM = 8,
-    -- th15 adds three modes above the reference range. They are ring variants
-    -- with an extra per-ring offset; the closest reference behaviour is used so
-    -- a volley still forms a ring instead of collapsing.
+    -- TH15's paired-spoke ring variants (9/10), then the unused mode 11.
     EXTRA_RING_AIMED = 9,
     EXTRA_RING_C = 10,
     EXTRA_RING_D = 11,
@@ -48,8 +46,8 @@ local TWO_PI = math.pi * 2
 --
 -- Returns a list of { angle = radians, speed = units_per_frame }.
 function Patterns.expand(options)
-    local count1 = math.max(1, math.floor(tonumber(options.count1) or 1))
-    local count2 = math.max(1, math.floor(tonumber(options.count2) or 1))
+    local count1 = math.max(0, math.floor(tonumber(options.count1) or 1))
+    local count2 = math.max(0, math.floor(tonumber(options.count2) or 1))
     local speed1 = tonumber(options.speed1) or 0
     local speed2 = tonumber(options.speed2) or speed1
     local angle1 = tonumber(options.angle1) or 0
@@ -57,8 +55,7 @@ function Patterns.expand(options)
     local mode = math.floor(tonumber(options.mode) or Patterns.MODE.CIRCLE)
     -- Modes above the reference range behave as an aimed ring with the per-ring
     -- offset the ECL supplies.
-    if mode == Patterns.MODE.EXTRA_RING_AIMED or mode == Patterns.MODE.EXTRA_RING_C
-            or mode == Patterns.MODE.EXTRA_RING_D then
+    if mode == Patterns.MODE.EXTRA_RING_D then
         mode = Patterns.MODE.CIRCLE_AIMED
     end
     local aim = tonumber(options.aim_angle) or 0
@@ -70,7 +67,8 @@ function Patterns.expand(options)
     for ring = 0, count2 - 1 do
         -- The speed steps linearly from the first ring to the last, which is
         -- what makes an expanding or contracting spiral.
-        local speed = speed1 - (speed1 - speed2) * ring / count2
+        -- TH15 41a683..41a6c4 includes both speed endpoints.
+        local speed = count2>1 and speed1+(speed2-speed1)*ring/(count2-1) or speed1
         for index = 0, count1 - 1 do
             local angle = 0
             if mode == Patterns.MODE.FAN or mode == Patterns.MODE.FAN_AIMED then
@@ -97,16 +95,24 @@ function Patterns.expand(options)
                 -- previous one instead of overlapping it.
                 angle = angle + math.pi / count1
                 angle = angle + index * TWO_PI / count1
-                angle = angle + angle1
+                angle = angle + ring*angle2 + angle1
             elseif mode == Patterns.MODE.RANDOM_ANGLE then
-                angle = random(angle1 - angle2, angle1 - angle2 + angle2)
+                angle = random(angle1-angle2,angle1+angle2)
             elseif mode == Patterns.MODE.RANDOM_SPEED then
-                speed = random(speed1 - speed2, speed1 - speed2 + speed2)
+                speed = random(speed1,speed1+speed2)
                 angle = angle + index * TWO_PI / count1
                 angle = angle + ring * angle2 + angle1
             elseif mode == Patterns.MODE.RANDOM then
-                angle = random(angle1 - angle2, angle1 - angle2 + angle2)
-                speed = random(speed1 - speed2, speed1 - speed2 + speed2)
+                angle = random(angle1-angle2,angle1+angle2)
+                speed = random(speed1,speed1+speed2)
+            elseif mode==9 or mode==10 then
+                -- TH15 41ab55..41ac65: count2 forms alternating spokes at
+                -- every point of the count1 ring, not successively rotated rings.
+                local pair=math.floor((ring+(count2%2))/2)
+                angle=index*TWO_PI/count1+(pair+(count2%2==0 and .5 or 0))*angle2
+                if ring%2==1 then angle=-angle end
+                angle=angle+angle1+(mode==9 and aim or 0)
+                speed=count2>1 and speed1+(speed2-speed1)*pair*2/(count2-1) or speed1
             end
             bullets[#bullets + 1] = { angle = angle, speed = speed, ring = ring }
         end

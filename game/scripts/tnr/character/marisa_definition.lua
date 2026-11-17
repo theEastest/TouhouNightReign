@@ -15,5 +15,5 @@ return CharacterDefinition.new({
     support_slots = 1,
     self_modifier_slots = 3,
     support_modifier_slots = 1,
-    inventory_slots = 6,
+    inventory_slots = 12,
 })

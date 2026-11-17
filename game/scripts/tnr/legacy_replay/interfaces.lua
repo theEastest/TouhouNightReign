@@ -79,6 +79,8 @@ function PlayerRoster:sample(player_id)
         shoot = value.shoot == true,
         focus = value.focus == true,
         bomb = value.bomb == true,
+        confirm = value.confirm == true,
+        skip_dialogue = value.skip_dialogue == true,
     }
 end
 
@@ -125,8 +127,7 @@ end
 function PlayerMode:on_item_collected(session, player_id, item)
 end
 
---- Score threshold behaviour. The classic ruleset grants an extend every N
--- points; the modern one does not.
+--- Minimum chapter bonus for a life fragment.
 function PlayerMode:score_extend_threshold()
     return nil
 end
@@ -158,43 +159,34 @@ end
 -- ---------------------------------------------------------------------------
 -- Classic ruleset
 --
--- Reference behaviour: power rises with collection, a score threshold grants an
--- extra life, and there are no between-stage reward picks.
+-- Collection raises power and the chapter bonus can award a life fragment.
 
 local CLASSIC_POWER_PER_LARGE = 1.0
-local CLASSIC_POWER_PER_SMALL = 0.05
-local CLASSIC_EXTEND_SCORE = 10000000
+local CLASSIC_POWER_PER_SMALL = 0.01
+local CLASSIC_CHAPTER_EXTEND_SCORE = 1000000
 
 Interfaces.classic_mode = function()
     return Interfaces.mode({
         id = "classic",
         power_per_large = CLASSIC_POWER_PER_LARGE,
         power_per_small = CLASSIC_POWER_PER_SMALL,
-        extend_score = CLASSIC_EXTEND_SCORE,
-        next_extend = CLASSIC_EXTEND_SCORE,
         starting_resources = function()
             return { lives = 2, bombs = 3, power = 1 }
         end,
         rewards_per_stage = function() return 0 end,
-        score_extend_threshold = function(self) return self.extend_score end,
+        on_player_hit = function(self,session,player_id)
+            -- 454bdf..454bea subtracts half of the 100-unit power level.
+            session.power[player_id]=math.max(1,session:get_power(player_id)-.5)
+        end,
+        score_extend_threshold = function() return CLASSIC_CHAPTER_EXTEND_SCORE end,
         on_item_collected = function(self, session, player_id, item)
             -- Power items raise the classic power meter.
             if item and item.kind == "power_large" then
                 session:add_power(player_id, self.power_per_large)
             elseif item and item.kind == "power" then
                 session:add_power(player_id, self.power_per_small)
-            end
-        end,
-        on_score_changed = function(self, session, player_id, score)
-            -- Grant an extra life each time the threshold is crossed.
-            if not self.extend_score then return end
-            -- A session without player state (a bare harness) has nothing to
-            -- grant to, so skip instead of erroring.
-            if not session.players or not session.get_player then return end
-            if not session:get_player(player_id) then return end
-            while score >= self.next_extend do
-                session:add_life(player_id, 1, "score_extend")
-                self.next_extend = self.next_extend + self.extend_score
+            elseif item and item.kind == "full_power" then
+                session:add_power(player_id,4)
             end
         end,
     })
@@ -262,23 +254,60 @@ function ReplaySession.new(options)
         session.bombs_left[player_id] = resources.bombs or 3
         session.power[player_id] = resources.power or 0
     end
+    if roster:is_coop() then
+        session.party=require("tnr.core.party_state").new(roster:list())
+        session.team_bombs=resources.bombs or 3
+    end
     return session
 end
 
 function ReplaySession:life_count(player_id)
+    if self.party then return self.team_defeated and -1 or self.party.team_life end
     return self.lives_left[player_id] or 0
 end
 
 --- Reduce a player's lives. Returns false when they have none left.
 function ReplaySession:lose_life(player_id)
     local current = self.lives_left[player_id] or 0
-    if current <= 0 then return false end
+    if current <= 0 then self.lives_left[player_id] = -1; return false end
     self.lives_left[player_id] = current - 1
     return true
 end
 
 function ReplaySession:add_power(player_id, amount)
-    self.power[player_id] = (self.power[player_id] or 0) + (tonumber(amount) or 0)
+    local value=(self.power[player_id] or 0)+(tonumber(amount) or 0)
+    self.power[player_id] = math.max(0,math.min(4,math.floor(value*100+.5)/100))
+end
+
+function ReplaySession:add_life(player_id, amount)
+    if self.party then self.party:add_team_life(amount);return end
+    self.lives_left[player_id] = math.min(8, self:life_count(player_id) + amount)
+end
+
+function ReplaySession:add_bomb(player_id, amount)
+    if self.party then
+        self.team_bombs=math.max(0,math.min(8,self.team_bombs+amount))
+        for _,id in ipairs(self.roster:list()) do self.bombs_left[id]=self.team_bombs end
+        return
+    end
+    self.bombs_left[player_id] = math.min(8, (self.bombs_left[player_id] or 0) + amount)
+end
+
+function ReplaySession:bomb_count(player_id)
+    return self.party and self.team_bombs or (self.bombs_left[player_id] or 0)
+end
+
+function ReplaySession:spend_bomb(player_id)
+    if self:bomb_count(player_id)<=0 then return false end
+    self:add_bomb(player_id,-1)
+    return true
+end
+
+function ReplaySession:restore_bombs_after_miss(player_id)
+    local current=self:bomb_count(player_id)
+    local starting=self.mode:starting_resources().bombs or 3
+    local restored=self:mode_id()=="classic" and starting or math.max(starting,current)
+    self:add_bomb(player_id,restored-current)
 end
 
 function ReplaySession:get_power(player_id)

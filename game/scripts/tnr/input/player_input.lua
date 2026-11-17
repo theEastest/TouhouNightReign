@@ -16,6 +16,7 @@ function PlayerInput.new(player_id, tick, values)
         -- strips it and transmits only the final release event.
         bomb_down = values.bomb_down == true,
         confirm = values.confirm == true,
+        skip_dialogue = values.skip_dialogue == true,
         cancel = values.cancel == true,
         tab = values.tab == true,
         backspace = values.backspace == true,
@@ -23,6 +24,7 @@ function PlayerInput.new(player_id, tick, values)
         paste = tostring(values.paste or ""),
         mouse_primary_pressed = values.mouse_primary_pressed == true,
         mouse_primary_down = values.mouse_primary_down == true,
+        mouse_secondary_pressed = values.mouse_secondary_pressed == true,
     }
 end
 

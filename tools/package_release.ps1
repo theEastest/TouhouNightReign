@@ -7,6 +7,12 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+function Get-ReleaseSha256([string]$path) {
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($path)
+    try { return [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hasher.Dispose() }
+}
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $EngineRoot = [IO.Path]::GetFullPath($EngineRoot)
 if ($ReleaseName -notmatch '^[A-Za-z0-9][A-Za-z0-9._-]*$') {
@@ -29,12 +35,91 @@ foreach ($name in $binaryFiles) {
         throw "Required runtime file missing: $name"
     }
 }
-New-Item -ItemType Directory -Path $destination -Force | Out-Null
 $gameRoot = Join-Path $projectRoot 'game'
-# /XJ prevents development junctions from retaining dependencies on this PC.
-# Saves, logs and developer self-test results must not travel to other players.
-& robocopy $gameRoot $destination /E /XJ /XD (Join-Path $gameRoot 'userdata') (Join-Path $gameRoot 'legacy/virtual_data') /XF '*.log' '*.dmp' '*.result' '*_smoke_result.txt' '*.bak' 'desktop.ini' 'Thumbs.db' /NFL /NDL /NJH /NJS /NP
-if ($LASTEXITCODE -ge 8) { throw "Copy failed: robocopy exit $LASTEXITCODE" }
+# Only tracked game files and the explicitly reviewed new replay files are
+# eligible. Copying the entire working tree also ships unrelated untracked
+# work, ignored player data and potentially private diagnostic material.
+$approvedNewFiles = @(
+    'game/assets/legacy_replay/bgm/st02boss.ogg',
+    'game/assets/legacy_replay/bgm/st03boss.ogg',
+    'game/assets/legacy_replay/bgm/st04boss.ogg',
+    'game/assets/legacy_replay/bgm/st05boss.ogg',
+    'game/assets/legacy_replay/bgm/st06boss.ogg',
+    'game/assets/ui/status/affixes-moonlit.png',
+    'game/scripts/tnr/legacy_replay/anm_geometry.lua',
+    'game/scripts/tnr/legacy_replay/bullet_transforms.lua',
+    'game/scripts/tnr/legacy_replay/charge_particles.lua',
+    'game/scripts/tnr/legacy_replay/classic_bombs.lua',
+    'game/scripts/tnr/legacy_replay/classic_shots.lua',
+    'game/scripts/tnr/legacy_replay/coop.lua',
+    'game/scripts/tnr/legacy_replay/curve_laser.lua',
+    'game/scripts/tnr/legacy_replay/laser.lua',
+    'game/scripts/tnr/legacy_replay/modern_combat.lua',
+    'game/scripts/tnr/legacy_replay/reference_rng.lua',
+    'game/scripts/tnr/legacy_replay/reference_rules.lua',
+    'game/scripts/tnr/multiplayer/replay_network.lua',
+    'game/scripts/tnr/ui/tutorial_pages.lua',
+    'game/scripts/tnr/ui/weapon_preview.lua'
+)
+function Test-ExcludedGamePath([string]$path) {
+    return $path -like 'game/assets/players/kud/*' -or
+        $path -eq 'game/scripts/tnr/debug/replay_pilot.lua' -or
+        $path -like 'game/userdata/*' -or $path -like 'game/legacy/virtual_data/*' -or
+        $path -match '(?i)(\.log|\.dmp|\.result|\.bak|_smoke_result\.txt)$' -or
+        $path -match '(?i)(^|/)(desktop\.ini|Thumbs\.db)$'
+}
+function Get-GitGameFiles([bool]$untrackedOnly) {
+    # PowerShell 5 may decode native output with CP936 even when Git writes
+    # UTF-8. Read Git's NUL-delimited output explicitly as UTF-8 so localized
+    # filenames and embedded whitespace are preserved on any console codepage.
+    $start = New-Object Diagnostics.ProcessStartInfo
+    $start.FileName = 'git'
+    $start.Arguments = '-C "' + $projectRoot + '" ls-files -z ' +
+        $(if ($untrackedOnly) { '--others --exclude-standard ' } else { '' }) + '-- game'
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardOutput = $true
+    $start.RedirectStandardError = $true
+    $start.StandardOutputEncoding = New-Object Text.UTF8Encoding($false)
+    $start.StandardErrorEncoding = New-Object Text.UTF8Encoding($false)
+    $process = [Diagnostics.Process]::Start($start)
+    try {
+        $output = $process.StandardOutput.ReadToEnd()
+        $errorText = $process.StandardError.ReadToEnd()
+        $process.WaitForExit()
+        if ($process.ExitCode -ne 0) { throw "Git file enumeration failed: $errorText" }
+        return @($output.Split([char]0) | Where-Object { $_ -ne '' })
+    } finally { $process.Dispose() }
+}
+$tracked = @(Get-GitGameFiles $false)
+$untracked = @(Get-GitGameFiles $true)
+$unexpected = @($untracked | Where-Object { -not (Test-ExcludedGamePath $_) -and $_ -notin $approvedNewFiles })
+if ($unexpected.Count -gt 0) {
+    throw ('Review untracked game files before packaging: ' + ($unexpected -join ', '))
+}
+$files = @(($tracked + $approvedNewFiles | Where-Object { -not (Test-ExcludedGamePath $_) }) | Sort-Object -Unique)
+$gamePrefix = [IO.Path]::GetFullPath($gameRoot).TrimEnd('\') + '\'
+New-Item -ItemType Directory -Path $destination -Force | Out-Null
+foreach ($relative in $files) {
+    if ($relative -notmatch '^game/' -or $relative.StartsWith('"')) { throw "Unsupported Git path: $relative" }
+    $source = [IO.Path]::GetFullPath((Join-Path $projectRoot $relative))
+    if (-not $source.StartsWith($gamePrefix, [StringComparison]::OrdinalIgnoreCase)) { throw "Game path escapes the project: $relative" }
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { throw "Required game file missing: $relative" }
+    $fileItem = Get-Item -LiteralPath $source -Force
+    if (($fileItem.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Game file is a filesystem link: $relative" }
+    # FileInfo has Directory, not Parent. Starting at Parent silently skips
+    # all directories on PowerShell 5 and can follow an external junction.
+    $item = $fileItem.Directory
+    while ($item -and $item.FullName.Length -ge $gameRoot.Length) {
+        if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { throw "Game path contains a filesystem link: $relative" }
+        if ($item.FullName -eq $gameRoot) { break }
+        $item = $item.Parent
+    }
+    $output = Join-Path $destination ($relative.Substring(5))
+    $parent = Split-Path -Parent $output
+    if (-not (Test-Path -LiteralPath $parent -PathType Container)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+    [IO.File]::Copy($source, $output, $false)
+}
 foreach ($name in $binaryFiles) {
     $outputName = if ($name -eq 'LuaSTGSub.exe') { 'TouHouNightReign.exe' } else { $name }
     Copy-Item -LiteralPath (Join-Path $binaryRoot $name) -Destination (Join-Path $destination $outputName)
@@ -87,19 +172,19 @@ $metadata = [ordered]@{
     source_commit = (& git -C $projectRoot rev-parse HEAD)
     platform = 'Windows x64'
     configuration = 'Release'
-    engine_sha256 = (Get-FileHash -LiteralPath (Join-Path $destination 'TouHouNightReign.exe') -Algorithm SHA256).Hash
-    contents = 'Current working copy; excludes player saves and development logs.'
+    engine_sha256 = Get-ReleaseSha256 (Join-Path $destination 'TouHouNightReign.exe')
+    contents = 'Reviewed tracked game files and approved replay additions; excludes player saves, diagnostics and unrelated work.'
 }
 $metadata | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $destination 'release-info.json') -Encoding UTF8
 $hashLines = Get-ChildItem -LiteralPath $destination -Recurse -File | Sort-Object FullName | ForEach-Object {
     $relative = $_.FullName.Substring($destination.Length + 1).Replace('\', '/')
-    '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $relative
+    '{0}  {1}' -f (Get-ReleaseSha256 $_.FullName), $relative
 }
 [IO.File]::WriteAllLines((Join-Path $destination 'SHA256SUMS.txt'), [string[]]$hashLines, (New-Object Text.UTF8Encoding($false)))
 if (-not $SkipArchive) {
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [IO.Compression.ZipFile]::CreateFromDirectory($destination, $archive, [IO.Compression.CompressionLevel]::Optimal, $true)
-    $zipHash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+    $zipHash = Get-ReleaseSha256 $archive
     "$zipHash  $ReleaseName.zip" | Set-Content -LiteralPath "$archive.sha256" -Encoding ASCII
     Write-Output "Archive: $archive"
 }

@@ -16,7 +16,7 @@ local function stable_hash(seed)
 end
 
 function ShopService.new(session)
-    return setmetatable({ session = session, node_id = nil, offers = {}, purchases = {}, ready = {} }, ShopService)
+    return setmetatable({ session = session, node_id = nil, offers = {}, purchases = {}, ready = {}, pending_purchases = {} }, ShopService)
 end
 
 function ShopService:open(node)
@@ -56,6 +56,7 @@ function ShopService:open(node)
     for index, offer in ipairs(self.offers) do offer.slot = index end
     self.purchases = {}
     self.ready = {}
+    self.pending_purchases = {}
     return self.offers
 end
 
@@ -89,12 +90,11 @@ function ShopService:purchase(player_id, slot)
         local instance = EquipmentInstance.new(definition, player_id, {random_affixes=offer.random_affixes})
         local acquired, err = self.session.acquisition_service:acquire(player_id, instance)
         if not acquired then
-            -- A full inventory must not leave a pending acquisition behind:
-            -- the shop has no accept/reject UI, and a pending item blocks
-            -- SHOP_READY forever (the shop could never be left). Surface the
-            -- failure as a purchase error instead and clear any pending state.
-            self.session.acquisition_service:reject_pending(player_id)
-            return nil, err or "INVENTORY_FULL"
+            if err == "INVENTORY_FULL" then
+                self.pending_purchases[player_id] = { slot = slot, price = price, instance_id = instance.instance_id }
+                return { pending = true, instance = instance }
+            end
+            return nil, err
         end
         self.session:add_money(player_id, -price, "shop")
     else
@@ -104,15 +104,24 @@ function ShopService:purchase(player_id, slot)
     return true
 end
 
+function ShopService:resolve_pending(player_id, accepted)
+    local purchase = self.pending_purchases[player_id]
+    if not purchase then return true end
+    if accepted then
+        self.session:add_money(player_id, -purchase.price, "shop")
+        self.purchases[player_id] = self.purchases[player_id] or {}
+        self.purchases[player_id][purchase.slot] = true
+    end
+    self.pending_purchases[player_id] = nil
+    return true
+end
+
 function ShopService:set_ready(player_id, value)
     if self.session.run_state ~= Constants.run_states.SHOP then return nil, "NOT_SHOP" end
     player_id = tonumber(player_id)
     if not self.session:get_player(player_id) then return nil, "UNKNOWN_PLAYER" end
     if self.session.acquisition_service:get_pending(player_id) then
-        -- Defensive: a pending acquisition has no accept/reject UI inside the
-        -- shop and would otherwise trap the player. Discard it so leaving the
-        -- shop always succeeds.
-        self.session.acquisition_service:reject_pending(player_id)
+        return nil, "PENDING_ACQUISITION"
     end
     self.ready[player_id] = value == true
     for _, candidate_id in ipairs(self.session.party.player_ids or {}) do

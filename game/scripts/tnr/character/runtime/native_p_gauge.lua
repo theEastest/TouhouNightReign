@@ -140,7 +140,7 @@ function Native.render_hud(driver)
     rect(Color(255,110,210,255),left+180*0.9-1,left+180*0.9+1,y-2,y+14)
     -- Fixed 30-point threshold; high threshold is 90% of current capacity.
     local art=require("tnr.character.runtime.status_art")
-    art.icon(13,left+8,y-20,20)
+    art.icon(13,left+8,y-20,20,"ordinary")
     RenderTTF("tnr-p-hud", "渴血兽", left + 20, left + 76, y - 20, y - 20,
         Color(255, 255, 220, 220), "left", "vcenter", "noclip")
     RenderTTF("tnr-p-hud", string.format("%.0f%%", g.progress/g.progress_maximum*100), left + 80, right,
@@ -150,7 +150,7 @@ function Native.render_hud(driver)
     local rows=driver.affixes and driver.affixes:statuses() or {}
     art.grid(rows,left,y-55,180,driver.affixes,function(text,x,cy)
         RenderTTF("tnr-status-small",text,x-25,x,cy,cy,Color(255,255,255,255),"right","vcenter","noclip")
-    end)
+    end,"ordinary")
     SetViewMode("world")
 end
 function Native.sync(driver, snapshot)

@@ -6,7 +6,7 @@ Manager.__index = Manager
 function Manager.new(loadout, registry, modifiers)
     local self = setmetatable({ supports = {}, registry = registry, modifiers = modifiers, frame = 0 }, Manager)
     for index, instance in ipairs(loadout and loadout.supports or {}) do
-        if instance and instance ~= false then
+        if instance and instance ~= false and not (instance.runtime_data and instance.runtime_data.enabled == false) then
             local definition = registry and registry.get and registry:get(instance.definition_id)
             if definition then self.supports[#self.supports + 1] = SupportRuntime.new(instance, definition, index) end
         end

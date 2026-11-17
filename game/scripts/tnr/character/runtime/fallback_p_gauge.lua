@@ -85,19 +85,23 @@ function Effects.render(adapter)
             end
             if player.combat_runtime.affixes and api.Render4V and rawget(_G,"lstg") then require("tnr.character.runtime.status_art").ring(player.combat_runtime.affixes,player) end
             local l, y = id==1 and 25 or 1090, 530
+            -- Dark bands keep the red/white HUD legible over the playfield
+            -- while retaining the existing status grid and resource positions.
+            rect(165,12,16,29,l-2,l+152,y+21,y+40)
+            rect(165,12,16,29,l-2,l+152,y-25,y-5)
             rect(220,30,25,40,l,l+150,y,y+12)
             rect(255,240,60,90,l,l+150*g.value/g.maximum,y,y+12)
             rect(255,255,240,220,l+150*30/g.maximum-1,l+150*30/g.maximum+1,y-2,y+14)
             rect(255,110,210,255,l+134,l+136,y-2,y+14)
-            api.RenderTTF("Sans", string.format("P%d %.1f%%",id,g.value),l,l,y+18,y+18,0,api.Color(255,255,230,230),0.7)
-            api.RenderTTF("Sans", string.format("渴血兽 %.0f%%",g.progress/g.progress_maximum*100),l,l,y-20,y-20,0,api.Color(255,255,100,130),0.65)
+            api.RenderTTF("Sans", string.format("P%d %.1f%%",id,g.value),l,l,y+36,y+36,0,api.Color(255,255,230,230),0.7)
+            api.RenderTTF("Sans", string.format("渴血兽 %.0f%%",g.progress/g.progress_maximum*100),l,l,y-10,y-10,0,api.Color(255,255,160,175),0.65)
             rect(220,35,15,25,l,l+150,y-36,y-33)
             rect(255,210,35,65,l,l+150*math.min(1,g.progress/g.progress_maximum),y-36,y-33)
             local rows=player.combat_runtime.affixes and player.combat_runtime.affixes:statuses() or {}
             if api.Render and rawget(_G,"lstg") then
                 require("tnr.character.runtime.status_art").grid(rows,l,y-60,150,player.combat_runtime.affixes,function(text,x,cy)
                     api.RenderTTF("Sans",text,x,x,cy,cy,2+4,api.Color(255,255,255,255),0.4)
-                end)
+                end,"ordinary")
             end
         end
     end

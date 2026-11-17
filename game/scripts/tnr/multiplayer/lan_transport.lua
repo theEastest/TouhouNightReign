@@ -140,6 +140,83 @@ local function copy_payload(payload)
     return result
 end
 
+local PREPARATION_COMMANDS = {
+    EQUIP_ITEM=true, UNEQUIP_ITEM=true, DISCARD_ITEM=true,
+    DISCARD_EQUIPPED_ITEM=true, TOGGLE_WEAPON=true, TOGGLE_SUPPORT=true,
+    ACCEPT_PENDING_ITEM=true, REJECT_PENDING_ITEM=true, SHOP_READY=true, SHOP_PURCHASE=true,
+    CLAIM_REWARD=true, UNCLAIM_REWARD=true, ADVANCE_FLOOR=true,
+}
+
+-- Include all relevant state but omit process-local instance IDs.  The latter
+-- depend on each process's previous runs and need not agree across peers.
+local function preparation_digest(session, player_id)
+    local player = session and session:get_player(player_id)
+    if not player or not player.loadout then return nil end
+    local loadout = player.loadout
+    local function item(value)
+        if not value then return false end
+        return { definition_id=value.definition_id, owner_player_id=value.owner_player_id,
+            equipment_type=value.equipment_type,
+            weight=value.weight, runtime_data=value.runtime_data, random_affixes=value.random_affixes }
+    end
+    local run_state=session.run_state
+    if run_state == "MAP_PREPARATION" then run_state="MAP" end
+    local state = { capacity=loadout.inventory.capacity, items={}, slots={}, run_state=run_state,
+        character_id=player.character_id, loadout_character_id=loadout.character_id,
+        current_capacity=player.current_capacity, base_capacity=player.base_capacity,
+        capacity_level=player.capacity_level, loadout_version=loadout.version,
+        registry_hash=session.equipment_registry and session.equipment_registry:hash(),
+        money=player.money, session_money=session.money, bomb=player.bomb,
+        team_life=session.party and session.party.team_life,
+        life_fragments=session.party and session.party.life_fragments,
+        pending_queue={}, claims={}, reward_choices=session.reward_choices,
+        reward_required=session.reward_required,
+        pending_reward_claims={},
+        editable=session.preparation and session.preparation:can_edit(player_id) or false }
+    if session.preparation then
+        state.pending=item(session.preparation.pending_acquisition[player_id])
+        for i, value in ipairs(session.preparation.pending_acquisition_queue[player_id] or {}) do
+            state.pending_queue[i]=item(value)
+        end
+    end
+    for _, owner in ipairs(session.party.player_ids or {}) do
+        state.pending_reward_claims[owner]=tonumber((session.pending_reward_claims or {})[owner]) or false
+        state.claims[owner]={}
+        for i, claim in ipairs((session.reward_claims or {})[owner] or {}) do
+            state.claims[owner][i]={choice_index=claim.choice_index, definition_id=claim.definition_id,
+                kind=claim.kind, resource=claim.resource, amount=claim.amount,
+                pending=claim.pending, acquired=claim.acquired, equipment=item(claim.equipment),
+                replaced_equipment=item(claim.replaced_equipment), replaced_index=claim.replaced_index}
+        end
+    end
+    local shop=session.shop_service
+    if shop then
+        local purchase=shop.pending_purchases[player_id]
+        state.shop={node_id=shop.node_id, offers=shop.offers, ready1=shop.ready[1] == true, ready2=shop.ready[2] == true,
+            purchases=shop.purchases[player_id] or {},
+            pending_purchase=purchase and {slot=purchase.slot, price=purchase.price} or false}
+    end
+    for i, value in ipairs(loadout.inventory.items) do state.items[i]=item(value) end
+    for _, group in ipairs({"high_weapons","low_weapons","supports","self_modifiers","support_modifiers"}) do
+        state.slots[group]={}
+        for i, value in ipairs(loadout[group]) do state.slots[group][i]=item(value) end
+    end
+    local payload=encode(state)
+    local a,b=17,29
+    for i=1,#payload do a=(a*131+payload:byte(i))%2147483647; b=(b*65599+payload:byte(i))%2147483629 end
+    return string.format("%08x%08x",a,b)
+end
+
+local function preparation_dispatch_succeeded(session, command, result, err)
+    if result then return true end
+    if command.type == "CLAIM_REWARD" and err == "REWARD_PENDING"
+            and session.run_state ~= "REWARD"
+            and tonumber((session.pending_reward_claims or {})[command.player_id]) == tonumber(command.choice_index) then
+        return true
+    end
+    return command.type == "SHOP_READY" and result == false and err == nil
+end
+
 local PRE_ROOM_COMMANDS = {
     VOTE_NODE = true,
     SET_RUN_SEED = true,
@@ -173,6 +250,10 @@ function LANTransport.new(options)
         last_peer_snapshot = nil,
         last_pong = nil,
         receive_buffer = "",
+        preparation_sequence = 0,
+        preparation_pending = nil,
+        preparation_seen = {},
+        preparation_result = nil,
         session = nil,
         last_error = nil,
         -- Clock handshake used by the encounter start barrier. The client
@@ -362,6 +443,7 @@ function LANTransport:connect()
         return false, connect_error
     end
     client:settimeout(0)
+    if client.setoption then client:setoption("tcp-nodelay", true) end
     self.socket_handle = client
     self.connected = true
     self.disconnect_notified = false
@@ -373,6 +455,7 @@ function LANTransport:_accept_client()
     local client = self.socket_handle:accept()
     if client then
         client:settimeout(0)
+        if client.setoption then client:setoption("tcp-nodelay", true) end
         self.socket_handle:close()
         self.socket_handle = client
         self.listening = false
@@ -386,7 +469,119 @@ function LANTransport:_queue(kind, payload)
     self.outgoing[#self.outgoing + 1] = string.format("%08x", #body) .. body
 end
 
+function LANTransport:consume_preparation_result()
+    local result = self.preparation_result
+    self.preparation_result = nil
+    return result
+end
+
+function LANTransport:_preparation_abort(reason, notify_peer)
+    reason = "配装操作未确认：" .. tostring(reason) .. "；本次联机已终止"
+    if notify_peer and self.connected then
+        self:_queue("prep_abort", {reason=reason})
+        self:_flush()
+    end
+    self.preparation_result = {ok=false, error=reason}
+    self:disconnect(reason)
+end
+
+function LANTransport:send_preparation(command)
+    if not self.connected then return nil, "连接已断开" end
+    if self.preparation_pending then return nil, "等待上一项配装操作确认" end
+    if not PREPARATION_COMMANDS[command.type] or command.player_id ~= self.player_id then return nil, "无效配装命令" end
+    if command.type == "ADVANCE_FLOOR" and not self:is_host() then return nil, "只有房主可以继续" end
+    local before = preparation_digest(self.session, command.player_id)
+    if not before then return nil, "无法读取配装状态" end
+    self.preparation_sequence = self.preparation_sequence + 1
+    local id = self.role .. ":" .. tostring(self.preparation_sequence)
+    self.preparation_pending = { id=id, command=command, before=before,
+        phase="prepare", started=self:now(), initiator=true }
+    self:_queue("prep_prepare", {id=id, command=command, before=before})
+    return true
+end
+
+function LANTransport:_preparation_commit(pending)
+    if preparation_digest(self.session, pending.command.player_id) ~= pending.before then
+        return self:_preparation_abort("操作前状态已变化", true)
+    end
+    local result, err = self.session:dispatch(pending.command)
+    if not preparation_dispatch_succeeded(self.session, pending.command, result, err) then
+        self:_queue("prep_reject", {id=pending.id, error=err or "操作失败"})
+        self.preparation_result = {ok=false, error=err or "操作失败"}
+        self.preparation_pending = nil
+        return
+    end
+    pending.after = preparation_digest(self.session, pending.command.player_id)
+    pending.phase = "ack"
+    self:_queue("prep_commit", {id=pending.id, command=pending.command,
+        before=pending.before, after=pending.after})
+end
+
+function LANTransport:_handle_preparation(kind, message)
+    if type(message) ~= "table" then return self:_preparation_abort("无效消息", true) end
+    if kind == "prep_abort" then return self:_preparation_abort(message.reason or "对端终止", false) end
+    local pending = self.preparation_pending
+    if kind == "prep_prepare" then
+        local command, id = message.command, message.id
+        local remote_id = self:is_host() and 2 or 1
+        local prefix = self:is_host() and "client:" or "host:"
+        if type(id) ~= "string" or id:sub(1,#prefix) ~= prefix
+                or type(command) ~= "table" or not PREPARATION_COMMANDS[command.type]
+                or command.player_id ~= remote_id or type(message.before) ~= "string"
+                or (command.type == "ADVANCE_FLOOR" and self:is_host()) then
+            return self:_preparation_abort("无效配装请求", true)
+        end
+        if self.preparation_seen[id] then return end
+        self.preparation_seen[id] = true
+        if pending then self:_queue("prep_reject", {id=id,error="对端正在处理另一项配装操作"}); return end
+        if preparation_digest(self.session, command.player_id) ~= message.before then
+            return self:_preparation_abort("双方配装状态不一致", true)
+        end
+        pending = {id=id, command=command, before=message.before,
+            started=self:now(), initiator=false}
+        self.preparation_pending = pending
+        if self:is_host() then self:_preparation_commit(pending)
+        else pending.phase="commit"; self:_queue("prep_ready", {id=id}) end
+    elseif kind == "prep_reject" then
+        if not pending or pending.id ~= message.id then return end
+        self.preparation_pending = nil
+        self.preparation_result = {ok=false, error=message.error or "操作被拒绝"}
+    elseif kind == "prep_ready" then
+        if not pending or pending.id ~= message.id or not self:is_host() or pending.phase ~= "prepare" then return end
+        self:_preparation_commit(pending)
+    elseif kind == "prep_commit" then
+        if not pending or pending.id ~= message.id or self:is_host()
+                or (pending.phase ~= "prepare" and pending.phase ~= "commit") then return end
+        if message.before ~= pending.before or preparation_digest(self.session, pending.command.player_id) ~= pending.before then
+            return self:_preparation_abort("操作前状态不一致", true)
+        end
+        local result, err = self.session:dispatch(pending.command)
+        if not preparation_dispatch_succeeded(self.session, pending.command, result, err)
+                or preparation_digest(self.session, pending.command.player_id) ~= message.after then
+            return self:_preparation_abort("操作结果不一致", true)
+        end
+        pending.phase="done"
+        pending.after=message.after
+        self:_queue("prep_ack", {id=pending.id, after=message.after})
+    elseif kind == "prep_ack" then
+        if not pending or pending.id ~= message.id or not self:is_host() or pending.phase ~= "ack" then return end
+        if message.after ~= pending.after or preparation_digest(self.session, pending.command.player_id) ~= pending.after then
+            return self:_preparation_abort("操作确认不一致", true)
+        end
+        self:_queue("prep_done", {id=pending.id, after=pending.after})
+        pending.phase = "sending_done"
+    elseif kind == "prep_done" then
+        if not pending or pending.id ~= message.id or self:is_host() or pending.phase ~= "done" then return end
+        if message.after ~= pending.after or preparation_digest(self.session, pending.command.player_id) ~= pending.after then
+            return self:_preparation_abort("最终配装状态不一致", true)
+        end
+        self.preparation_result = {ok=true}
+        self.preparation_pending = nil
+    end
+end
+
 function LANTransport:send(payload)
+    if payload and PREPARATION_COMMANDS[payload.type] then return self:send_preparation(payload) end
     local kind = payload and payload.type and "command" or (payload and payload.kind) or "message"
     -- Capture the wire payload before host-local dispatch. A SET_READY can
     -- synchronously advance the session into a new encounter, and tagging it
@@ -449,7 +644,10 @@ function LANTransport:poll()
     if message and not self:_accept_room_message(message) then
         return nil
     end
-    if message and message.kind == "input" and message.payload and message.payload.player_id then
+    if message and message.kind=="replay" then
+        self.replay_messages=self.replay_messages or {}
+        self.replay_messages[#self.replay_messages+1]=message.payload
+    elseif message and message.kind == "input" and message.payload and message.payload.player_id then
         local player_id = message.payload.player_id
         local previous = self.remote_inputs[player_id]
         self.remote_inputs[player_id] = merge_remote_input(previous, message.payload)
@@ -469,6 +667,17 @@ function LANTransport:poll()
         self.peer_clock_rtt = message.payload and tonumber(message.payload.rtt) or nil
     end
     return message
+end
+
+function LANTransport:send_replay(payload)
+    if not self.connected then return false end
+    self:_queue("replay",payload)
+    return true
+end
+function LANTransport:consume_replay()
+    local messages=self.replay_messages or {}
+    self.replay_messages={}
+    return messages
 end
 
 function LANTransport:consume_snapshot()
@@ -518,6 +727,11 @@ function LANTransport:_flush()
             break
         end
     end
+    if self.connected and #self.outgoing == 0 and self.preparation_pending
+            and self.preparation_pending.phase == "sending_done" then
+        self.preparation_result = {ok=true}
+        self.preparation_pending = nil
+    end
 end
 
 function LANTransport:_receive()
@@ -565,10 +779,17 @@ function LANTransport:update()
         local message = self:poll()
         if message then
             if message.kind == "command" and self.session then
+                if message.payload and PREPARATION_COMMANDS[message.payload.type] then
+                    self:_preparation_abort("对端发送了未确认的配装命令", true)
+                    break
+                end
                 self.session:dispatch(message.payload)
                 if self:is_host() then
                     self:_queue("command", message.payload)
                 end
+            elseif type(message.kind) == "string" and message.kind:sub(1,5) == "prep_" then
+                self:_handle_preparation(message.kind, message.payload)
+                if not self.connected then break end
             elseif message.kind == "snapshot" then
                 self.last_snapshot = message.payload
             elseif message.kind == "peer_snapshot" then
@@ -587,6 +808,9 @@ function LANTransport:update()
         end
     end
     self:_flush()
+    if self.connected and self.preparation_pending and self:now() - self.preparation_pending.started > 8 then
+        self:_preparation_abort("等待对端确认超时", true)
+    end
 end
 
 function LANTransport:disconnect(reason)
@@ -596,6 +820,11 @@ function LANTransport:disconnect(reason)
     self.listening = false
     self.receive_buffer = ""
     reason = reason or self.last_error or "connection closed"
+    if self.preparation_pending then
+        reason = "配装操作未确认：" .. tostring(reason) .. "；本次联机已终止"
+    end
+    self.preparation_pending = nil
+    self.outgoing = {}
     if not self.disconnect_notified then
         self.disconnect_notified = true
         local callback = self.options and self.options.on_disconnect

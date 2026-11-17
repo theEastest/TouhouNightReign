@@ -79,4 +79,64 @@ return function(assert_equal, assert_true, assert_false)
     } }
     for _ = 1, 4 do sentinel:advance_shots() end
     assert_equal(sentinel.shots[1].speed, 3, "a sentinel rate does not accelerate")
+
+    -- Native 41b242/41b888 install the following offscreen guard while
+    -- birth runs, but 419494/41dce0 freeze its timer until birth releases.
+    for mode=0,2 do
+        for _,asynchronous in ipairs({false,true}) do
+            local birth=make_adapter()
+            birth.spawn_ticks_for=function() return 3 end
+            birth:spawn_bullet(nil,1000,100,0,0,4,4,false,2,nil,{
+                {flags=2,int1=mode}, {flags=256,int1=4,int2=0,async=asynchronous},
+                {flags=-2147483648,int1=20},
+            })
+            local shot=birth.shots[1]
+            for frame=1,3 do
+                birth:advance_shots()
+                assert_equal(#birth.shots,1,"birth guard keeps an offscreen bullet alive")
+                assert_equal(shot.keep_offscreen,4,"birth guard timer is frozen before release")
+                assert_equal(shot.transform_pc,4,"the guard and following wait are installed only once")
+            end
+            birth:advance_shots()
+            assert_equal(shot.keep_offscreen,3,"birth release consumes the first protected tick")
+            birth:advance_shots();birth:advance_shots()
+            assert_equal(#birth.shots,1,"offscreen bullet survives until guard expires")
+            birth:advance_shots()
+            assert_equal(#birth.shots,0,"expired offscreen bullet is culled")
+        end
+    end
+    local visible=make_adapter()
+    visible.spawn_ticks_for=function() return 1 end
+    visible:spawn_bullet(nil,0,100,0,0,4,4,false,2,nil,
+        {{flags=2,int1=1},{flags=256,int1=2,int2=0}})
+    for _=1,8 do visible:advance_shots() end
+    assert_equal(#visible.shots,1,"an onscreen bullet survives when birth protection expires")
+    local inflight=make_adapter()
+    inflight.spawn_ticks_for=function() return 3 end
+    inflight:spawn_bullet(nil,1000,100,1,0,4,4,false,2,nil,{
+        {flags=262144,float1=0,float2=1},{flags=2,int1=1},{flags=256,int1=4,int2=0},
+    })
+    for _=1,4 do inflight:advance_shots() end
+    assert_equal(inflight.shots[1].keep_offscreen,4,"in-flight birth also freezes the guard")
+    inflight:advance_shots()
+    assert_equal(inflight.shots[1].keep_offscreen,3,"in-flight guard begins when birth releases")
+    local conditional=make_adapter()
+    conditional.spawn_ticks_for=function() return 3 end
+    conditional:spawn_bullet(nil,0,100,0,0,4,4,false,2,nil,
+        {{flags=2,int1=1},{flags=256,int1=4,int2=1}})
+    conditional:advance_shots()
+    assert_equal(conditional.shots[1].birth_offscreen_pending,nil,
+        "conditional offscreen guard remains on the existing path")
+    local laser_birth={laser=true,x=0,y=100,vx=0,vy=0,transforms={
+        {flags=2,int1=1},{flags=256,int1=4,int2=0},
+    }}
+    require("tnr.legacy_replay.bullet_transforms").update(laser_birth,nil,function() return 3 end)
+    assert_equal(laser_birth.birth_offscreen_pending,nil,
+        "ordinary-bullet birth guard does not change laser transforms")
+    local deleted=make_adapter()
+    deleted.spawn_ticks_for=function() return 3 end
+    deleted:spawn_bullet(nil,1000,100,0,0,4,4,false,2,nil,
+        {{flags=2,int1=1},{flags=256,int1=4,int2=0}})
+    deleted:advance_shots();deleted.shots[1].deleted=true;deleted:advance_shots()
+    assert_equal(#deleted.shots,0,"birth protection does not revive a deleted bullet")
 end

@@ -22,7 +22,7 @@ return function(assert_equal, assert_true)
         assert_equal(#loadout.self_modifiers, spec.self_mod, character_id .. " self modifier slots")
         assert_equal(#loadout.support_modifiers, spec.support_mod, character_id .. " support modifier slots")
         assert_equal(#loadout.inventory.items, 0, character_id .. " inventory starts empty")
-        assert_equal(loadout.inventory.capacity, 6, character_id .. " inventory holds six items")
+        assert_equal(loadout.inventory.capacity, 12, character_id .. " inventory holds twelve items")
         assert_equal(player.base_capacity, spec.capacity, character_id .. " base capacity")
         assert_equal(player.current_capacity, spec.capacity, character_id .. " current capacity")
     end

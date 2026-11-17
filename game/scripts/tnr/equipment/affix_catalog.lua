@@ -36,8 +36,19 @@ function C.roll(d,seed)
  for i=1,#text do hash=(hash*31+text:byte(i))%2147483647 end
  local rng=require("tnr.core.rng").new(hash)
  local pool={}; for _,a in ipairs(C.definitions) do if not (a.no_beam and (d.metadata or {}).beam) then pool[#pool+1]=a end end
- local a=pool[rng:next_int(1,#pool)]
- return {{id=a.id,level=rng:next_int(1,#a.values)}}
+ local first_index=rng:next_int(1,#pool)
+ local a=pool[first_index]
+ local result={{id=a.id,level=rng:next_int(1,#a.values)}}
+ -- Legendary equipment can carry a second distinct random affix in addition
+ -- to its inherent exclusive effect. The offer seed fixes both the count and
+ -- the selections, so preview, acquisition and network peers agree.
+ if d.rarity=="LEGENDARY" and #pool>1 and rng:next_int(1,2)==2 then
+  local index=rng:next_int(1,#pool-1)
+  if index>=first_index then index=index+1 end
+  local second=pool[index]
+  result[#result+1]={id=second.id,level=rng:next_int(1,#second.values)}
+ end
+ return result
 end
 function C.value(a)
  local d=C.by_id[a.id]; return d and d.values[math.max(1,math.min(#d.values,tonumber(a.level) or 1))] or 0
@@ -53,13 +64,21 @@ function C.label(a)
   last_dodge=string.format("无残机时 %g%% 概率",v*100),dodge=string.format("%g%% 概率（独立判定）",v*100),
   low_fire=string.format("低速攻击 +%g%%",v*100),high_fire=string.format("高速攻击 +%g%%",v*100),
   support_fire=string.format("子机攻击 +%g%%",v*100),bread=string.format("P点回至100：bread %gs/层",v/60),
-  frost="停火充能；1/2/3级增伤15/30/30%",tracking=string.format("转向速度 +%g%%；直射获得弱追踪",v*100),
+  frost=string.format("停火充能；最高%d级，增伤%d%%",math.max(1,math.min(3,tonumber(a.level) or 1)),(tonumber(a.level) or 1)==1 and 15 or 30),tracking=string.format("转向速度 +%g%%；直射获得弱追踪",v*100),
   combo="连续命中5秒：10秒一次护盾；停火清零",bomb_attack=string.format("Bomb后20秒攻击 +%g%%",v*100),
   unyielding="每次miss永久攻击 +3%（装备时生效）",bomb_meter=string.format("每击杀%g敌人 +1 Bomb",v),
   life_meter=string.format("每击杀%g敌人 +1 残机",v),quick_rest="静止停火0.5秒进入快速回复",
   cooling=string.format("过热禁火 -%gs（最低0）",v/60),siphon=string.format("本武器每击杀永久攻击 +%g%%",v*100),
   economy=string.format("本武器P消耗 -%g%%",v*100),
  }
- return d.name..(#d.values>1 and (" +"..tostring(a.level or 1)) or "").." · "..details[a.id]
+ return d.name.." · "..details[a.id]
+end
+function C.tier_color(a)
+ local d=C.by_id[a.id]
+ local count=d and #d.values or 1
+ local level=math.max(1,math.min(count,math.floor(tonumber(a.level) or 1)))
+ if level==count then return {255,255,214,78} end
+ if level==count-1 then return {255,240,240,240} end
+ return {255,155,160,170}
 end
 return C
