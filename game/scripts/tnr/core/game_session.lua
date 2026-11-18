@@ -22,6 +22,7 @@ local SanaeDefinition = require("tnr.character.sanae_definition")
 local LegacyStateAdapter = require("tnr.core.legacy_state_adapter")
 local LoadoutCommit = require("tnr.multiplayer.loadout_commit")
 local ShopService = require("tnr.shop.shop_service")
+local ShrineService = require("tnr.shrine.shrine_service")
 local RelicRuntime = require("tnr.relic.relic_runtime")
 local EquipmentRewardService = require("tnr.reward.equipment_reward_service")
 local Immutable = require("tnr.core.immutable")
@@ -107,6 +108,7 @@ function GameSession.new(options)
         room_generation = nil,
         loadout_commits = {},
         shop_service = nil,
+        shrine_service = nil,
         relic_catalog = Phase1Catalog.relics,
         relic_runtime = nil,
         relic_choices = {},
@@ -229,6 +231,7 @@ function GameSession:start_new(run_seed, floor)
     self.room_generation = nil
     self.loadout_commits = {}
     self.shop_service = nil
+    self.shrine_service = nil
     self.relic_runtime = RelicRuntime.new(self)
     self.relic_choices = {}
     self.reward_choices = {}
@@ -480,6 +483,10 @@ function GameSession:_advance_node(node, player_id)
         self.shop_service = ShopService.new(self)
         self.shop_service:open(node)
         self:emit(Event.SHOP_ENTERED, { node_id = node.id, offers = self.shop_service:get_offers() })
+    elseif node.type == Constants.node_types.SHRINE then
+        self.run_state = Constants.run_states.SHRINE
+        self.shrine_service = ShrineService.new(self, node)
+        self:emit(Event.PLACEHOLDER_ENTERED, { node_id = node.id, node_type = node.type })
     elseif node.type == Constants.node_types.EVENT then
         self.run_state = Constants.run_states.PLACEHOLDER
         self:emit(Event.PLACEHOLDER_ENTERED, { node_id = node.id, node_type = node.type })
@@ -666,6 +673,7 @@ function GameSession:return_to_map()
         return nil, "没有可返回的地图"
     end
     self.run_state = Constants.run_states.MAP
+    self.shrine_service = nil
     self.preparation:reset(self.party.player_ids, true)
     for _, player_id in ipairs(self.party.player_ids or {}) do
         local player = self:get_player(player_id)
@@ -1107,6 +1115,9 @@ function GameSession:debug_goto(node_id)
         self.shop_service = ShopService.new(self)
         self.shop_service:open(node)
         self:emit(Event.SHOP_ENTERED, { node_id = node.id, offers = self.shop_service:get_offers(), debug = true })
+    elseif node.type == Constants.node_types.SHRINE then
+        self.run_state = Constants.run_states.SHRINE
+        self.shrine_service = ShrineService.new(self, node)
     elseif node.type == Constants.node_types.EVENT then
         self.run_state = Constants.run_states.PLACEHOLDER
         self:emit(Event.PLACEHOLDER_ENTERED, { node_id = node.id, node_type = node.type, debug = true })
@@ -1119,6 +1130,12 @@ function GameSession:dispatch(command)
     local command_type = command.type
     if command_type == Command.SELECT_NODE then
         return self:select_node(command.node_id, command.player_id)
+    elseif command_type == Command.SHRINE_ACTION then
+        if self.run_state ~= Constants.run_states.SHRINE or not self.shrine_service then
+            return nil, "NOT_AT_SHRINE"
+        end
+        return self.shrine_service:execute_action(command.operation_index,
+            command.target_index, command.second_target_index, command.player_id)
     elseif command_type == Command.VOTE_NODE then
         return self:vote_node(command.node_id, command.player_id)
     elseif command_type == Command.SYNC_NODE then

@@ -89,13 +89,15 @@ function WeaponRuntime:update(mode, firing, context)
     local metadata = definition.metadata or {}
     local form = mode == "LOW" and metadata.low_form or metadata.high_form
     form = form or metadata.pattern or definition.pattern or definition.projectile_type or "default"
+    local stat_multiplier = math.max(1, tonumber(self.instance.runtime_data and self.instance.runtime_data.stat_multiplier) or 1)
     local base_count = tonumber(metadata.projectile_count) or tonumber(definition.count) or 1
-    local count = base_count + math.max(0, math.floor(tonumber(context and context.extra_projectiles) or 0))
+    local count = math.max(1, math.floor(base_count * stat_multiplier + 0.5))
+        + math.max(0, math.floor(tonumber(context and context.extra_projectiles) or 0))
     local spread = tonumber(metadata.spread) or 0
     local speed = (tonumber(definition.speed or definition.projectile_speed) or 0)
-        * (tonumber(context.speed_multiplier) or 1)
+        * (tonumber(context.speed_multiplier) or 1) * stat_multiplier
     local damage = (tonumber(definition.damage) or 0)
-        * (tonumber(context and context.damage_multiplier) or 1)
+        * (tonumber(context and context.damage_multiplier) or 1) * stat_multiplier
     -- `pattern` describes how a volley is laid out; it is not the projectile
     -- class.  The previous implementation used the pattern ("beam",
     -- "spread", ...) as the projectile type, so the native bridge silently
@@ -120,6 +122,11 @@ function WeaponRuntime:update(mode, firing, context)
     while #offsets < math.max(1, math.floor(count)) do offsets[#offsets + 1] = 0 end
     for index, offset in ipairs(offsets) do
         local shot_metadata = copy_table(metadata)
+        if tonumber(shot_metadata.status_buildup) then
+            shot_metadata.status_buildup = shot_metadata.status_buildup * stat_multiplier
+        elseif tonumber(definition.status_buildup) and definition.status_buildup > 0 then
+            shot_metadata.status_buildup = definition.status_buildup * stat_multiplier
+        end
         if context and context.homing_turn_multiplier
                 and (metadata.homing or definition.targeting == "NEAREST_ENEMY") then
             shot_metadata.homing_turn_multiplier = tonumber(context.homing_turn_multiplier) or 1
@@ -131,7 +138,7 @@ function WeaponRuntime:update(mode, firing, context)
         end
         local shot_damage = damage
         if index > count then shot_damage = shot_damage * 0.1 end
-        local shot_penetration = math.max(0, (tonumber(definition.penetration) or 0)
+        local shot_penetration = math.max(0, math.floor((tonumber(definition.penetration) or 0) * stat_multiplier + 0.5)
             + (tonumber(context and context.penetration_bonus) or 0))
         if metadata.penetration == "INFINITE" then shot_penetration = 999999 end
         if mini_for_volley and metadata.alternate_fire == "mini_master_spark"
@@ -176,6 +183,7 @@ function WeaponRuntime:update(mode, firing, context)
     self.fire_count = self.fire_count + 1
     local interval = tonumber(definition.fire_interval) or 1
     interval = interval * (tonumber(context and context.fire_interval_multiplier) or 1)
+    interval = interval / stat_multiplier
     self.cooldown = math.max(1, math.floor(interval))
     local afterglow = context.afterglow
     if afterglow and self.fire_count % math.max(1, math.floor(afterglow.fire_threshold or 10)) == 0 then

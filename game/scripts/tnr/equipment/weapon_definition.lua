@@ -62,6 +62,13 @@ function WeaponDefinition.new(spec)
         }
     end
     result.exclusive_affix = Immutable.copy(require("tnr.equipment.affix_catalog").exclusive[spec.weapon_id])
+    -- Preserve weapon-specific parameters that the shared runtime does not
+    -- normalize yet (for example ammo, range, or custom projectile values).
+    -- Fusion can then carry the original property through instead of silently
+    -- dropping it when the new definition is registered.
+    for key, value in pairs(spec) do
+        if result[key] == nil then result[key] = Immutable.copy(value) end
+    end
     return Immutable.freeze(result, methods)
 end
 

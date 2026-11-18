@@ -47,6 +47,30 @@ local function image_name(archive, entry_index, sprite_index)
     return string.format("tnr-th15-%s-%d-%d", archive, entry_index, sprite_index)
 end
 
+local function draw_player_hit_point(lstg, x, y, radius, scale)
+    local image = "tnr-white"
+    local r = math.max(0.5, (tonumber(radius) or 2) * scale)
+    if lstg.Render4V then
+        lstg.SetImageState(image, "", lstg.Color(190, 255, 86, 128))
+        local segments = 20
+        for index = 0, segments - 1 do
+            local a = index * math.pi * 2 / segments
+            local b = (index + 1) * math.pi * 2 / segments
+            lstg.Render4V(image,
+                x, y, 0.5,
+                x + math.cos(a) * r, y + math.sin(a) * r, 0.5,
+                x + math.cos(b) * r, y + math.sin(b) * r, 0.5,
+                x + math.cos(b) * r, y + math.sin(b) * r, 0.5)
+        end
+    else
+        lstg.SetImageState(image, "", lstg.Color(190, 255, 86, 128))
+        lstg.RenderRect(image, x - r, x + r, y - r, y + r)
+    end
+    local center = math.max(0.5, r * 0.28)
+    lstg.SetImageState(image, "", lstg.Color(255, 255, 242, 248))
+    lstg.RenderRect(image, x - center, x + center, y - center, y + center)
+end
+
 StageRuntime.image_name = image_name
 
 local function global_image(anm,name,index)
@@ -124,6 +148,11 @@ function StageRuntime.load_stage_assets(lstg, stage_key, anm, options)
     if lstg.LoadTexture and lstg.LoadImage then
         lstg.LoadTexture("tnr-replay-coin","assets/items/coin_sheet.png",false)
         for i=1,5 do lstg.LoadImage("tnr-replay-coin-"..i,"tnr-replay-coin",(i-1)*32,0,32,32) end
+        -- Reuse the normal game's Reimu seal ring for modern replay bombs.
+        -- The same shape is tinted for Marisa and Sanae; Reisen keeps her
+        -- original replay bomb presentation.
+        pcall(lstg.LoadTexture, "tnr-replay-normal-bomb-texture", "assets/players/reimu/reimu_bomb_ef.png", false)
+        pcall(lstg.LoadImage, "tnr-replay-normal-bomb", "tnr-replay-normal-bomb-texture", 0, 0, 64, 64, 32, 32)
     end
     for _, archive in ipairs(archives) do
         local entries = anm[archive]
@@ -369,9 +398,11 @@ function StageRuntime:apply_input(player_id, input)
     end
     if player.respawn_frames then
         player.respawn_frames=player.respawn_frames-1
-        local elapsed=60-player.respawn_frames
-        -- 454a9d: 80 units of ascent over 60 frames, at 1/128 precision.
-        player.y=480-math.floor(elapsed*10240/60)/128
+        local rise_frames=player.respawn_rise_frames or 30
+        local elapsed=rise_frames-player.respawn_frames
+        local start_y=player.respawn_start_y or 480
+        local target_y=player.respawn_target_y or 400
+        player.y=start_y-math.floor(elapsed*(start_y-target_y)*128/rise_frames)/128
         if player.respawn_frames>0 then
             player:update()
             if player.invulnerable<=0 then player.classic_miss_protection=nil end
@@ -440,6 +471,7 @@ function StageRuntime:use_bomb(player_id)
         return true
     end
     p.bomb_frames, p.invulnerable = 240, 300
+    p.bomb_visual_frames = 90
     if p.combat_runtime then p.combat_runtime.affixes:bomb() end
     self:play_sound(15)
     return true
@@ -455,6 +487,7 @@ function StageRuntime:update_bombs()
         local p = self.players[id]
         if (p.bomb_frames or 0) > 0 then
             p.bomb_frames = p.bomb_frames - 1
+            p.bomb_visual_frames = math.max(0, (p.bomb_visual_frames or 0) - 1)
             local kept = {}
             for _, shot in ipairs(self.adapter.shots or {}) do
                 if shot.player_bullet or (shot.bomb_invulnerable or 0)>0 then kept[#kept + 1] = shot end
@@ -845,23 +878,20 @@ function StageRuntime:on_player_hit(player_id, player)
         self:apply_miss_power(player_id,player)
     end
     local can_respawn = self.session:lose_life(player_id)
-    -- Clear the bullets around the player so respawning is survivable.
+    -- A miss cancels every enemy bullet before the respawn delay begins. Keep
+    -- player shots so damage already in flight is not discarded.
     local kept = {}
     for _, shot in ipairs(self.adapter.shots or {}) do
         if shot.player_bullet then
             kept[#kept + 1] = shot
-        else
-            local dx = (shot.x or 0) - player.x
-            local dy = (shot.y or 0) - player.y
-            if dx * dx + dy * dy > 200 * 200 then kept[#kept + 1] = shot end
         end
     end
     self.adapter.shots = kept
-    -- Put the ship back in play shortly after the hit.
+    -- Wait one second, then raise the ship from the bottom center of the
+    -- playfield. Both rulesets use the same safe respawn presentation.
     self.pending_respawn = self.pending_respawn or {}
     if can_respawn then
-        local frames=self.session:mode_id()=="classic" and 31 or 40
-        self.pending_respawn[#self.pending_respawn + 1] = { player_id = player_id, frames = frames }
+        self.pending_respawn[#self.pending_respawn + 1] = { player_id = player_id, frames = 60 }
     end
     self.on_player_death = true
 end
@@ -877,9 +907,10 @@ function StageRuntime:advance_respawns()
         if entry.frames <= 0 then
             local player = self.players[entry.player_id]
             if player then
-                local classic=self.session:mode_id()=="classic"
-                player:respawn(0,classic and 480 or 300)
-                if classic then player.respawn_frames,player.invulnerable=60,280 end
+                player:respawn(0,480)
+                player.respawn_start_y,player.respawn_target_y=480,400
+                player.respawn_rise_frames,player.respawn_frames=30,30
+                player.invulnerable=180
                 self.session:restore_bombs_after_miss(entry.player_id)
                 player.graze = player.graze or 0
             end
@@ -1435,6 +1466,38 @@ function StageRuntime:draw()
         end
     end
     if self.modern then self.modern:draw(left,top,BossUi.PLAYFIELD_SCALE) end
+    -- Use the normal mode's seal ring for modern replay bombs, except Reisen.
+    -- The three staggered rings read clearly over both bullets and the stage
+    -- background while reusing the original 64px normal-game effect art.
+    if self.modern and lstg.RenderRect and lstg.SetImageState then
+        local tints = {
+            reimu = { 255, 255, 198, 211 },
+            marisa = { 255, 255, 222, 145 },
+            sanae = { 255, 159, 230, 205 },
+        }
+        for _, player_id in ipairs(self.session.roster:list()) do
+            local player = self.players[player_id]
+            local character_id = tostring(player and player.definition and player.definition.id or ""):lower()
+            local remaining = player and tonumber(player.bomb_visual_frames) or 0
+            if remaining > 0 and not character_id:find("reisen", 1, true) then
+                local age = 90 - remaining
+                local x = left + ((player.x or 0) + 192) * BossUi.PLAYFIELD_SCALE
+                local y = top - (player.y or 0) * BossUi.PLAYFIELD_SCALE
+                local tint = tints[character_id] or { 255, 228, 206, 255 }
+                for ring = 1, 3 do
+                    local progress = math.max(0, math.min(1, age / 90 - (ring - 1) * 0.16))
+                    local radius = (24 + progress * 440) * BossUi.PLAYFIELD_SCALE
+                    local alpha = math.floor(196 * (1 - progress) ^ 0.7)
+                    local ok_color, color = pcall(lstg.Color, alpha, tint[2], tint[3], tint[4])
+                    if ok_color then
+                        pcall(lstg.SetImageState, "tnr-replay-normal-bomb", "add+add", color)
+                        pcall(lstg.RenderRect, "tnr-replay-normal-bomb",
+                            x - radius, x + radius, y - radius, y + radius)
+                    end
+                end
+            end
+        end
+    end
     -- Effects: the death burst and bullet break animations, drawn under the
     -- items so the pickups stay readable.
     for _, effect in ipairs(self.effects.list) do
@@ -1456,7 +1519,7 @@ function StageRuntime:draw()
         if image and (not self.networked or item.owner_player_id==self.local_player_id) then
             local x = left + ((item.x or 0) + (item.draw_offset_x or 0) + 192) * BossUi.PLAYFIELD_SCALE
             local y = top - ((item.y or 0)+(item.draw_offset_y or 0)) * BossUi.PLAYFIELD_SCALE
-            local r = (item.kind=="power_large" and 5*math.sqrt(2) or 5) * BossUi.PLAYFIELD_SCALE
+            local r = (item.kind=="power_large" and 5*math.sqrt(2) or 5) * 1.5 * BossUi.PLAYFIELD_SCALE
             local vm=item.animation_vm
             lstg.SetImageState(image, AnmGeometry.blend(vm and vm.blend_mode),
                 lstg.Color(vm and vm.alpha or 255, 255, item.slowed_visual and 160 or 255, 255))
@@ -1496,15 +1559,10 @@ function StageRuntime:draw()
                 lstg.SetImageState(image, "", lstg.Color(255, 255, 255, 255))
                 lstg.RenderRect(image, left_x - w * 0.5, left_x + w * 0.5, top_y - h*.5, top_y+h*.5)
             end
-            -- Show TH15's tiny collision point only while focused. It is
-            -- intentionally drawn over the ship so the player can see the
-            -- exact point hidden by the sprite.
+            -- Show the real collision radius only while focused. This uses
+            -- the same radius as Player:bullet_contact.
             if player.focus then
-                local marker = "tnr-white"
-                lstg.SetImageState(marker, "", lstg.Color(150, 255, 96, 132))
-                lstg.RenderRect(marker, left_x - 4, left_x + 4, top_y - 4, top_y + 4)
-                lstg.SetImageState(marker, "", lstg.Color(255, 255, 226, 236))
-                lstg.RenderRect(marker, left_x - 1.5, left_x + 1.5, top_y - 1.5, top_y + 1.5)
+                draw_player_hit_point(lstg, left_x, top_y, player.hitbox, BossUi.PLAYFIELD_SCALE)
             end
         end
     end

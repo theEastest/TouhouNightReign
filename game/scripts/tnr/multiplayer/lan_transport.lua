@@ -144,7 +144,7 @@ local PREPARATION_COMMANDS = {
     EQUIP_ITEM=true, UNEQUIP_ITEM=true, DISCARD_ITEM=true,
     DISCARD_EQUIPPED_ITEM=true, TOGGLE_WEAPON=true, TOGGLE_SUPPORT=true,
     ACCEPT_PENDING_ITEM=true, REJECT_PENDING_ITEM=true, SHOP_READY=true, SHOP_PURCHASE=true,
-    CLAIM_REWARD=true, UNCLAIM_REWARD=true, ADVANCE_FLOOR=true,
+    CLAIM_REWARD=true, UNCLAIM_REWARD=true, ADVANCE_FLOOR=true, SHRINE_ACTION=true,
 }
 
 -- Include all relevant state but omit process-local instance IDs.  The latter

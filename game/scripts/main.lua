@@ -9,6 +9,7 @@ lstg.DoFile("legacy_native_main.lua")
 local Bootstrap = require("tnr.bootstrap")
 local LANTransport = require("tnr.multiplayer.lan_transport")
 local TitleAssets = require("tnr.ui.title_assets")
+local Phase1Catalog = require("tnr.equipment.phase1_catalog")
 
 local function env_number(name, fallback)
     return tonumber(os.getenv(name)) or fallback
@@ -93,12 +94,12 @@ function GameInit()
         if type(get_status) == "function" then previous = get_status() end
         if type(set_status) == "function" then pcall(set_status, "global") end
         lstg.LoadTexture("tnr-map-node-icons-texture", "assets/ui/map-node-icons.png", false)
-        local texture_ok, width, height = true, 1024, 128
+        local texture_ok, width, height = true, 1152, 128
         if type(lstg.GetTextureSize) == "function" then
             texture_ok, width, height = pcall(lstg.GetTextureSize, "tnr-map-node-icons-texture")
         end
-        local all_loaded = texture_ok and (tonumber(width) or 0) >= 1024 and (tonumber(height) or 0) >= 128
-        local icon_names = { "start", "enemy", "elite", "boss", "shop", "event", "current", "unvisited" }
+        local all_loaded = texture_ok and (tonumber(width) or 0) >= 1152 and (tonumber(height) or 0) >= 128
+        local icon_names = { "start", "enemy", "elite", "boss", "shop", "shrine", "event", "current", "unvisited" }
         if all_loaded then
             for index, name in ipairs(icon_names) do
                 local loaded = pcall(lstg.LoadImage, "tnr-map-node-" .. name,
@@ -107,6 +108,45 @@ function GameInit()
             end
         end
         _G.__tnr_map_node_icons_loaded = all_loaded
+        if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
+    end)
+    -- Weapon portraits are small eight-frame pixel loops. Keep their atlas in
+    -- the global pool so catalog, loadout, reward and shrine screens can all
+    -- use the same animated image after room transitions.
+    _G.__tnr_weapon_icon_loaded = false
+    _G.__tnr_weapon_icon_rows = {}
+    pcall(function()
+        local set_status = lstg.SetResourceStatus
+        local get_status = lstg.GetResourceStatus
+        local previous
+        if type(get_status) == "function" then previous = get_status() end
+        if type(set_status) == "function" then pcall(set_status, "global") end
+        local ids = {}
+        for id, definition in pairs(Phase1Catalog.registry:all()) do
+            if definition.equipment_type == "WEAPON" then ids[#ids + 1] = tostring(id) end
+        end
+        table.sort(ids)
+        ids[#ids + 1] = "default"
+        lstg.LoadTexture("tnr-weapon-icons-texture", "assets/ui/weapon-icons.png", false)
+        local texture_ok, width, height = true, 192, #ids * 24
+        if type(lstg.GetTextureSize) == "function" then
+            texture_ok, width, height = pcall(lstg.GetTextureSize, "tnr-weapon-icons-texture")
+        end
+        local all_loaded = texture_ok and (tonumber(width) or 0) >= 192
+            and (tonumber(height) or 0) >= #ids * 24
+        if all_loaded then
+            for row, id in ipairs(ids) do
+                _G.__tnr_weapon_icon_rows[id] = row
+                for frame = 1, 8 do
+                    local image = "tnr-weapon-icon-" .. id .. "-" .. frame
+                    local loaded = pcall(lstg.LoadImage, image, "tnr-weapon-icons-texture",
+                        (frame - 1) * 24, (row - 1) * 24, 24, 24, 12, 12)
+                    if not loaded then all_loaded = false; break end
+                end
+                if not all_loaded then break end
+            end
+        end
+        _G.__tnr_weapon_icon_loaded = all_loaded
         if type(set_status) == "function" and previous ~= nil then pcall(set_status, previous) end
     end)
     -- Money pickup animation: a five-frame coin spin, one 32x32 frame per

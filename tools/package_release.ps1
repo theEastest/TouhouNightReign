@@ -47,6 +47,7 @@ $approvedNewFiles = @(
     'game/assets/legacy_replay/bgm/st06boss.ogg',
     'game/assets/legacy_replay/bgm/st07boss.ogg',
     'game/assets/ui/map-node-icons.png',
+    'game/assets/ui/weapon-icons.png',
     'game/assets/ui/status/affixes-moonlit.png',
     'game/scripts/tnr/stages/selection_history.lua',
     'game/scripts/tnr/legacy_replay/dynamic_enemy_hp.lua',
@@ -62,6 +63,7 @@ $approvedNewFiles = @(
     'game/scripts/tnr/legacy_replay/reference_rng.lua',
     'game/scripts/tnr/legacy_replay/reference_rules.lua',
     'game/scripts/tnr/multiplayer/replay_network.lua',
+    'game/scripts/tnr/shrine/shrine_service.lua',
     'game/scripts/tnr/ui/tutorial_pages.lua',
     'game/scripts/tnr/ui/weapon_preview.lua'
 )

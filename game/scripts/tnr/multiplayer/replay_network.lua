@@ -33,7 +33,7 @@ function N:select(lobby)
     self.lobby=lobby or (self.lobby or 0)+1
     self.ready={};self.phase="select";self.sent_tick=0;self.pending_result=nil
     self.revision=0;self.pending_rewards={};self.reward_pending=false
-    self.menu_x=0;self.bomb_pending=false;self.bomb_was_down=false
+    self.bomb_pending=false;self.bomb_was_down=false
     self.app.replay.network_status=nil
     self.app.replay_field=self.host and "stage" or "character"
     self.app.replay.message="各自选择自机，Enter 准备；房主选择关卡和规则"
@@ -336,11 +336,12 @@ function N:update(input)
             self.app:_on_network_disconnect("已退出重演联机");self.mode="closed";return true
         end
         if not self.ready[self.id] then
-            if self.host and (input.move_x or 0)~=0 and self.menu_x==0 then
-                local fields={"stage","character","mode"}
-                for i,f in ipairs(fields) do if self.app.replay_field==f then
-                    self.app.replay_field=fields[(i-1+(input.move_x>0 and 1 or -1))%#fields+1];break
-                end end
+            local fields={"stage","character","mode"}
+            if self.host then
+                local field_index=1
+                for i,f in ipairs(fields) do if self.app.replay_field==f then field_index=i;break end end
+                local next_index=self.app:_scroll_step("replay_lan_field",field_index,#fields,#fields,-(input.move_x or 0))
+                self.app.replay_field=fields[next_index]
             end
             do
                 local field=self.host and self.app.replay_field or "character"
@@ -354,7 +355,6 @@ function N:update(input)
                 end
             end
         end
-        self.menu_x=input.move_x or 0
         if input.confirm then
             self.ready[self.id]=not self.ready[self.id]
             self.characters[self.id]=r.character_cursor

@@ -93,8 +93,9 @@ function EquipmentInfo.display_name(definition, fallback_id)
 end
 
 --- Rarity label plus color, used by the detail panel.
-function EquipmentInfo.rarity(definition)
-    local rarity = definition and definition.rarity or "COMMON"
+function EquipmentInfo.rarity(definition, instance)
+    local rarity = instance and instance.runtime_data and instance.runtime_data.rarity_override
+        or definition and definition.rarity or "COMMON"
     return RARITY_LABELS[rarity] or tostring(rarity), RARITY_COLORS[rarity] or RARITY_COLORS.COMMON
 end
 
@@ -136,7 +137,7 @@ function EquipmentInfo.describe(definition, instance)
         return lines
     end
 
-    local rarity_label, rarity_color = EquipmentInfo.rarity(definition)
+    local rarity_label, rarity_color = EquipmentInfo.rarity(definition, instance)
     lines[#lines + 1] = { text = EquipmentInfo.display_name(definition), color = rarity_color }
 
     local meta = {}
@@ -177,19 +178,24 @@ function EquipmentInfo.describe(definition, instance)
     end
 
     if is_weapon(definition) then
+        local stat_multiplier = math.max(1, tonumber(instance and instance.runtime_data
+            and instance.runtime_data.stat_multiplier) or 1)
         local stats = {}
-        local damage = number_text(definition.damage, 2)
+        local damage = number_text(tonumber(definition.damage) and definition.damage * stat_multiplier, 2)
         if damage then stats[#stats + 1] = "伤害 " .. damage end
-        local interval = number_text(definition.fire_interval)
+        local interval = number_text(tonumber(definition.fire_interval)
+            and math.max(1, math.floor(definition.fire_interval / stat_multiplier + 0.5)))
         if interval then stats[#stats + 1] = "间隔 " .. interval .. " 帧" end
-        local count = number_text(definition.count)
+        local count = number_text(tonumber(definition.count)
+            and math.max(1, math.floor(definition.count * stat_multiplier + 0.5)))
         if count then stats[#stats + 1] = "弹数 " .. count end
         if #stats > 0 then lines[#lines + 1] = { text = table.concat(stats, "   "), color = "active_line" } end
 
         local extra = {}
-        local speed = number_text(definition.projectile_speed)
+        local speed = number_text(tonumber(definition.projectile_speed)
+            and definition.projectile_speed * stat_multiplier)
         if speed then extra[#extra + 1] = "弹速 " .. speed end
-        local penetration = tonumber(definition.penetration)
+        local penetration = tonumber(definition.penetration) and definition.penetration * stat_multiplier
         if penetration and penetration > 0 then extra[#extra + 1] = "穿透 " .. penetration end
         if definition.targeting and TARGETING_LABELS[definition.targeting] then
             extra[#extra + 1] = "追踪 " .. TARGETING_LABELS[definition.targeting]

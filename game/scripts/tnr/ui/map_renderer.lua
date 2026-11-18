@@ -15,6 +15,7 @@ local MAP_ICON_IMAGES = {
     ELITE = "tnr-map-node-elite",
     BOSS = "tnr-map-node-boss",
     SHOP = "tnr-map-node-shop",
+    SHRINE = "tnr-map-node-shrine",
     EVENT = "tnr-map-node-event",
     CURRENT = "tnr-map-node-current",
     UNVISITED = "tnr-map-node-unvisited",
@@ -26,6 +27,7 @@ local TYPE_META = {
     ENEMY = { label = "战斗", icon = "ENEMY", color = { 255, 224, 91, 112 } },
     BOSS = { label = "首领", icon = "BOSS", color = { 255, 245, 174, 105 } },
     SHOP = { label = "商店", icon = "SHOP", color = { 255, 155, 211, 186 } },
+    SHRINE = { label = "神社", icon = "SHRINE", color = { 255, 220, 142, 164 } },
     EVENT = { label = "事件", icon = "EVENT", color = { 255, 143, 191, 231 } },
 }
 
@@ -88,6 +90,14 @@ local function draw_diamond(lstg, image, values, x, y, radius)
         local half_width = math.max(0.8, radius - math.abs(middle))
         draw_rect(lstg, image, values, x - half_width, x + half_width, y + low, y + high)
     end
+end
+
+local function utf8_char_count(text)
+    local count = 0
+    for _ in tostring(text or ""):gmatch("[%z\1-\127\194-\244][\128-\191]*") do
+        count = count + 1
+    end
+    return count
 end
 
 local function draw_polygon(lstg, image, values, points)
@@ -290,6 +300,20 @@ function MapRenderer:draw_image(image, left, right, bottom, top, values)
         { left, bottom, 0, u1, v2, tint })
 end
 
+function MapRenderer:draw_weapon_icon(definition, x, y, size)
+    if not _G.__tnr_weapon_icon_loaded or not definition then return end
+    local id = type(definition) == "table"
+        and (definition.weapon_id or definition.equipment_id or definition.definition_id)
+        or tostring(definition)
+    id = tostring(id or "default")
+    if not (_G.__tnr_weapon_icon_rows or {})[id] then id = "default" end
+    local frame = math.floor(((self.ui_time or 0) * 8) % 8) + 1
+    local image = "tnr-weapon-icon-" .. id .. "-" .. frame
+    size = tonumber(size) or 24
+    self:draw_image(image, x - size * 0.5, x + size * 0.5,
+        y - size * 0.5, y + size * 0.5)
+end
+
 --- Draw a list of { text = string, color = string|table } lines inside a panel.
 --- Returns the number of lines actually drawn.
 function MapRenderer:draw_info_lines(lines, left, top, options)
@@ -373,7 +397,6 @@ function MapRenderer:draw_standard_backdrop()
     -- Keep enough of the title illustration visible to carry its moonlit
     -- shrine mood into the menus. Text-bearing panels supply the contrast.
     draw_rect(self.lstg, self.white, { 118, 7, 11, 23 }, 0, self.width, 0, self.height)
-    self.ui_time = (self.ui_time or 0) + 1 / 60
     local t = self.ui_time
     for index = 1, 16 do
         local phase = t * 1.7 + index * 2.13
@@ -506,6 +529,7 @@ function MapRenderer:draw_legend()
         { "战斗", "ENEMY", TYPE_META.ENEMY.color },
         { "首领", "BOSS", TYPE_META.BOSS.color },
         { "商店", "SHOP", TYPE_META.SHOP.color },
+        { "神社", "SHRINE", TYPE_META.SHRINE.color },
         { "事件", "EVENT", TYPE_META.EVENT.color },
     }
     for index, row in ipairs(rows) do
@@ -543,6 +567,34 @@ function MapRenderer:draw_footer(message)
     self:draw_panel(220, self.width - 24, 22, 74)
     self:draw_text(message or "选择一个相邻节点前进", self.width * 0.5, 56, 0.88, COLORS.text, 1 + 4)
     self:draw_text("方向键移动    Enter 确认    鼠标点击选择", self.width - 48, 56, 0.68, COLORS.muted, 2)
+end
+
+function MapRenderer:render_pause_menu(cursor)
+    local lstg = self.lstg
+    if not lstg then return end
+    lstg.BeginScene()
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+    draw_rect(lstg, self.white, { 176, 4, 7, 18 }, 0, self.width, 0, self.height)
+    local panel_width = math.min(410, self.width * 0.38)
+    local left = self.width - panel_width - 46
+    local right = self.width - 46
+    self:draw_panel(left, right, 125, self.height - 125, 228)
+    self:draw_text("暂停", left + 32, self.height - 170, 1.55, COLORS.accent, 0)
+    self:draw_text("方向键选择   Enter / Z 确认   Esc 返回游戏", left + 32, self.height - 215, 0.62, COLORS.muted, 0)
+    local options = { "继续游戏", "重启本关", "返回菜单" }
+    for index, label in ipairs(options) do
+        local top = self.height - 280 - (index - 1) * 82
+        local bottom = top - 58
+        local selected = index == (cursor or 1)
+        draw_rect(lstg, self.white, selected and { 235, 102, 38, 50 } or COLORS.map_panel,
+            left + 22, right - 22, bottom, top)
+        if selected then self:draw_focus_frame(left + 22, right - 22, bottom, top, index * 0.8) end
+        self:draw_text((selected and ">  " or "   ") .. label, left + 44, (top + bottom) * 0.5,
+            0.95, selected and COLORS.text or COLORS.muted, 0)
+    end
+    lstg.EndScene()
 end
 
 function MapRenderer:draw_map(view)
@@ -1053,6 +1105,12 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
             end
             self:draw_text(name_of(instance), left + slot_w * 0.5, group.y + slot_h * 0.5, 0.58,
                 active and COLORS.text or COLORS.muted, 1 + 4)
+            if active and instance and (group.key == "high_weapons" or group.key == "low_weapons") then
+                local definition = registry and registry:get(instance.definition_id)
+                if definition and definition.equipment_type == "WEAPON" then
+                    self:draw_weapon_icon(definition, left + slot_w - 18, group.y + slot_h * 0.5, 18)
+                end
+            end
         end
     end
     draw_rect(lstg, self.white, (cursor or 1) == 1 and { 255, 95, 80, 78 } or { 205, 31, 40, 55 }, 70, 300, 53, 86)
@@ -1075,6 +1133,10 @@ function MapRenderer:render_preparation(session, cursor, message, mouse_x, mouse
         end
         self:draw_text(string.format("%d  %s", index, name_of(instance)), left + 8, bottom + card_height / 2, 0.53,
             active and COLORS.text or COLORS.muted, 0)
+        local definition = registry and registry:get(instance.definition_id)
+        if definition and definition.equipment_type == "WEAPON" then
+            self:draw_weapon_icon(definition, left + 157, bottom + card_height / 2, 20)
+        end
     end
     -- Equipment detail panel. A direct mouse hover wins, otherwise the
     -- keyboard cursor is inspected. The panel stays empty when nothing is
@@ -1368,7 +1430,6 @@ end
 -- is drawn. The selected cell is highlighted with a frame and a lift.
 function MapRenderer:render_menu(menu_cursor, session)
     local lstg = self.lstg
-    self.ui_time = (self.ui_time or 0) + 1 / 60
     lstg.BeginScene()
     lstg.RenderClear(color(lstg, COLORS.background))
     lstg.SetViewport(0, self.width, 0, self.height)
@@ -1724,6 +1785,15 @@ function MapRenderer:render_replay_reward(replay)
         self:draw_text(selected and ">" or "", 120, top - 20, 0.9, COLORS.accent, 0)
         self:draw_text(reward.name, 150, top - 20, 0.86,
             selected and COLORS.text or COLORS.muted, 0)
+        if reward.kind == "EQUIPMENT" then
+            local equipment_session = replay:get_equipment_session()
+            local definition = equipment_session and equipment_session.equipment_registry
+                and equipment_session.equipment_registry:get(reward.definition_id)
+            if definition and definition.equipment_type == "WEAPON" then
+                self:draw_weapon_icon(definition, 150 + utf8_char_count(reward.name) * 16 + 12,
+                    top - 20, 23)
+            end
+        end
         self:draw_text(reward.description or "", 150, top - 46, 0.60, COLORS.muted, 0)
     end
     local selected=choices[replay.reward_cursor or 1]
@@ -1800,7 +1870,12 @@ function MapRenderer:render_equipment_catalog(entries, cursor, mouse_x, mouse_y)
         if selected then self:draw_focus_frame(84, 700, bottom, bottom + 36, index * 0.31) end
         self:draw_text(selected and ">" or "", 100, bottom + 18, 0.7, COLORS.accent, 1 + 4)
         local rarity_label, rarity_color = EquipmentInfo.rarity(definition)
-        self:draw_text(EquipmentInfo.display_name(definition), 132, bottom + 18, 0.74, rarity_color, 0)
+        local item_name = EquipmentInfo.display_name(definition)
+        self:draw_text(item_name, 132, bottom + 18, 0.74, rarity_color, 0)
+        if definition and definition.equipment_type == "WEAPON" then
+            self:draw_weapon_icon(definition, 132 + utf8_char_count(item_name) * 17 + 12,
+                bottom + 18, 23)
+        end
         local slot = EquipmentInfo.slot_label(definition) or EquipmentInfo.category(definition)
         self:draw_text(slot, 470, bottom + 18, 0.62, COLORS.muted, 0)
         self:draw_text(rarity_label, 660, bottom + 18, 0.62, COLORS.muted, 2)
@@ -1902,6 +1977,7 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
         return
     end
     self:init()
+    self.ui_time = (self.ui_time or 0) + 1 / 60
     if preparation_overlay and (session.run_state==Constants.run_states.REPLAY_SELECT
             or session.run_state==Constants.run_states.REPLAY_REWARD) then
         self:render_preparation(self.replay:get_equipment_session(),preparation_cursor,preparation_message,
@@ -1980,6 +2056,10 @@ function MapRenderer:render(view, session, menu_cursor, training_cursor, trainin
     end
     if session.run_state == Constants.run_states.SHOP then
         self:render_shop(session, shop_cursor or 1, mouse_x, mouse_y, mouse_down, preparation_message)
+        return
+    end
+    if session.run_state == Constants.run_states.SHRINE then
+        self:render_shrine(session.shrine_service)
         return
     end
     if session.run_state == Constants.run_states.RELIC_SELECT then
@@ -2088,6 +2168,12 @@ function MapRenderer:render_shop(session, cursor, mouse_x, mouse_y, mouse_down, 
                     or (offer and offer.kind == "LIFE_FRAGMENT" and "生命碎片" or "炸弹"))
             self:draw_text(string.format("%d", index), x1 + 16, geometry.card_top - 22, 0.7, COLORS.muted, 0)
             self:draw_text(label, (x1 + x2) * 0.5, geometry.card_top - 58, 0.72, COLORS.text, 1 + 4)
+            if offered_definition and offered_definition.equipment_type == "WEAPON" then
+                local icon_x = (x1 + x2) * 0.5 + utf8_char_count(label) * 8.5 + 12
+                if icon_x + 11 < x2 - 8 then
+                    self:draw_weapon_icon(offered_definition, icon_x, geometry.card_top - 58, 20)
+                end
+            end
             self:draw_text(string.format("%dG", offer and offer.price or 0), (x1 + x2) * 0.5,
                 geometry.card_bottom + 24, 0.7, COLORS.active_line, 1 + 4)
         end
@@ -2191,20 +2277,27 @@ local function reward_label(session, choice)
 end
 
 local function reward_geometry(width, height)
-    -- Cards sit above a full-width detail panel so several affixes fit.
-    local outer_left, outer_right = 70, width - 70
-    local gap = 22
+    -- Keep the choices in a narrow, readable column and reserve the right
+    -- side for details. The old three-column layout pushed the final card and
+    -- long descriptions beyond the visible area on smaller game viewports.
+    local outer_left = math.max(54, width * 0.055)
+    local outer_right = width - outer_left
+    local gap = math.max(10, height * 0.018)
+    local card_height = math.max(54, math.min(72, height * 0.10))
+    local card_gap = math.max(8, height * 0.018)
+    local list_top = height - math.max(238, height * 0.37)
+    local list_right = outer_left + (outer_right - outer_left) * 0.47
     return {
         cards_left = outer_left,
-        cards_right = outer_right,
-        card_width = (outer_right - outer_left - gap * 2) / 3,
-        gap = gap,
-        card_bottom = 350,
-        card_top = 470,
-        detail_left = outer_left,
+        cards_right = list_right,
+        card_width = list_right - outer_left,
+        card_height = card_height,
+        card_gap = card_gap,
+        list_top = list_top,
+        detail_left = list_right + gap,
         detail_right = outer_right,
-        detail_bottom = 140,
-        detail_top = 330,
+        detail_bottom = math.max(125, height * 0.195),
+        detail_top = list_top,
     }
 end
 
@@ -2255,20 +2348,24 @@ function MapRenderer:render_reward(session, cursor, mouse_x, mouse_y, mouse_down
         self:draw_text("已获得：" .. tostring(guaranteed and (guaranteed.display_name_zh or guaranteed.display_name) or session.reward_guaranteed_definition_id) .. "（选择查看）", self.width * 0.5, self.height - 235, 0.75, COLORS.active_line, 1 + 4)
     end
     local geometry = reward_geometry(self.width, self.height)
-    -- Uniform three-column layout. Each card shows the index, the reward kind,
-    -- the item name and a selection marker. Names are truncated by UTF-8
-    -- character count so a Chinese name is never cut to one character.
-    local max_name_chars = math.max(6, math.floor(geometry.card_width / 26))
+    -- Three full-width rows keep every choice visible on narrow viewports.
+    -- Names are truncated by UTF-8 character count so a Chinese name is never
+    -- cut to one character.
+    -- Reserve room for the kind label, animated weapon icon and selection
+    -- status. Using the full card width here let long names run under both.
+    local max_name_chars = math.max(6, math.floor((geometry.card_width - 250) / 18))
     for index = 1, 3 do
-        local x1 = geometry.cards_left + (index - 1) * (geometry.card_width + geometry.gap)
-        local x2 = x1 + geometry.card_width
+        local x1 = geometry.cards_left
+        local x2 = geometry.cards_right
+        local card_top = geometry.list_top - (index - 1) * (geometry.card_height + geometry.card_gap)
+        local card_bottom = card_top - geometry.card_height
         local selected = index == (cursor or 1)
         local claimed = false
         for _, claim in ipairs(claims) do if claim.choice_index == index then claimed = true break end end
         draw_rect(lstg, self.white, claimed and { 230, 43, 91, 67 } or (selected and { 235, 88, 31, 43 } or COLORS.map_panel),
-            x1, x2, geometry.card_bottom, geometry.card_top)
-        if selected then draw_rect(lstg, self.white, COLORS.accent, x1, x2, geometry.card_top - 3, geometry.card_top) end
-        if selected then self:draw_focus_frame(x1, x2, geometry.card_bottom, geometry.card_top, index * 0.75) end
+            x1, x2, card_bottom, card_top)
+        if selected then draw_rect(lstg, self.white, COLORS.accent, x1, x2, card_top - 3, card_top) end
+        if selected then self:draw_focus_frame(x1, x2, card_bottom, card_top, index * 0.75) end
         local choice = choices[index]
         local kind_label = choice and (choice.kind == "RESOURCE" and "资源"
             or (choice.kind == "EQUIPMENT" and "装备" or tostring(choice.kind))) or "--"
@@ -2279,16 +2376,22 @@ function MapRenderer:render_reward(session, cursor, mouse_x, mouse_y, mouse_down
             local _, rarity_color = EquipmentInfo.rarity(definition)
             name_color = rarity_color
         end
-        -- Vertical layout inside the card: index (top-left), kind, name and
-        -- the selection marker near the bottom.
-        self:draw_text(string.format("%d", index), x1 + 16, geometry.card_top - 22, 0.65, COLORS.muted, 0)
-        self:draw_text(kind_label, (x1 + x2) * 0.5, geometry.card_top - 43, 0.68, COLORS.active_line, 1 + 4)
-        self:draw_text(fit_text(name_label, max_name_chars), (x1 + x2) * 0.5, geometry.card_top - 70, 0.78, name_color, 1 + 4)
+        local center_y = (card_bottom + card_top) * 0.5
+        self:draw_text(string.format("%d", index), x1 + 15, center_y, 0.68, COLORS.muted, 0)
+        self:draw_text(kind_label, x1 + 52, center_y, 0.66, COLORS.active_line, 0)
+        local shown_name = fit_text(name_label, max_name_chars)
+        self:draw_text(shown_name, x1 + 150, center_y, 0.76, name_color, 0)
+        if choice and choice.kind == "EQUIPMENT" then
+            local definition = session.equipment_registry and session.equipment_registry:get(choice.definition_id)
+            if definition and definition.equipment_type == "WEAPON" then
+                local icon_x = x1 + 150 + utf8_char_count(shown_name) * 18 + 12
+                if icon_x + 12 < x2 - 100 then self:draw_weapon_icon(definition, icon_x, center_y, 22) end
+            end
+        end
         if claimed then
-            draw_rect(lstg, self.white, { 255, 95, 180, 90 }, x1 + 20, x2 - 20, geometry.card_bottom + 7, geometry.card_bottom + 26)
-            self:draw_text("已选择", (x1 + x2) * 0.5, geometry.card_bottom + 16, 0.60, COLORS.text, 1 + 4)
+            self:draw_text("已选择", x2 - 72, center_y, 0.60, COLORS.text, 1 + 4)
         else
-            self:draw_text("未选择", (x1 + x2) * 0.5, geometry.card_bottom + 16, 0.60, COLORS.muted, 1 + 4)
+            self:draw_text("未选择", x2 - 72, center_y, 0.60, COLORS.muted, 1 + 4)
         end
     end
     self:draw_panel(geometry.detail_left, geometry.detail_right, geometry.detail_bottom, geometry.detail_top)
@@ -2309,6 +2412,97 @@ function MapRenderer:render_reward(session, cursor, mouse_x, mouse_y, mouse_down
             height = geometry.detail_top - geometry.detail_bottom - 65, columns = 2 })
     self:draw_text("方向键选择   回车选择/取消   鼠标点击选择", self.width * 0.5, 120, 0.8, COLORS.muted, 1 + 4)
     if message and message ~= "" then self:draw_text(message, self.width * 0.5, 145, 0.72, COLORS.active_line, 1 + 4) end
+    lstg.EndScene()
+end
+
+function MapRenderer:render_shrine(service)
+    local lstg = self.lstg
+    if not service then return end
+    lstg.BeginScene()
+    lstg.RenderClear(color(lstg, COLORS.background))
+    lstg.SetViewport(0, self.width, 0, self.height)
+    lstg.SetScissorRect(0, self.width, 0, self.height)
+    lstg.SetOrtho(0, self.width, 0, self.height)
+    self:draw_standard_backdrop()
+    self:draw_panel(56, self.width - 56, 78, self.height - 66, 218)
+    self:draw_text("月下神社", self.width * 0.5, self.height - 116, 1.7, COLORS.accent, 1 + 4)
+    self:draw_text(service.message or "选择一项神社服务", self.width * 0.5, self.height - 158,
+        0.72, COLORS.muted, 1 + 4)
+
+    if service.phase == "operation" then
+        local operations = service:operations()
+        local left, right = 135, self.width - 135
+        for index, operation in ipairs(operations) do
+            local top = self.height - 228 - (index - 1) * 76
+            local bottom = top - 60
+            local selected = index == (service.operation_cursor or 1)
+            draw_rect(lstg, self.white, selected and { 235, 102, 38, 58 } or COLORS.map_panel,
+                left, right, bottom, top)
+            if selected then self:draw_focus_frame(left, right, bottom, top, index * 0.7) end
+            self:draw_text(selected and ">" or "", left + 24, (top + bottom) * 0.5,
+                0.9, COLORS.accent, 1 + 4)
+            self:draw_text(operation.name, left + 60, (top + bottom) * 0.5,
+                0.84, selected and COLORS.text or COLORS.muted, 0)
+            self:draw_text(operation.description, left + 240, (top + bottom) * 0.5,
+                0.66, selected and COLORS.active_line or COLORS.muted, 0)
+        end
+    else
+        local targets = service:targets(service.operation,
+            service.fusion_first and service.fusion_first.instance.instance_id or nil)
+        local visible = 8
+        local first, last = self:list_window(service.target_cursor or 1, #targets, visible)
+        local list_left, list_right = 86, self.width * 0.54
+        local top = self.height - 218
+        local row_pitch, row_height = 47, 39
+        for index = first, last do
+            local entry = targets[index]
+            local definition = entry.definition
+            local name = EquipmentInfo.display_name(definition, entry.instance.definition_id)
+            local slot = entry.source == "inventory" and "仓库"
+                or (entry.group == "high_weapons" and "高速" or entry.group == "low_weapons" and "低速"
+                    or entry.group == "supports" and "子机" or "装备")
+            local row = index - first
+            local bottom = top - row * row_pitch - row_height
+            local selected = index == (service.target_cursor or 1)
+            draw_rect(lstg, self.white, selected and { 235, 102, 38, 58 } or COLORS.map_panel,
+                list_left, list_right, bottom, bottom + row_height)
+            if selected then self:draw_focus_frame(list_left, list_right, bottom, bottom + row_height, index * 0.45) end
+            local rarity_label, rarity_color = EquipmentInfo.rarity(definition, entry.instance)
+            self:draw_text(selected and ">" or "", list_left + 14, bottom + row_height * 0.5,
+                0.76, COLORS.accent, 1 + 4)
+            local shown_name = fit_text(name, math.max(5, math.floor((list_right - list_left - 160) / 20)))
+            self:draw_text(shown_name,
+                list_left + 45, bottom + row_height * 0.5, 0.7,
+                selected and rarity_color or COLORS.muted, 0)
+            if definition.equipment_type == "WEAPON" then
+                local icon_x = list_left + 45 + utf8_char_count(shown_name) * 15 + 10
+                if icon_x + 10 < list_right - 100 then
+                    self:draw_weapon_icon(definition, icon_x, bottom + row_height * 0.5, 18)
+                end
+            end
+            self:draw_text(slot .. " · " .. rarity_label, list_right - 18, bottom + row_height * 0.5,
+                0.56, COLORS.muted, 2)
+        end
+        self:draw_scrollbar(list_right + 10, list_right + 20, top - visible * row_pitch,
+            top, #targets, visible, service.target_cursor or 1, nil, nil, false)
+        self:draw_panel(self.width * 0.58, self.width - 84, 145, top)
+        self:draw_text(service.operation == "fusion" and "武器属性" or "装备属性",
+            self.width * 0.58 + 20, top - 30, 0.82, COLORS.accent, 0)
+        local entry = targets[service.target_cursor or 1]
+        local info = entry and EquipmentInfo.describe(entry.definition, entry.instance) or {
+            { text = "没有符合条件的装备", color = "muted" },
+        }
+        if service.fusion_first then
+            table.insert(info, 1, { text = "已选第一把：" .. EquipmentInfo.display_name(service.fusion_first.definition), color = "active_line" })
+        end
+        self:draw_info_lines(info, self.width * 0.58 + 20, top - 58,
+            { size = 0.62, line_height = 24, width = self.width * 0.42 - 126, height = top - 210 })
+    end
+    self:draw_text("↑ ↓ 选择   Enter 确认   Esc 返回", self.width * 0.5, 108,
+        0.76, COLORS.muted, 1 + 4)
+    if service.message and service.phase == "target" then
+        self:draw_text(service.message, self.width * 0.5, 136, 0.62, COLORS.active_line, 1 + 4)
+    end
     lstg.EndScene()
 end
 
@@ -2354,10 +2548,11 @@ function MapRenderer:reward_hit_test(x, y, count, guaranteed_index)
     if not x or not y then return nil end
     if guaranteed_index and x >= 100 and x <= self.width - 100
             and y >= self.height - 250 and y <= self.height - 220 then return guaranteed_index end
-    if y < geometry.card_bottom or y > geometry.card_top then return nil end
+    if x < geometry.cards_left or x > geometry.cards_right then return nil end
     for index = 1, math.min(3, count or 3) do
-        local x1 = geometry.cards_left + (index - 1) * (geometry.card_width + geometry.gap)
-        if x >= x1 and x <= x1 + geometry.card_width then return index end
+        local top = geometry.list_top - (index - 1) * (geometry.card_height + geometry.card_gap)
+        local bottom = top - geometry.card_height
+        if y >= bottom and y <= top then return index end
     end
     return nil
 end

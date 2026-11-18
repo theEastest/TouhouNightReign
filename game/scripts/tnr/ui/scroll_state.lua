@@ -4,8 +4,8 @@
 local ScrollState = {}
 ScrollState.__index = ScrollState
 
-local INITIAL_DELAY = 12
-local REPEAT_RATE = 4
+local INITIAL_DELAY = 60
+local REPEAT_RATE = 30
 
 local function clamp(value, low, high)
     if value < low then return low end
@@ -22,7 +22,7 @@ function ScrollState.new(item_count, visible_count, cursor, initial_delay, repea
         hold_frames = 0,
         initial_delay = math.max(0, tonumber(initial_delay) or INITIAL_DELAY),
         repeat_rate = math.max(1, tonumber(repeat_rate) or REPEAT_RATE),
-        repeat_on_delay = repeat_on_delay == true,
+        repeat_on_delay = repeat_on_delay ~= false,
     }, ScrollState)
     self.cursor = clamp(self.cursor, 1, math.max(1, self.item_count))
     return self
@@ -45,8 +45,9 @@ function ScrollState:_move_once(direction)
     return self.cursor
 end
 
--- Returns the cursor after applying a direction for one frame. Initial press
--- moves immediately; holding repeats after a short delay at a stable rate.
+-- Returns the cursor after applying a direction for one frame. A short press
+-- moves once; a held direction starts repeating after one second, then every
+-- half second. Callers can override these defaults for specialized controls.
 function ScrollState:update(direction)
     direction = direction or 0
     if direction == 0 then

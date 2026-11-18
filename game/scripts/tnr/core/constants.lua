@@ -8,6 +8,7 @@ local Constants = {
         ENCOUNTER = "ENCOUNTER",
         PLACEHOLDER = "PLACEHOLDER",
         SHOP = "SHOP",
+        SHRINE = "SHRINE",
         RELIC_SELECT = "RELIC_SELECT",
         FLOOR_CLEAR = "FLOOR_CLEAR",
         REWARD = "REWARD",
@@ -34,6 +35,7 @@ local Constants = {
         BOSS = "BOSS",
         SHOP = "SHOP",
         EVENT = "EVENT",
+        SHRINE = "SHRINE",
     },
 }
 

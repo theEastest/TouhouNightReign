@@ -20,6 +20,7 @@ PALETTES = {
     "ELITE": (235, 185, 104),
     "BOSS": (243, 196, 119),
     "SHOP": (128, 201, 172),
+    "SHRINE": (220, 142, 164),
     "EVENT": (148, 187, 224),
     "CURRENT": (248, 231, 197),
     "UNVISITED": (157, 170, 191),
@@ -139,6 +140,18 @@ def draw_symbol(draw, kind, accent):
             ellipse(draw, (cx - 1.4, cy - 1.4, cx + 1.4, cy + 1.4), accent)
         ellipse(draw, (58, 58, 70, 70), accent, PAPER, 0.8)
         ellipse(draw, (61, 61, 67, 67), PAPER)
+    elif kind == "SHRINE":
+        # Sacred bell and braided shimenawa beneath a small shrine roof.
+        polygon(draw, [(39, 49), (47, 39), (81, 39), (89, 49), (86, 53), (42, 53)], PAPER, accent, 1)
+        line(draw, [(43, 52), (85, 52)], accent, 2.2)
+        line(draw, [(45, 57), (83, 57)], PAPER, 2.6)
+        for index in range(5):
+            x = 48 + index * 8
+            line(draw, [(x, 56), (x + 2, 61), (x + 4, 56)], accent, 1.1)
+        line(draw, [(64, 61), (64, 69)], PAPER, 2)
+        pill(draw, (57, 68, 71, 82), accent, PAPER, 1.1, 5)
+        line(draw, [(60, 73), (68, 73)], PAPER, 1)
+        line(draw, [(61, 82), (59, 89), (64, 93), (69, 89), (67, 82)], PAPER, 1.6)
     elif kind == "CURRENT":
         # Bright compass flower used only by the current-node legend.
         polygon(draw, [(64, 43), (69, 59), (85, 64), (69, 69), (64, 85),

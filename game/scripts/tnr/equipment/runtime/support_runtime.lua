@@ -1,5 +1,6 @@
 local SupportRuntime = {}
 SupportRuntime.__index = SupportRuntime
+local AffixCatalog = require("tnr.equipment.affix_catalog")
 
 local function copy_table(value)
     if type(value) ~= "table" then return value end
@@ -39,6 +40,8 @@ function SupportRuntime.new(instance, definition, slot_index)
     end
     return setmetatable({
         instance_id = instance.instance_id,
+        instance = instance,
+        random_affixes = copy_table(instance.random_affixes or {}),
         definition_id = instance.definition_id,
         slot_index = slot_index,
         definition = definition,
@@ -138,6 +141,19 @@ function SupportRuntime:fire(mode, firing, context, registry)
     local spread = tonumber(mode_value("spread", weapon_metadata.spread)) or 0
     local speed = tonumber(mode_value("projectile_speed", weapon and (weapon.speed or weapon.projectile_speed))) or 8
     local damage = tonumber(mode_value("damage", weapon and weapon.damage)) or 1
+    local affix_multiplier = 1
+    local tracking = 0
+    for _, affix in ipairs(self.random_affixes or {}) do
+        local value = AffixCatalog.value(affix)
+        if affix.id == "support_fire"
+                or mode_name == "HIGH" and affix.id == "high_fire"
+                or mode_name == "LOW" and affix.id == "low_fire" then
+            affix_multiplier = affix_multiplier * (1 + value)
+        elseif affix.id == "tracking" then
+            tracking = tracking + value
+        end
+    end
+    damage = damage * affix_multiplier
     if mode_value("damage_normalized_by_count", false) then
         -- Authored damage is the whole formation's per-projectile budget.
         damage = damage / math.max(1, #self.entities)
@@ -158,6 +174,11 @@ function SupportRuntime:fire(mode, firing, context, registry)
             shot_metadata.max_tracking_frames = mode_value("max_tracking_frames", 90)
             shot_metadata.homing_turn_rate = mode_value("homing_turn_rate", 0.04)
             shot_metadata.homing_turn_ratio = mode_value("homing_turn_ratio", 1)
+            if tracking > 0 and not shot_metadata.beam then
+                shot_metadata.homing = true
+                shot_metadata.homing_turn_ratio = 0.5
+                shot_metadata.homing_turn_multiplier = 1 + tracking
+            end
             result[#result + 1] = {
                 owner_player_id = context and context.player_id,
                 source_type = "support",

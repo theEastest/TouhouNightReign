@@ -13,10 +13,11 @@ local DEFAULTS = {
     min_boss_hops = 10,
     min_node_spacing = 0.06,
     max_links = 4,
-    enemy_ratio = 0.67,
+    enemy_ratio = 0.64,
     elite_ratio = 0.18,
-    event_ratio = 0.08,
+    event_ratio = 0.06,
     shop_ratio = 0.07,
+    shrine_ratio = 0.05,
     ordinary_stage_variants = 6,
     floor = 1,
 }
@@ -226,11 +227,12 @@ local function assign_types(rng, nodes, config)
         { type = Constants.node_types.ELITE, weight = math.max(0, tonumber(config.elite_ratio) or 0) },
         { type = Constants.node_types.EVENT, weight = math.max(0, tonumber(config.event_ratio) or 0) },
         { type = Constants.node_types.SHOP, weight = math.max(0, tonumber(config.shop_ratio) or 0) },
+        { type = Constants.node_types.SHRINE, weight = math.max(0, tonumber(config.shrine_ratio) or 0) },
     }
     local total_weight = 0
     for _, entry in ipairs(entries) do total_weight = total_weight + entry.weight end
     if total_weight <= 0 then
-        entries[1].weight, entries[2].weight, entries[3].weight, entries[4].weight = 0.67, 0.18, 0.08, 0.07
+        entries[1].weight, entries[2].weight, entries[3].weight, entries[4].weight, entries[5].weight = 0.64, 0.18, 0.06, 0.07, 0.05
         total_weight = 1
     end
     local counts, remainders, assigned = {}, {}, 0

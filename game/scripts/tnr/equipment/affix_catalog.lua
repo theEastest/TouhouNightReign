@@ -50,6 +50,26 @@ function C.roll(d,seed)
  end
  return result
 end
+function C.roll_support(d,seed)
+ if not d or d.equipment_type~="SUPPORT" then return {} end
+ local hash=17; local text=tostring(seed or d.support_id)
+ for i=1,#text do hash=(hash*31+text:byte(i))%2147483647 end
+ local rng=require("tnr.core.rng").new(hash)
+ local ids={"support_fire","high_fire","low_fire","tracking"}
+ local result={}
+ local first=rng:next_int(1,#ids)
+ local function add(index)
+  local definition=C.by_id[ids[index]]
+  result[#result+1]={id=definition.id,level=rng:next_int(1,#definition.values)}
+ end
+ add(first)
+ if d.rarity=="LEGENDARY" and rng:chance(0.5) then
+  local second=rng:next_int(1,#ids-1)
+  if second>=first then second=second+1 end
+  add(second)
+ end
+ return result
+end
 function C.value(a)
  local d=C.by_id[a.id]; return d and d.values[math.max(1,math.min(#d.values,tonumber(a.level) or 1))] or 0
 end

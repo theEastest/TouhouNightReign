@@ -177,6 +177,9 @@ function Bootstrap.create(options)
         -- When the loadout screen is opened from the shop it is rendered as an
         -- overlay on top of the shop state; exiting returns to the shop.
         preparation_overlay = false,
+        pause_menu_open = false,
+        pause_cursor = 1,
+        pause_shoot_was_down = false,
         shop_cursor = 1,
         relic_cursor = 1,
         reward_cursor = 1,
@@ -1225,12 +1228,24 @@ function Bootstrap:leave_replay_stage()
     if self.audio then self.audio:play_music("menu") end
 end
 
+local function mark_scroll_state_used(app, state)
+    local frame = app.ui_update_count or 0
+    if state.last_used_frame and state.last_used_frame < frame - 1 then
+        state:update(0)
+    end
+    state.last_used_frame = frame
+end
+
 --- Drive the replay select screen input.
 function Bootstrap:_update_replay_select(player_input)
     local replay = self.replay
     self.scroll_states = self.scroll_states or {}
     if self.preparation_overlay then
         self:_update_replay_loadout(player_input)
+        if self.pending_replay_autostart and not self.preparation_overlay then
+            self.pending_replay_autostart = nil
+            self:start_replay_stage()
+        end
         return false
     end
     if player_input.tab and replay:selected_mode().key=="modern" then
@@ -1252,6 +1267,7 @@ function Bootstrap:_update_replay_select(player_input)
     end
     x_scroll:set_count(#fields, #fields)
     x_scroll:set_cursor(field_index)
+    mark_scroll_state_used(self, x_scroll)
     local next_field_index = x_scroll:update(player_input.move_x or 0)
     if next_field_index ~= field_index then
         self.replay_field = fields[next_field_index]
@@ -1275,6 +1291,7 @@ function Bootstrap:_update_replay_select(player_input)
     end
     y_scroll:set_count(counts[field], counts[field])
     y_scroll:set_cursor(current)
+    mark_scroll_state_used(self, y_scroll)
     local next_cursor = y_scroll:update(-(player_input.move_y or 0))
     if next_cursor ~= current then replay:move_cursor(field, next_cursor - current, counts[field]) end
 
@@ -1321,10 +1338,12 @@ end
 function Bootstrap:_update_network_menu(player_input)
     local menu = self.network_menu
     local field=menu:get_fields()[menu.cursor]
-    if field and field.id=="play_mode" and (player_input.move_x or 0)~=0 and (menu.previous_x or 0)==0 then
-        menu.play_mode=menu.play_mode=="map" and "replay" or "map"
+    local mode_cursor = menu.play_mode == "map" and 1 or 2
+    local next_mode_cursor = self:_scroll_step("network_play_mode", mode_cursor, 2, 2,
+        field and field.id == "play_mode" and -(player_input.move_x or 0) or 0)
+    if next_mode_cursor ~= mode_cursor then
+        menu.play_mode = next_mode_cursor == 1 and "map" or "replay"
     end
-    menu.previous_x=player_input.move_x or 0
     local text = player_input.text or ""
     if self.input.consume_text then text = text .. self.input:consume_text() end
     if text ~= "" then menu:append_text(text) end
@@ -1361,6 +1380,7 @@ function Bootstrap:_scroll_step(key, cursor, count, visible, direction)
         state = ScrollState.new(count, visible, cursor)
         self.scroll_states[key] = state
     end
+    mark_scroll_state_used(self, state)
     state:set_count(count, visible)
     state:set_cursor(cursor)
     local next_cursor = state:update(-(direction or 0))
@@ -1368,6 +1388,49 @@ function Bootstrap:_scroll_step(key, cursor, count, visible, direction)
         self:_play_ui_sound("ui_move")
     end
     return next_cursor
+end
+
+function Bootstrap:_open_pause_menu(player_input)
+    self.pause_menu_open = true
+    self.pause_cursor = 1
+    self.pause_shoot_was_down = player_input and player_input.shoot == true or false
+    self.scroll_states.pause_menu = nil
+end
+
+function Bootstrap:_update_pause_menu(player_input)
+    self.pause_cursor = self:_scroll_step("pause_menu", self.pause_cursor, 3, 3, player_input.move_y)
+    local shoot_pressed = player_input.shoot == true and not self.pause_shoot_was_down
+    self.pause_shoot_was_down = player_input.shoot == true
+    if player_input.cancel then
+        self.pause_menu_open = false
+        self.pause_shoot_was_down = false
+        return
+    end
+    if not player_input.confirm and not shoot_pressed then return end
+    if self.pause_cursor == 1 then
+        self.pause_menu_open = false
+        self.pause_shoot_was_down = false
+    elseif self.pause_cursor == 2 then
+        self.pause_menu_open = false
+        self.pause_shoot_was_down = false
+        if self.session.run_state == Constants.run_states.REPLAY_STAGE then
+            local active_stage = self.replay.active_stage
+            local stage_index
+            for index, stage in ipairs(self.replay:stage_list()) do
+                if stage.key == active_stage then stage_index = index break end
+            end
+            self.replay:stop()
+            if stage_index then self.replay.stage_cursor = stage_index end
+            self:start_replay_stage()
+        else
+            self.stage_adapter:retry_encounter()
+        end
+    else
+        self.pause_menu_open = false
+        self.pause_shoot_was_down = false
+        if self.session.run_state == Constants.run_states.REPLAY_STAGE then self.replay:stop() end
+        self:return_to_menu()
+    end
 end
 
 function Bootstrap:_play_ui_sound(key)
@@ -1584,6 +1647,29 @@ function Bootstrap:update()
         end
     end
     player_input = player_input or self.input:poll(self.session.local_player_id)
+    if (player_input.move_x or 0) == 0 and (player_input.move_y or 0) == 0 then
+        for _, state in pairs(self.scroll_states or {}) do
+            if state and state.update then state:update(0) end
+        end
+    end
+    local replay_stage = self.session.run_state == Constants.run_states.REPLAY_STAGE
+    local active_battle = replay_stage or self.session.run_state == Constants.run_states.ENCOUNTER
+    local selected_replay_players = replay_stage and self.replay:selected_player_count().key or nil
+    local single_player = replay_stage and selected_replay_players == 1
+        or not replay_stage and (self.session.player_count or 1) == 1
+    local networked = self.battle_sync and self.battle_sync.is_networked
+        and self.battle_sync:is_networked()
+    if active_battle and single_player and not networked then
+        if self.pause_menu_open then
+            self:_update_pause_menu(player_input)
+            return false
+        elseif player_input.cancel then
+            self:_open_pause_menu(player_input)
+            return false
+        end
+    elseif self.pause_menu_open then
+        self.pause_menu_open = false
+    end
     local ui_state = self.session.run_state ~= Constants.run_states.ENCOUNTER
         and self.session.run_state ~= Constants.run_states.REPLAY_STAGE
     if ui_state then
@@ -1719,23 +1805,38 @@ function Bootstrap:update()
         end
         local choices = self.replay.reward_choices or {}
         local count = math.max(1, #choices)
-        if (player_input.move_y or 0) ~= 0 then
-            self.replay.reward_cursor = ((self.replay.reward_cursor or 1) - 1 - player_input.move_y) % count + 1
-        end
+        self.replay.reward_cursor = self:_scroll_step("replay_reward", self.replay.reward_cursor or 1,
+            count, count, player_input.move_y)
         if player_input.confirm then
             local claimed=self.replay:claim_reward()
-            -- Another round, or back to the stage list.
+            -- Another round, then a loadout break before the following stage.
             if claimed and not self.replay:next_reward_round() then
+                local cleared_stage = self.replay.active_stage
+                local cleared_mode = self.replay.active_mode
+                local cleared_index
+                for index, stage in ipairs(self.replay:stage_list()) do
+                    if stage.key == cleared_stage then cleared_index = index break end
+                end
                 self.replay:stop()
-                self.session.run_state = Constants.run_states.REPLAY_SELECT
-                self.replay_field = "stage"
+                local stages = self.replay:stage_list()
+                if cleared_mode == "modern" and cleared_index and cleared_index < #stages then
+                    self.replay.stage_cursor = cleared_index + 1
+                    self.replay_field = "stage"
+                    self.session.run_state = Constants.run_states.REPLAY_SELECT
+                    self.replay.reward_player_id = 1
+                    self.replay:get_equipment_session()
+                    self.pending_replay_autostart = true
+                    self:open_preparation_overlay()
+                else
+                    self.session.run_state = Constants.run_states.REPLAY_SELECT
+                    self.replay_field = "stage"
+                end
             end
         end
     elseif self.session.run_state == Constants.run_states.TUTORIAL then
         local pages = require("tnr.ui.tutorial_pages")
-        local direction = player_input.move_x or 0
-        local pressed = direction ~= 0 and direction ~= self.tutorial_previous_direction
-        self.tutorial_previous_direction = direction
+        self.tutorial_page = self:_scroll_step("tutorial_page", self.tutorial_page or 1,
+            #pages, #pages, -(player_input.move_x or 0))
         local action
         if self.input.get_mouse_position and self.renderer and self.renderer.tutorial_hit_test
                 and player_input.mouse_primary_pressed then
@@ -1744,9 +1845,9 @@ function Bootstrap:update()
         end
         if player_input.cancel or action == "exit" then
             self.session.run_state = Constants.run_states.MENU
-        elseif action == "prev" or (pressed and direction < 0) then
+        elseif action == "prev" then
             self.tutorial_page = math.max(1, self.tutorial_page - 1)
-        elseif action == "next" or player_input.confirm or (pressed and direction > 0) then
+        elseif action == "next" or player_input.confirm then
             if self.tutorial_page >= #pages then
                 self.session.run_state = Constants.run_states.MENU
             else
@@ -1810,16 +1911,11 @@ function Bootstrap:update()
             local function columns_in_row(value)
                 return value == GRID_ROWS - 1 and 2 or GRID_COLUMNS
             end
-            if (player_input.move_y or 0) ~= 0 then
-                row = (row - player_input.move_y) % GRID_ROWS
-                if row < 0 then row = row + GRID_ROWS end
-                column = math.min(column, columns_in_row(row) - 1)
-            end
-            if (player_input.move_x or 0) ~= 0 then
-                local columns = columns_in_row(row)
-                column = (column + player_input.move_x) % columns
-                if column < 0 then column = column + columns end
-            end
+            local next_row = self:_scroll_step("menu_row", row + 1, GRID_ROWS, GRID_ROWS, player_input.move_y)
+            row = next_row - 1
+            column = math.min(column, columns_in_row(row) - 1)
+            local columns = columns_in_row(row)
+            column = self:_scroll_step("menu_column", column + 1, columns, columns, -(player_input.move_x or 0)) - 1
             self.menu_cursor = row * GRID_COLUMNS + column + 1
             if self.menu_cursor ~= menu_cursor then
                 self:_play_ui_sound("ui_move")
@@ -1864,10 +1960,17 @@ function Bootstrap:update()
         end
         if player_input.tab and not equipment_locked then
             self:_open_preparation(false)
-        elseif player_input.move_x ~= 0 then
-            self.map_scene:move_cursor(player_input.move_x)
-        elseif player_input.move_y ~= 0 then
-            self.map_scene:move_cursor(player_input.move_y)
+        else
+            local selectable = self.map_scene:get_selectable_nodes()
+            local cursor_index = 1
+            for index, node in ipairs(selectable) do
+                if node.id == self.map_scene.cursor_node_id then cursor_index = index break end
+            end
+            local direction = (player_input.move_x or 0) ~= 0 and -(player_input.move_x or 0)
+                or -(player_input.move_y or 0)
+            local next_index = self:_scroll_step("map_select", cursor_index,
+                math.max(1, #selectable), math.max(1, #selectable), direction)
+            self.map_scene.cursor_node_id = selectable[next_index] and selectable[next_index].id or nil
         end
         if player_input.confirm and not equipment_button_hit then
             local first_node = self.map_scene:get_selectable_nodes()[1]
@@ -1894,6 +1997,79 @@ function Bootstrap:update()
         end
     elseif self.preparation_overlay or self.session.run_state == Constants.run_states.MAP_PREPARATION then
         self:_update_preparation(player_input, self.preparation_overlay)
+    elseif self.session.run_state == Constants.run_states.SHRINE then
+        local waiting = self:_preparation_waiting()
+        local service = self.session.shrine_service
+        if not waiting and service then
+            if service.completed then
+                self.session:return_to_map()
+            elseif player_input.cancel then
+                if service.phase == "target" then
+                    service.phase = "operation"
+                    service.operation = nil
+                    service.fusion_first = nil
+                    service.message = "选择一项神社服务"
+                    self.scroll_states.shrine_target = nil
+                else
+                    self.session:return_to_map()
+                end
+            elseif service.phase == "operation" then
+                local operations = service:operations()
+                service.operation_cursor = self:_scroll_step("shrine_operation", service.operation_cursor,
+                    #operations, #operations, player_input.move_y)
+                if player_input.confirm then
+                    local selected = operations[service.operation_cursor]
+                    if selected and selected.key ~= "search" and selected.key ~= "leave" then
+                        local ok, message = service:begin_operation(service.operation_cursor)
+                        self.preparation_message = message or (ok and "选择目标装备" or "操作不可用")
+                        self.scroll_states.shrine_target = nil
+                    elseif selected then
+                        local ok, err, queued = self:_send_preparation_command({
+                            type = Command.SHRINE_ACTION,
+                            player_id = self.session.local_player_id or 1,
+                            operation_index = service.operation_cursor,
+                        })
+                        self.preparation_message = ok and (queued and "神社服务正在同步" or service.message)
+                            or (err or "操作失败")
+                        if ok and not queued and service.completed then self.session:return_to_map() end
+                    end
+                end
+            else
+                local targets = service:targets(service.operation,
+                    service.fusion_first and service.fusion_first.instance.instance_id or nil)
+                service.target_cursor = self:_scroll_step("shrine_target", service.target_cursor,
+                    math.max(1, #targets), math.max(1, #targets), player_input.move_y)
+                if player_input.confirm and targets[service.target_cursor] then
+                    if service.operation == "fusion" and not service.fusion_first then
+                        local ok, message = service:select_target(service.target_cursor)
+                        self.preparation_message = message or (ok and "再选择一把武器" or "请选择有效武器")
+                        self.scroll_states.shrine_target = nil
+                    else
+                        local target_index = service.target_cursor
+                        local second_target_index
+                        if service.operation == "fusion" then
+                            local all_targets = service:targets("fusion")
+                            local first_id = service.fusion_first.instance.instance_id
+                            local second_id = targets[target_index].instance.instance_id
+                            for index, target in ipairs(all_targets) do
+                                if target.instance.instance_id == first_id then target_index = index end
+                                if target.instance.instance_id == second_id then second_target_index = index end
+                            end
+                        end
+                        local ok, err, queued = self:_send_preparation_command({
+                            type = Command.SHRINE_ACTION,
+                            player_id = self.session.local_player_id or 1,
+                            operation_index = service.operation_cursor,
+                            target_index = target_index,
+                            second_target_index = second_target_index,
+                        })
+                        self.preparation_message = ok and (queued and "神社服务正在同步" or service.message)
+                            or (err or "操作失败")
+                        if ok and not queued and service.completed then self.session:return_to_map() end
+                    end
+                end
+            end
+        end
     elseif self.session.run_state == Constants.run_states.SHOP then
         if self:_preparation_waiting() then return end
         local shop_count = (self.session.shop_service and #self.session.shop_service:get_offers() or 0) + 1
@@ -2151,6 +2327,9 @@ function Bootstrap:render()
         self.renderer.replay_field=self.replay_field
         local cursor = (self.session.run_state == Constants.run_states.CARD_TRAINING_FAILED or self.session.run_state == Constants.run_states.RUN_FAILED) and self.failure_cursor or self.training_cursor
         self.renderer:render(self.map_scene:get_view(), self.session, self.menu_cursor, cursor, self.stage_adapter.training_card_id, self.selection_catalog, self.selection_title, self.stage_adapter.training_display_name, self.network_menu, self.preparation_cursor, self.preparation_message, self.shop_cursor, self.relic_cursor, self.reward_cursor, self.ui_mouse_x, self.ui_mouse_y, self.ui_mouse_down, self.preparation_edit_only, self.music_cursor, MusicCatalog, self.catalog_cursor, self.catalog_entries, self.preparation_overlay, self.character_cursor, self.character_catalog, self.tutorial_page)
+    end
+    if self.pause_menu_open and self.renderer then
+        self.renderer:render_pause_menu(self.pause_cursor)
     end
 end
 
